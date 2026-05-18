@@ -238,4 +238,25 @@
     if (gutterMascot) autoBlink(gutterMascot, 2200, 5000);
   }
 
+  // ─── Download buttons: upgrade to the direct latest-release DMG ─
+  // Markup href already points at the latest-release page, so it works
+  // with no JS and is the silent fallback if this fetch fails — same
+  // destination either way. On success we upgrade to a one-click DMG.
+  const downloadLinks = document.querySelectorAll('a.js-download');
+  if (downloadLinks.length) {
+    fetch('https://api.github.com/repos/hello-hayden-slaughter/Pip-release/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json' }
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(release => {
+        const assets = release.assets || [];
+        const dmg = assets.find(a => /arm64\.dmg$/i.test(a.name))
+          || assets.find(a => /\.dmg$/i.test(a.name));
+        if (dmg && dmg.browser_download_url) {
+          downloadLinks.forEach(a => { a.href = dmg.browser_download_url; });
+        }
+      })
+      .catch(() => { /* keep the latest-release-page fallback href */ });
+  }
+
 })();
