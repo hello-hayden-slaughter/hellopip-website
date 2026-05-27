@@ -296,21 +296,6 @@
         if (primary && primary.browser_download_url) {
           downloadLinks.forEach(a => { a.href = primary.browser_download_url; });
         }
-
-        // Intel escape hatch under the hero/CTA buttons — only when an
-        // x64 build exists and isn't already the primary pick.
-        const x64Dmg = assets.find(a => /\.dmg$/i.test(a.name) && !/arm64|universal/i.test(a.name));
-        if (x64Dmg && x64Dmg.browser_download_url && (!primary || primary.name !== x64Dmg.name)) {
-          document.querySelectorAll('a.btn-lg.js-download').forEach(btn => {
-            if (!btn.parentElement || btn.parentElement.querySelector('.intel-fallback')) return;
-            const note = document.createElement('div');
-            note.className = 'hero-meta intel-fallback';
-            note.style.flexBasis = '100%';
-            note.style.textAlign = 'center';
-            note.innerHTML = 'On an Intel Mac? <a href="' + x64Dmg.browser_download_url + '" style="color: var(--coral); text-decoration: underline;">Get the Intel build →</a>';
-            btn.parentElement.appendChild(note);
-          });
-        }
       })
       .catch(() => { /* keep the latest-release-page fallback href */ });
   }
