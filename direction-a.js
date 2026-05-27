@@ -241,19 +241,75 @@
   // ─── Download buttons: upgrade to the direct latest-release DMG ─
   // Markup href already points at the latest-release page, so it works
   // with no JS and is the silent fallback if this fetch fails — same
-  // destination either way. On success we upgrade to a one-click DMG.
+  // destination either way. On success we upgrade to a one-click DMG
+  // matched to the visitor's Mac architecture.
+  //
+  // macOS arch detection is awkward because navigator.userAgent reports
+  // "Intel Mac OS X" on every Mac (Apple kept it stable for compat). So
+  // we try the modern UA-Client-Hints path first (Chrome/Edge), then
+  // fall back to the WebGL renderer string (works on Safari/Firefox):
+  // M-series GPUs report "Apple GPU"/"Apple M…"; Intel Macs report
+  // "Intel …" (and AMD-Radeon Macs are always Intel hosts).
+  async function detectMacArch() {
+    try {
+      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+        const ua = await navigator.userAgentData.getHighEntropyValues(['architecture']);
+        if (ua.architecture === 'arm') return 'arm64';
+        if (ua.architecture === 'x86') return 'x64';
+      }
+    } catch (_) { /* fall through */ }
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        if (ext) {
+          const renderer = String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '');
+          if (/\bApple\b/.test(renderer) && !/Intel/i.test(renderer)) return 'arm64';
+          if (/\bIntel\b/i.test(renderer)) return 'x64';
+          if (/\b(AMD|Radeon|ATI)\b/i.test(renderer)) return 'x64';
+        }
+      }
+    } catch (_) { /* fall through */ }
+    return null;
+  }
+
+  // x64 build is the unsuffixed DMG (Pip-X.Y.Z.dmg); arm64 has -arm64 in the name.
+  function pickDmgForArch(assets, arch) {
+    const arm = assets.find(a => /-arm64\.dmg$/i.test(a.name));
+    const x64 = assets.find(a => /\.dmg$/i.test(a.name) && !/arm64|universal/i.test(a.name));
+    if (arch === 'x64') return x64 || arm;
+    return arm || x64;
+  }
+
   const downloadLinks = document.querySelectorAll('a.js-download');
   if (downloadLinks.length) {
-    fetch('https://api.github.com/repos/hello-hayden-slaughter/Pip-release/releases/latest', {
-      headers: { Accept: 'application/vnd.github+json' }
-    })
-      .then(r => r.ok ? r.json() : Promise.reject(r.status))
-      .then(release => {
+    Promise.all([
+      detectMacArch(),
+      fetch('https://api.github.com/repos/hello-hayden-slaughter/Pip-release/releases/latest', {
+        headers: { Accept: 'application/vnd.github+json' }
+      }).then(r => r.ok ? r.json() : Promise.reject(r.status))
+    ])
+      .then(([arch, release]) => {
         const assets = release.assets || [];
-        const dmg = assets.find(a => /arm64\.dmg$/i.test(a.name))
-          || assets.find(a => /\.dmg$/i.test(a.name));
-        if (dmg && dmg.browser_download_url) {
-          downloadLinks.forEach(a => { a.href = dmg.browser_download_url; });
+        const primary = pickDmgForArch(assets, arch);
+        if (primary && primary.browser_download_url) {
+          downloadLinks.forEach(a => { a.href = primary.browser_download_url; });
+        }
+
+        // Intel escape hatch under the hero/CTA buttons — only when an
+        // x64 build exists and isn't already the primary pick.
+        const x64Dmg = assets.find(a => /\.dmg$/i.test(a.name) && !/arm64|universal/i.test(a.name));
+        if (x64Dmg && x64Dmg.browser_download_url && (!primary || primary.name !== x64Dmg.name)) {
+          document.querySelectorAll('a.btn-lg.js-download').forEach(btn => {
+            if (!btn.parentElement || btn.parentElement.querySelector('.intel-fallback')) return;
+            const note = document.createElement('div');
+            note.className = 'hero-meta intel-fallback';
+            note.style.flexBasis = '100%';
+            note.style.textAlign = 'center';
+            note.innerHTML = 'On an Intel Mac? <a href="' + x64Dmg.browser_download_url + '" style="color: var(--coral); text-decoration: underline;">Get the Intel build →</a>';
+            btn.parentElement.appendChild(note);
+          });
         }
       })
       .catch(() => { /* keep the latest-release-page fallback href */ });
