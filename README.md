@@ -4,9 +4,12 @@ Static marketing site. No build step.
 
 ## Files
 - `index.html` — the site
-- `direction-a.js` — mascot + interactions
+- `main.js` — mascot animation, download resolution, scroll reveal, demo embed
 - `site.webmanifest` — PWA manifest
 - `assets/favicon*` — favicons (SVG + PNG, plus Apple touch icon)
+
+## The playable demo
+The hero embeds the live Pip demo in an iframe from `demo.hellopip.co.uk` (loaded on click). That demo is the browser-only build on the app repo's `feat/demo-build` branch (`npm run build:demo`), hosted separately. Until it's deployed there, the embed shows a graceful download fallback.
 
 ## Deploy
 
