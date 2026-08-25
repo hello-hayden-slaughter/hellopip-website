@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const DEMO_URL = "https://demo.hellopip.co.uk";
+  const DEMO_URL = "https://hello-hayden-slaughter.github.io/hellopip-demo/";
 
   // ─── Inject the animated mascot into showcase slots ───────────────
   const tmpl = document.getElementById("pip-animated");
