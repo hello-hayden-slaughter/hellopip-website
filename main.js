@@ -2,7 +2,6 @@
 (() => {
   "use strict";
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const DEMO_URL = "https://hello-hayden-slaughter.github.io/hellopip-demo/";
 
   // ─── Inject the animated mascot into showcase slots ───────────────
   const tmpl = document.getElementById("pip-animated");
@@ -69,44 +68,6 @@
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     revealables.forEach((el) => io.observe(el));
-  }
-
-  // ─── Playable demo: click to load the live app in an iframe ───────
-  // Kept behind a click so the heavy app only loads on intent, and so
-  // the page is fast for everyone who just wants to download.
-  const launch = document.getElementById("demo-launch");
-  const win = document.getElementById("try");
-  if (launch && win) {
-    launch.addEventListener("click", () => {
-      const app = win.querySelector(".app");
-      const over = document.getElementById("demo-over");
-      if (over) over.remove();
-      if (app) app.remove();
-
-      const iframe = document.createElement("iframe");
-      iframe.className = "demo-frame";
-      iframe.title = "Pip — live demo";
-      iframe.setAttribute("loading", "lazy");
-      iframe.setAttribute("allow", "clipboard-write");
-      iframe.src = DEMO_URL;
-      win.appendChild(iframe);
-
-      // If the demo host isn't reachable yet, show a graceful fallback.
-      const fallback = () => {
-        if (iframe.dataset.ok) return;
-        iframe.remove();
-        const f = document.createElement("div");
-        f.className = "demo-fallback";
-        f.innerHTML =
-          '<h3>The demo isn’t up just yet</h3>' +
-          '<p>It’s on its way. In the meantime you can download Pip and have the real thing.</p>' +
-          '<a class="btn btn-primary js-download" href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest">Download for Mac</a>';
-        win.appendChild(f);
-        wireDownloads(f.querySelectorAll("a.js-download"));
-      };
-      iframe.addEventListener("load", () => { iframe.dataset.ok = "1"; });
-      setTimeout(fallback, 6000);
-    }, { once: true });
   }
 
   // ─── Download buttons: resolve the arch-matched latest DMG ────────
