@@ -3,21 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pip — Thinks with you, not for you.</title>
+<title>Pip — thinks with you, not for you</title>
 
-<!-- Favicons -->
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#FF6B4A">
+<meta name="theme-color" content="#FAFAF8">
 
-<!-- Social previews -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pip">
-<meta property="og:title" content="Pip — Thinks with you, not for you.">
-<meta property="og:description" content="Most AI tools produce output. Pip takes the operational noise off your plate — Slack, email, meetings — and when something needs working through, he thinks alongside you.">
+<meta property="og:title" content="Pip — thinks with you, not for you">
+<meta property="og:description" content="A local workspace you and an AI write in together. Your notes, your canvases, the files that come out of them, all sat on your Mac.">
 <meta property="og:url" content="https://hellopip.co.uk/">
 <meta property="og:image" content="https://hellopip.co.uk/assets/og-card.png">
 <meta property="og:image:width" content="1200">
@@ -27,1127 +25,361 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --coral:        #FF6B4A;
-    --dark-coral:   #D4502E;
-    --coral-hover:  #E85A3A;
-    --coral-soft:   rgba(255,107,74,0.10);
-    --coral-tint:   rgba(255,107,74,0.06);
-    --navy:         #090A49;
+:root{
+  --paper:#FAFAF8;--panel:#F3F1EC;--sand:#ECE9E3;--line:#E4E1DA;--line-soft:#EDEAE3;
+  --ink:#0B0C3A;--body:#2B2B2E;--muted:#6B6960;--faint:#9A978F;
+  --coral:#FF6B4A;--coral-deep:#D4502E;--coral-tint:rgba(255,107,74,.10);
+  --card:#FFFFFF;--onnavy:#EDEBF5;--onnavy-mut:rgba(237,235,245,.62);
+  --ok:#34C759;
+  --shadow-sm:0 1px 2px rgba(11,12,58,.05),0 2px 8px -3px rgba(11,12,58,.08);
+  --shadow-md:0 2px 6px rgba(11,12,58,.05),0 16px 40px -20px rgba(11,12,58,.18);
+  --shadow-lg:0 30px 80px -34px rgba(11,12,58,.34),0 3px 10px rgba(11,12,58,.06);
+  --disp:'Bricolage Grotesque',system-ui,sans-serif;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+  --edge:clamp(20px,5.5vw,64px);
+}
+:root:not([data-theme="light"]){@media (prefers-color-scheme:dark){
+  --paper:#181716;--panel:#201E1C;--sand:#292723;--line:rgba(255,255,255,.09);--line-soft:rgba(255,255,255,.06);
+  --ink:#F0ECE4;--body:#D8D4CC;--muted:#9E9A91;--faint:#726E67;
+  --coral:#FF7F5C;--coral-deep:#FF9877;--coral-tint:rgba(255,127,92,.14);
+  --card:#221F1E;--onnavy:#EDEBF5;--onnavy-mut:rgba(237,235,245,.6);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 2px 6px rgba(0,0,0,.4),0 18px 44px -22px rgba(0,0,0,.7);
+  --shadow-lg:0 34px 84px -34px rgba(0,0,0,.75),0 3px 10px rgba(0,0,0,.4);
+}}
+:root[data-theme="dark"]{
+  --paper:#181716;--panel:#201E1C;--sand:#292723;--line:rgba(255,255,255,.09);--line-soft:rgba(255,255,255,.06);
+  --ink:#F0ECE4;--body:#D8D4CC;--muted:#9E9A91;--faint:#726E67;
+  --coral:#FF7F5C;--coral-deep:#FF9877;--coral-tint:rgba(255,127,92,.14);
+  --card:#221F1E;--onnavy:#EDEBF5;--onnavy-mut:rgba(237,235,245,.6);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 2px 6px rgba(0,0,0,.4),0 18px 44px -22px rgba(0,0,0,.7);
+  --shadow-lg:0 34px 84px -34px rgba(0,0,0,.75),0 3px 10px rgba(0,0,0,.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--body);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+::selection{background:var(--coral);color:#fff}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 var(--edge)}
+.narrow{max-width:820px}
 
-    --canvas:   #FAFAF8;
-    --stone:    #F2F0ED;
-    --sand:     #E8E5E0;
-    --pebble:   #EDEAE5;
-    --clay:     #E0DDD7;
-    --charcoal: #2C2C2C;
-    --ink:      #1A1A1A;
+.mascot{display:block;fill:var(--coral)}
+.pip-mascot{display:block}
+.pip-mascot .pip-body{fill:var(--coral)}
+.pip-mascot .pip-pupil{transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.pip-mascot .pip-eye-white{transition:transform .18s ease;transform-origin:center;transform-box:fill-box}
+.pip-mascot.blink .pip-eye-white{transform:scaleY(.08)}
+.pip-mascot .pip-mouth{transition:d .3s ease}
 
-    --text-primary:   #1A1A1A;
-    --text-secondary: #5C5B57;
-    --text-muted:     #8E8C86;
+h1,h2,h3,h4{font-family:var(--disp);color:var(--ink);font-weight:600;letter-spacing:-.02em;text-wrap:balance;line-height:1.02}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);display:inline-flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:16px;height:1px;background:var(--coral);opacity:.8}
+.coral{color:var(--coral)}
 
-    --radius-sm: 8px;
-    --radius-md: 14px;
-    --radius-lg: 20px;
-    --radius-xl: 28px;
-    --radius-full: 9999px;
+.btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-weight:500;font-size:15px;border-radius:11px;padding:13px 20px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .12s ease,background .15s ease,border-color .15s}
+.btn svg{width:15px;height:15px}
+.btn-primary{background:var(--coral);color:#fff}
+.btn-primary:hover{background:var(--coral-deep)}
+.btn:active{transform:scale(.98)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{background:var(--panel)}
+.btn-light{background:var(--coral);color:#fff}
 
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-lg: 0 18px 48px rgba(20,16,12,0.10), 0 4px 12px rgba(20,16,12,0.05);
-    --shadow-bubble: 0 1px 4px rgba(0,0,0,0.06);
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:15px var(--edge);background:color-mix(in srgb,var(--paper) 82%,transparent);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-bottom:1px solid transparent;transition:border-color .2s}
+nav.scrolled{border-bottom-color:var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:19px;color:var(--ink);letter-spacing:-.02em}
+.brand .mascot{width:30px;height:30px}
+.nav-links{display:flex;gap:30px}
+.nav-links a{font-size:14px;color:var(--muted);transition:color .12s}
+.nav-links a:hover{color:var(--ink)}
+@media (max-width:760px){.nav-links{display:none}}
 
-    --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
-    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-  }
+.hero{text-align:center;padding:clamp(48px,8vw,92px) var(--edge) 0}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px 6px 11px;box-shadow:var(--shadow-sm);margin-bottom:30px}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(52,199,89,.2)}
+.hero .pip-mascot{width:104px;height:104px;margin:0 auto 30px;filter:drop-shadow(0 18px 30px rgba(255,107,74,.22));animation:bob 6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.hero h1{font-size:clamp(44px,8vw,84px);letter-spacing:-.035em;max-width:15ch;margin:0 auto;font-weight:700}
+.hero h1 .w{color:var(--coral)}
+.hero h1 .f{position:relative;color:var(--muted)}
+.hero h1 .f::after{content:"";position:absolute;left:-2%;right:-2%;top:52%;height:3px;background:var(--coral);border-radius:2px;transform:rotate(-3deg)}
+.hero .sub{font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:52ch;margin:26px auto 34px;line-height:1.5;text-wrap:pretty}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero .meta{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:18px}
 
-  * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--sans);
-    background: var(--canvas);
-    color: var(--text-primary);
-    line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    overflow-x: hidden;
-  }
+.window{margin:clamp(48px,7vw,80px) auto 0;max-width:1000px;border-radius:16px;background:var(--card);box-shadow:var(--shadow-lg);border:1px solid var(--line-soft);overflow:hidden;position:relative}
+.winbar{display:flex;align-items:center;gap:7px;padding:12px 15px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tl{width:11px;height:11px;border-radius:50%}
+.winbar .title{margin-left:12px;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.winbar .live{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--coral);display:inline-flex;align-items:center;gap:6px}
+.winbar .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 3px var(--coral-tint)}
+.app{display:grid;grid-template-columns:56px 1fr 260px;min-height:420px}
+.app-side{background:var(--panel);border-right:1px solid var(--line);padding:16px 0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.app-side .ic{width:30px;height:30px;border-radius:9px;background:var(--sand)}
+.app-side .ic.on{background:var(--card);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;padding:4px}
+.app-side .ic.on .mascot{width:100%;height:100%}
+.app-note{padding:34px 38px;border-right:1px solid var(--line);min-width:0}
+.app-note .k{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em;margin-bottom:12px}
+.app-note h3{font-family:var(--disp);font-weight:600;font-size:26px;color:var(--ink);margin-bottom:16px;letter-spacing:-.02em}
+.app-note p{font-size:14.5px;line-height:1.7;color:var(--body);margin-bottom:13px}
+.app-note p .hl{background:var(--coral-tint);border-radius:3px;padding:0 3px;box-decoration-break:clone}
+.app-note .newblock{border-left:2px solid var(--coral);padding-left:14px;margin-top:4px}
+.app-note .newblock .who{font-family:var(--mono);font-size:10.5px;color:var(--coral);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.app-note .newblock .who .mascot{width:13px;height:13px}
+.app-chat{background:var(--paper);padding:20px 18px;display:flex;flex-direction:column;gap:14px}
+.app-chat .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.bub{font-size:13px;line-height:1.5;border-radius:14px;padding:11px 13px;max-width:92%}
+.bub.me{align-self:flex-end;background:var(--ink);color:var(--onnavy);border-bottom-right-radius:5px}
+.bub.pip{align-self:flex-start;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-sm);border-bottom-left-radius:5px;color:var(--body)}
+.bub.pip b{color:var(--ink)}
+.tool{align-self:flex-start;font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--sand);border-radius:8px;padding:6px 10px;display:inline-flex;gap:7px;align-items:center}
+.tool::before{content:"✓";color:var(--coral);font-weight:700}
+@media (max-width:820px){.app{grid-template-columns:1fr}.app-side{flex-direction:row;justify-content:flex-start;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.app-note{border-right:0;border-bottom:1px solid var(--line);padding:26px}.app-chat{padding:18px}}
 
-  ::selection { background: var(--coral); color: white; }
+.demo-over{position:absolute;inset:44px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px;background:color-mix(in srgb,var(--paper) 60%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.demo-over .play{width:66px;height:66px;border-radius:50%;background:var(--coral);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px -10px rgba(255,107,74,.6);border:none;cursor:pointer;transition:transform .15s}
+.demo-over .play:hover{transform:scale(1.06)}
+.demo-over .play svg{width:24px;height:24px;margin-left:3px}
+.demo-over h3{font-family:var(--disp);font-size:clamp(20px,3vw,26px);color:var(--ink);letter-spacing:-.01em}
+.demo-over p{font-size:14px;color:var(--muted);max-width:38ch}
+.demo-frame{width:100%;height:min(72vh,620px);border:0;display:block;background:var(--paper)}
+.demo-fallback{padding:56px 24px;text-align:center}
+.demo-fallback h3{font-family:var(--disp);font-size:24px;color:var(--ink);margin-bottom:10px}
+.demo-fallback p{font-size:15px;color:var(--muted);max-width:44ch;margin:0 auto 22px}
 
-  /* ─── Mascot ─── */
-  .pip-mascot { width: 100%; height: 100%; display: block; }
-  .pip-pupil { transition: transform 280ms cubic-bezier(.4,0,.2,1); }
-  .pip-eye-white { transition: transform 200ms ease; transform-origin: center; transform-box: fill-box; }
-  .blink .pip-eye-white { transform: scaleY(0.08); }
-  .pip-mouth { transition: d 300ms ease; }
+section{padding:clamp(72px,11vw,130px) 0}
+.center{text-align:center}
+.center .eyebrow{justify-content:center}
+h2.big{font-size:clamp(32px,5.4vw,58px);letter-spacing:-.03em;max-width:18ch;margin:18px 0 0}
+.center h2.big{margin-left:auto;margin-right:auto}
+.lede{font-size:17px;color:var(--muted);max-width:56ch;line-height:1.55;margin-top:20px}
+.center .lede{margin-left:auto;margin-right:auto}
 
-  /* ─── Layout ─── */
-  .container { max-width: 1100px; margin: 0 auto; padding: 0 56px; }
-  .container-narrow { max-width: 780px; margin: 0 auto; padding: 0 56px; }
-  .container-wide { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+.belief{text-align:center}
+.belief .q{font-family:var(--disp);font-weight:500;font-size:clamp(28px,4.6vw,50px);letter-spacing:-.025em;color:var(--ink);max-width:20ch;margin:22px auto 0;line-height:1.08}
+.belief .q .coral{color:var(--coral)}
+.belief .sub{font-size:16px;color:var(--muted);max-width:50ch;margin:26px auto 0;line-height:1.55}
 
-  /* ─── Nav ─── */
-  nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 48px;
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(250, 250, 248, 0.85);
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border-bottom: 1px solid transparent;
-    transition: border-color 200ms, background 200ms;
-  }
-  nav.scrolled { border-bottom-color: var(--clay); }
-  .nav-logo {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 16px; font-weight: 600; color: var(--text-primary);
-    text-decoration: none; letter-spacing: -0.01em;
-  }
-  .nav-logo-mark { width: 30px; height: 30px; }
-  .nav-links {
-    display: flex; gap: 32px; align-items: center;
-  }
-  .nav-link {
-    font-size: 14px; color: var(--text-secondary);
-    text-decoration: none; transition: color 120ms;
-  }
-  .nav-link:hover { color: var(--text-primary); }
-  .nav-right { display: flex; align-items: center; gap: 20px; }
+.split{display:grid;grid-template-columns:1fr 1.08fr;gap:clamp(32px,5vw,72px);align-items:center}
+.split.flip .fig{order:-1}
+.split .copy h2{font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;margin:16px 0 0}
+.split .copy p{font-size:16.5px;color:var(--body);line-height:1.65;margin-top:18px;max-width:48ch}
+.split .copy p strong{color:var(--ink);font-weight:600}
+.split .copy .quote{font-size:14.5px;color:var(--muted);border-left:2px solid var(--coral);padding-left:14px;margin-top:22px;font-style:italic;line-height:1.5}
+@media (max-width:840px){.split{grid-template-columns:1fr;gap:36px}.split.flip .fig{order:0}}
 
-  /* ─── Button ─── */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--ink); color: white;
-    font-family: inherit; font-size: 14px; font-weight: 500;
-    padding: 10px 18px; border-radius: var(--radius-sm);
-    border: none; cursor: pointer; text-decoration: none;
-    transition: transform 120ms, background 120ms;
-  }
-  .btn:hover { background: var(--charcoal); }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--coral); }
-  .btn-primary:hover { background: var(--coral-hover); }
-  .btn-lg { font-size: 15px; padding: 14px 24px; gap: 10px; }
-  .btn-ghost { background: transparent; color: var(--text-primary); padding: 10px 16px; }
-  .btn-ghost:hover { background: rgba(0,0,0,0.04); }
+.fig{position:relative}
+.notecard{background:var(--card);border-radius:18px;box-shadow:var(--shadow-md);border:1px solid var(--line-soft);overflow:hidden}
+.notecard .head{padding:22px 26px 0}
+.notecard h3{font-family:var(--disp);font-weight:600;font-size:22px;color:var(--ink);letter-spacing:-.02em}
+.notecard .meta{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:6px}
+.notecard .body{padding:16px 26px 26px;font-size:14.5px;line-height:1.7;color:var(--body)}
+.notecard .body p{margin-bottom:12px}
+.notecard .body .hl{background:var(--coral-tint);border-radius:3px;padding:0 3px}
+.anno{margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:var(--panel);border-radius:12px;padding:12px 14px}
+.anno .av{width:26px;height:26px;flex:0 0 26px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.anno .av .mascot{width:22px;height:22px}
+.anno .t{font-size:13px;line-height:1.5;color:var(--body)}
+.anno .t b{color:var(--coral-deep)}
 
-  /* ─── Hero ─── */
-  .hero {
-    padding: 80px 48px 40px;
-    text-align: center;
-    position: relative;
-  }
-  .hero-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--text-secondary);
-    margin-bottom: 32px;
-    padding: 6px 12px 6px 8px;
-    background: white;
-    border: 1px solid var(--clay);
-    border-radius: var(--radius-full);
-    box-shadow: var(--shadow-sm);
-  }
-  .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #34C759; box-shadow: 0 0 0 4px rgba(52,199,89,0.18); }
-  .hero-mascot-wrap {
-    width: 120px; height: 120px;
-    margin: 0 auto 36px;
-    animation: float 5s ease-in-out infinite;
-    filter: drop-shadow(0 18px 32px rgba(255,107,74,0.25));
-  }
-  @keyframes float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-  .hero h1 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: clamp(56px, 8vw, 92px);
-    line-height: 0.98;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    max-width: 900px;
-    margin: 0 auto 28px;
-  }
-  .hero h1 em { font-style: italic; color: var(--coral); }
-  .hero h1 .hero-pip {
-    font-family: var(--sans);
-    font-weight: 600;
-    color: var(--coral);
-    font-size: 0.78em;
-    letter-spacing: -0.02em;
-    vertical-align: 0.04em;
-    margin-right: 0.05em;
-  }
-  .hero-sub {
-    font-size: 19px; line-height: 1.55;
-    color: var(--text-secondary);
-    max-width: 580px;
-    margin: 0 auto 36px;
-    text-wrap: pretty;
-  }
-  .hero-cta {
-    display: flex; align-items: center; justify-content: center;
-    gap: 14px; flex-wrap: wrap; margin-bottom: 18px;
-  }
-  .hero-meta {
-    font-size: 13px; color: var(--text-muted);
-    font-family: var(--mono);
-  }
+.canvas-fig{background:var(--card);border-radius:18px;box-shadow:var(--shadow-md);border:1px solid var(--line-soft);overflow:hidden}
+.canvas-fig .head{display:flex;align-items:center;gap:7px;padding:12px 15px;background:var(--panel);border-bottom:1px solid var(--line)}
+.canvas-fig .head .title{margin-left:10px;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.canvas-stage{position:relative;height:360px;background:radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0/22px 22px;background-color:var(--paper)}
+.node{position:absolute;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:13px;font-weight:500;color:var(--ink);box-shadow:var(--shadow-sm);min-width:96px;text-align:center}
+.node.accent{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-tint),var(--shadow-sm)}
+.node .sub{font-weight:400;font-size:11px;color:var(--muted);margin-top:3px}
+.pip-cursor{position:absolute;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;color:#fff;background:var(--coral);padding:4px 9px 4px 6px;border-radius:999px;box-shadow:var(--shadow-md);white-space:nowrap}
+.pip-cursor .mascot{width:15px;height:15px;fill:#fff}
 
-  /* Hero product visual */
-  .hero-visual {
-    margin: 80px auto 0;
-    max-width: 1080px;
-    position: relative;
-  }
-  .window-frame {
-    background: white;
-    border-radius: 16px;
-    box-shadow:
-      0 60px 100px -30px rgba(20,16,12,0.18),
-      0 30px 60px -20px rgba(20,16,12,0.12),
-      0 1px 3px rgba(20,16,12,0.05),
-      0 0 0 1px rgba(20,16,12,0.04);
-    overflow: hidden;
-    transform: translateZ(0);
-  }
-  .window-bar {
-    display: flex; align-items: center; gap: 8px;
-    padding: 12px 16px;
-    background: linear-gradient(to bottom, #F5F3EF, #EFEDE8);
-    border-bottom: 1px solid var(--clay);
-  }
-  .traffic-light { width: 12px; height: 12px; border-radius: 50%; }
-  .traffic-light.r { background: #FF5F57; }
-  .traffic-light.y { background: #FEBC2E; }
-  .traffic-light.g { background: #28C840; }
-  .window-title {
-    margin-left: 12px;
-    font-size: 12px; color: var(--text-muted);
-    font-weight: 500;
-  }
-  .window-body { background: var(--canvas); aspect-ratio: 16/10; overflow: hidden; container-type: inline-size; }
-  .window-body img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.thread{background:var(--card);border-radius:18px;box-shadow:var(--shadow-md);border:1px solid var(--line-soft);padding:22px}
+.thread .row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:10px 0;border-bottom:1px dashed var(--line)}
+.thread .row:last-of-type{border-bottom:0}
+.thread .row .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+.thread .carry{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.thread .cur{background:var(--panel);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.thread .cur h4{font-family:var(--disp);font-size:17px;color:var(--ink);margin-bottom:8px}
+.thread .cur .tags{display:flex;gap:6px;flex-wrap:wrap}
+.thread .tag{font-family:var(--mono);font-size:10.5px;color:var(--coral);background:var(--coral-tint);border-radius:999px;padding:3px 9px}
+.thread .ignored{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--faint);margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.thread .ignored s{color:var(--faint)}
 
-  /* Mock home screen (replaces real screenshot — generic content) */
-  .mock-home {
-    width: 100%; height: 100%;
-    display: flex;
-    background: var(--canvas);
-    color: var(--text-primary);
-    font-size: clamp(9px, 1.3cqw, 14px);
-    line-height: 1.5;
-    position: relative;
-  }
-  .mock-sidebar {
-    width: 6.5cqw;
-    flex: 0 0 6.5cqw;
-    background: var(--stone);
-    border-right: 1px solid var(--clay);
-    padding: 2cqw 0;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 1.4cqw;
-  }
-  .mock-sidebar .nav-icon {
-    width: 3cqw; height: 3cqw;
-    border-radius: 0.7cqw;
-    background: var(--clay);
-    opacity: 0.55;
-  }
-  .mock-sidebar .nav-icon.active {
-    background: white;
-    box-shadow: var(--shadow-sm);
-    opacity: 1;
-    padding: 0.4cqw;
-  }
-  .mock-sidebar .nav-icon.active .pip-mascot { width: 100%; height: 100%; }
-  .mock-main {
-    flex: 1; min-width: 0;
-    padding: 2.8cqw 5cqw 2.2cqw;
-    overflow: hidden;
-    display: flex; flex-direction: column;
-    gap: 1.6cqw;
-  }
-  .mock-home-mascot {
-    width: 6.5cqw; height: 6.5cqw;
-    margin: 0.4cqw auto 0.8cqw;
-    filter: drop-shadow(0 0.8cqw 1.4cqw rgba(255,107,74,0.22));
-  }
-  .mock-greeting {
-    text-align: center;
-    font-size: clamp(20px, 3.6cqw, 40px);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin-bottom: 0.6cqw;
-    line-height: 1;
-  }
-  .mock-briefing,
-  .mock-input,
-  .mock-todos {
-    background: white;
-    border-radius: 1.4cqw;
-    box-shadow: var(--shadow-sm);
-  }
-  .mock-briefing { padding: 2cqw 2.4cqw; }
-  .mock-briefing p { color: var(--text-primary); }
-  .mock-briefing p + p {
-    margin-top: 1.4cqw;
-    padding-top: 1.4cqw;
-    border-top: 1px solid var(--pebble);
-  }
-  .mock-briefing strong { font-weight: 600; }
-  .mock-input {
-    display: flex; align-items: center;
-    padding: 1.2cqw 1.2cqw 1.2cqw 2cqw;
-    color: var(--text-muted);
-  }
-  .mock-input span { flex: 1; font-size: inherit; }
-  .mock-input .send {
-    width: 3cqw; height: 3cqw;
-    border-radius: 50%;
-    background: var(--coral);
-    color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.3cqw; font-weight: 500;
-    flex: 0 0 3cqw;
-  }
-  .mock-todos { padding: 1.6cqw 2.4cqw; }
-  .mock-todos-title {
-    font-family: var(--mono);
-    font-size: 0.72em;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    margin-bottom: 0.8cqw;
-  }
-  .mock-todo {
-    display: flex; align-items: center;
-    gap: 1.2cqw;
-    padding: 0.6cqw 0;
-    color: var(--text-primary);
-  }
-  .mock-todo .check {
-    width: 1.4cqw; height: 1.4cqw;
-    flex: 0 0 1.4cqw;
-    border-radius: 0.3cqw;
-    border: 0.16cqw solid var(--clay);
-  }
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px}
+.fcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;box-shadow:var(--shadow-sm);transition:transform .22s cubic-bezier(.2,.7,.3,1),box-shadow .22s}
+.fcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.fcard .ic{width:42px;height:42px;border-radius:11px;background:var(--coral-tint);color:var(--coral);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.fcard .ic svg{width:22px;height:22px}
+.fcard h3{font-family:var(--disp);font-weight:600;font-size:19px;color:var(--ink);letter-spacing:-.01em}
+.fcard p{font-size:14.5px;color:var(--muted);line-height:1.55;margin-top:9px}
+@media (max-width:820px){.grid3{grid-template-columns:1fr}}
 
-  /* ─── Section base ─── */
-  section {
-    padding: 120px 48px;
-  }
-  .eyebrow {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 12px; font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--coral);
-    text-transform: lowercase;
-    margin-bottom: 22px;
-  }
-  .eyebrow::before { content: '— '; }
+.tools{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tool-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:760px;margin:44px auto 0}
+.tpill{display:inline-flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 18px 11px 13px;font-size:14px;font-weight:500;color:var(--ink);box-shadow:var(--shadow-sm);transition:transform .16s,border-color .16s}
+.tpill:hover{transform:translateY(-2px);border-color:var(--coral)}
+.tpill .m{width:19px;height:19px;display:flex;align-items:center;justify-content:center;border-radius:5px;overflow:hidden}
+.tpill .m svg{width:100%;height:100%}
 
-  h2 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: clamp(40px, 5.2vw, 60px);
-    line-height: 1.03;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin-bottom: 24px;
-    text-wrap: balance;
-  }
-  h2 em { font-style: italic; color: var(--coral); }
+.dark{background:var(--ink);color:var(--onnavy);position:relative;overflow:hidden}
+.dark::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 70% at 85% -10%,rgba(255,107,74,.16),transparent 55%);pointer-events:none}
+.dark .eyebrow{color:var(--onnavy-mut)}
+.dark .eyebrow::before{background:var(--coral)}
+.dark h2{color:#fff}
+.dark .lede{color:var(--onnavy-mut)}
+.dark-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px;position:relative}
+.dcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:26px}
+.dcard .n{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.4);margin-bottom:22px}
+.dcard h3{font-family:var(--disp);font-weight:600;font-size:20px;color:#fff;margin-bottom:10px;letter-spacing:-.01em}
+.dcard p{font-size:14px;color:var(--onnavy-mut);line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.chips span{font-family:var(--mono);font-size:11px;color:var(--onnavy-mut);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:6px 9px}
+.chips span.on{background:var(--coral);color:#fff;border-color:var(--coral)}
+@media (max-width:820px){.dark-grid{grid-template-columns:1fr}}
 
-  .lede {
-    font-size: 19px; line-height: 1.6;
-    color: var(--text-secondary);
-    max-width: 620px;
-    text-wrap: pretty;
-  }
+.faq-list{max-width:760px;margin:52px auto 0}
+details{border-top:1px solid var(--line)}
+details:last-child{border-bottom:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;padding:24px 0;display:flex;justify-content:space-between;align-items:center;gap:20px;font-family:var(--disp);font-weight:500;font-size:19px;color:var(--ink)}
+summary::-webkit-details-marker{display:none}
+summary .pl{width:26px;height:26px;flex:0 0 26px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;transition:transform .25s,background .15s,color .15s;color:var(--muted)}
+details[open] summary .pl{transform:rotate(45deg);background:var(--coral);color:#fff}
+.faq-a{padding:0 0 24px;font-size:15.5px;color:var(--muted);line-height:1.65;max-width:64ch}
 
-  /* ─── Belief / pull quote ─── */
-  .belief {
-    background: var(--canvas);
-    padding: 140px 48px;
-    text-align: center;
-  }
-  .belief-tag {
-    display: flex; align-items: center; gap: 10px; justify-content: center;
-    font-family: var(--mono); font-size: 12px; color: var(--text-muted);
-    margin-bottom: 32px;
-  }
-  .belief-tag .line { width: 36px; height: 1px; background: var(--clay); }
-  .belief-quote {
-    font-family: var(--serif);
-    font-weight: 400; font-style: italic;
-    font-size: clamp(32px, 4.4vw, 52px);
-    line-height: 1.15;
-    letter-spacing: -0.015em;
-    color: var(--ink);
-    max-width: 880px;
-    margin: 0 auto;
-    text-wrap: balance;
-  }
-  .belief-quote span { color: var(--coral); font-style: normal; font-weight: 500; font-family: var(--sans); font-size: 0.7em; vertical-align: middle; }
-  .belief-attrib {
-    margin-top: 36px;
-    font-family: var(--mono); font-size: 12px;
-    color: var(--text-muted);
-    letter-spacing: 0.03em;
-  }
+.final{background:var(--ink);color:#fff;text-align:center;position:relative;overflow:hidden}
+.final::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 50% -5%,rgba(255,107,74,.22),transparent 55%);pointer-events:none}
+.final .pip-mascot{width:84px;height:84px;margin:0 auto 30px;position:relative;animation:bob 6s ease-in-out infinite}
+.final h2{font-size:clamp(40px,7vw,76px);color:#fff;letter-spacing:-.035em;position:relative}
+.final h2 .w{color:var(--coral)}
+.final p{color:var(--onnavy-mut);font-size:17px;margin:16px auto 32px;position:relative}
+.final .hero-cta{position:relative}
+.final .meta{color:rgba(255,255,255,.4);font-family:var(--mono);font-size:12px;margin-top:18px}
 
-  /* ─── Thinking section: split layout ─── */
-  .thinking {
-    background: var(--stone);
-    border-top: 1px solid var(--clay);
-    border-bottom: 1px solid var(--clay);
-  }
-  .thinking-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.05fr;
-    gap: 80px;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 48px;
-  }
-  .thinking-copy h2 { margin-bottom: 28px; }
-  .thinking-copy p { margin-bottom: 20px; font-size: 17px; color: var(--text-secondary); line-height: 1.7; }
-  .thinking-copy p strong { color: var(--ink); font-weight: 600; }
+footer{background:var(--ink);color:rgba(255,255,255,.42);padding:26px var(--edge) 36px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px}
+footer .mk{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;color:#fff;font-size:15px}
+footer .mk .mascot{width:20px;height:20px}
+footer a{color:rgba(255,255,255,.5);margin-left:18px}
+footer a:hover{color:#fff}
 
-  /* Mock chat */
-  .chat-frame {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: 28px 24px;
-    box-shadow: var(--shadow-lg);
-    height: 500px;
-    display: flex; flex-direction: column; gap: 18px;
-    justify-content: flex-end;
-    position: relative;
-    overflow: hidden;
-  }
-  .chat-frame::before {
-    content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(to bottom, transparent 80%, white);
-  }
-  .chat-row { display: flex; gap: 10px; align-items: flex-end; opacity: 0; transform: translateY(8px); animation: chatIn 400ms ease-out forwards; }
-  @keyframes chatIn { to { opacity: 1; transform: translateY(0); } }
-  .chat-row.user { justify-content: flex-end; }
-  .chat-bubble {
-    max-width: 78%;
-    padding: 12px 16px;
-    border-radius: var(--radius-lg);
-    font-size: 14.5px;
-    line-height: 1.5;
-  }
-  .chat-bubble.pip {
-    background: white;
-    border: 1px solid var(--sand);
-    border-bottom-left-radius: 6px;
-    color: var(--text-primary);
-    box-shadow: var(--shadow-bubble);
-  }
-  .chat-bubble.user {
-    background: var(--charcoal);
-    color: white;
-    border-bottom-right-radius: 6px;
-  }
-  .chat-avatar {
-    width: 26px; height: 26px; flex: 0 0 26px;
-    border-radius: 50%; overflow: hidden;
-    background: var(--canvas);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .chat-avatar svg { width: 100%; height: 100%; }
-  .chat-tool {
-    align-self: flex-start;
-    background: var(--sand);
-    color: var(--text-secondary);
-    font-family: var(--mono); font-size: 12px;
-    padding: 7px 12px; border-radius: var(--radius-sm);
-    display: inline-flex; align-items: center; gap: 8px;
-    margin-left: 36px;
-  }
-  .chat-tool::before { content: '✓'; color: var(--coral); font-weight: 700; }
-  .typing {
-    display: inline-flex; gap: 4px; align-items: center;
-    padding: 6px 0;
-  }
-  .typing span {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted);
-    animation: typing 1.2s infinite ease-in-out;
-  }
-  .typing span:nth-child(2) { animation-delay: 0.15s; }
-  .typing span:nth-child(3) { animation-delay: 0.30s; }
-  @keyframes typing {
-    0%,60%,100% { opacity: 0.3; transform: translateY(0); }
-    30%         { opacity: 1; transform: translateY(-3px); }
-  }
-
-  /* ─── Notes section: thinking in the margins ─── */
-  .notes-section { background: var(--canvas); }
-  .notes-section .container { max-width: 1200px; }
-  .notes-head { text-align: center; margin-bottom: 56px; }
-  .notes-head .eyebrow { display: inline-block; }
-  .notes-head h2 { margin: 0 auto 18px; max-width: 720px; }
-  .notes-head .lede { margin: 0 auto; }
-
-  .notes-mock {
-    background: white;
-    border-radius: 16px;
-    box-shadow:
-      0 60px 100px -30px rgba(20,16,12,0.16),
-      0 30px 60px -20px rgba(20,16,12,0.10),
-      0 1px 3px rgba(20,16,12,0.05),
-      0 0 0 1px rgba(20,16,12,0.04);
-    overflow: hidden;
-  }
-  .notes-bar {
-    display: flex; align-items: center; gap: 8px;
-    padding: 12px 16px;
-    background: linear-gradient(to bottom, #F5F3EF, #EFEDE8);
-    border-bottom: 1px solid var(--clay);
-  }
-  .notes-bar .notes-title {
-    margin-left: 12px;
-    font-size: 12px; color: var(--text-muted); font-weight: 500;
-  }
-  .notes-grid {
-    display: grid;
-    grid-template-columns: 1.35fr 1fr;
-    min-height: 520px;
-  }
-  .notes-doc {
-    padding: 56px 56px 56px 64px;
-    border-right: 1px solid var(--stone);
-  }
-  .notes-h {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: 34px;
-    line-height: 1.1;
-    letter-spacing: -0.015em;
-    color: var(--ink);
-    margin-bottom: 6px;
-  }
-  .notes-doc .notes-meta {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 28px;
-    letter-spacing: 0.04em;
-  }
-  .notes-doc .notes-meta .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--coral); vertical-align: middle; margin: 0 6px 2px; opacity: 0.7; }
-  .notes-doc p {
-    font-size: 16px;
-    line-height: 1.7;
-    color: var(--text-primary);
-    margin-bottom: 18px;
-    text-wrap: pretty;
-  }
-  .notes-doc p mark {
-    background: rgba(255,107,74,0.13);
-    color: inherit;
-    padding: 1px 2px;
-    border-radius: 2px;
-  }
-  .notes-list {
-    list-style: none;
-    margin: 0 0 18px;
-    padding: 0;
-  }
-  .notes-list li {
-    padding: 7px 0 7px 22px;
-    position: relative;
-    color: var(--text-primary);
-    font-size: 15.5px;
-    line-height: 1.5;
-  }
-  .notes-list li::before {
-    content: '';
-    position: absolute;
-    left: 6px; top: 15px;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: var(--coral);
-  }
-  .notes-cursor {
-    display: inline-block;
-    width: 2px; height: 1.05em;
-    background: var(--coral);
-    margin-left: 2px;
-    vertical-align: -3px;
-    animation: notesBlink 1s steps(2) infinite;
-  }
-  @keyframes notesBlink { 50% { opacity: 0; } }
-
-  .notes-gutter {
-    position: relative;
-    padding: 56px 40px 56px 32px;
-    background: var(--canvas);
-  }
-  .notes-gutter-label {
-    position: absolute;
-    top: 24px; left: 32px;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .notes-gutter-label .pip-mascot { width: 16px; height: 16px; }
-  .notes-annotation {
-    position: relative;
-    margin-bottom: 22px;
-    display: flex; gap: 12px;
-    align-items: flex-start;
-    opacity: 0;
-    transform: translateX(8px);
-    transition: opacity 460ms ease, transform 460ms cubic-bezier(.2,.7,.3,1);
-  }
-  .notes-mock.played .notes-annotation { opacity: 1; transform: translateX(0); }
-  .notes-anno-avatar {
-    width: 30px; height: 30px; flex: 0 0 30px;
-    border-radius: 50%;
-    background: white;
-    display: flex; align-items: center; justify-content: center;
-    border: 1px solid var(--clay);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-  .notes-anno-avatar .pip-mascot { width: 28px; height: 28px; }
-  .notes-anno-bubble {
-    background: white;
-    border: 1px solid var(--sand);
-    border-radius: 14px;
-    padding: 12px 14px;
-    font-size: 13.5px;
-    line-height: 1.55;
-    color: var(--text-primary);
-    box-shadow: var(--shadow-bubble);
-    position: relative;
-    flex: 1;
-  }
-  .notes-anno-bubble::before {
-    content: '';
-    position: absolute;
-    left: -6px; top: 12px;
-    width: 11px; height: 11px;
-    background: white;
-    border-left: 1px solid var(--sand);
-    border-bottom: 1px solid var(--sand);
-    transform: rotate(45deg);
-  }
-  .notes-anno-bubble strong { color: var(--coral); font-weight: 600; }
-  .notes-anno-spacer { height: 60px; }
-
-  /* ─── Operational work cards ─── */
-  .ops .container { display: grid; grid-template-columns: 1fr; gap: 60px; }
-  .ops-header {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: end;
-  }
-  .ops-cards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-  }
-  .ops-card {
-    background: white;
-    border-radius: var(--radius-md);
-    padding: 28px 28px 24px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(0,0,0,0.025);
-    transition: transform 240ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms;
-    position: relative;
-    overflow: hidden;
-  }
-  .ops-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .ops-card-icon {
-    width: 40px; height: 40px;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    background: var(--coral-soft);
-    color: var(--coral);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .ops-card-icon svg { width: 22px; height: 22px; }
-  .ops-card h3 {
-    font-size: 17px; font-weight: 600; color: var(--ink);
-    margin-bottom: 8px; letter-spacing: -0.005em;
-  }
-  .ops-card p {
-    font-size: 14.5px; line-height: 1.55; color: var(--text-secondary);
-  }
-
-  /* ─── Integrations ─── */
-  .tools {
-    background: var(--canvas);
-  }
-  .tools .container { max-width: 1100px; }
-  .tools-header { text-align: center; margin-bottom: 60px; }
-  .tools-header .eyebrow { display: inline-block; }
-  .tools-header h2 { margin: 0 auto 16px; max-width: 720px; }
-  .tools-header .lede { margin: 0 auto; }
-  .tools-row {
-    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-    max-width: 800px; margin: 0 auto;
-  }
-  .tool-pill {
-    display: inline-flex; align-items: center; gap: 9px;
-    background: white;
-    border: 1px solid var(--clay);
-    border-radius: var(--radius-full);
-    padding: 11px 18px 11px 14px;
-    font-size: 14px; font-weight: 500;
-    color: var(--text-primary);
-    box-shadow: var(--shadow-sm);
-    transition: transform 160ms, border-color 160ms;
-  }
-  .tool-pill:hover { transform: translateY(-2px); border-color: var(--coral); }
-  .tool-pill .tool-mark {
-    width: 20px; height: 20px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    overflow: hidden;
-    border-radius: 5px;
-  }
-  .tool-pill .tool-mark svg { width: 100%; height: 100%; display: block; }
-
-  /* ─── Privacy ─── */
-  .privacy {
-    background: var(--ink);
-    color: white;
-    padding: 140px 48px;
-  }
-  .privacy .container { max-width: 1100px; }
-  .privacy .eyebrow { color: #FF8E72; }
-  .privacy h2 { color: white; max-width: 760px; margin-bottom: 28px; }
-  .privacy h2 em { color: #FFB199; }
-  .privacy .lede { color: rgba(255,255,255,0.65); }
-  .privacy-grid {
-    margin-top: 72px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
-  }
-  .privacy-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: var(--radius-lg);
-    padding: 32px;
-    backdrop-filter: blur(8px);
-  }
-  .privacy-card-num {
-    font-family: var(--mono); font-size: 12px;
-    color: rgba(255,255,255,0.4); margin-bottom: 32px;
-  }
-  .privacy-card h3 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: 26px;
-    line-height: 1.15;
-    color: white;
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-  }
-  .privacy-card p {
-    font-size: 15px;
-    color: rgba(255,255,255,0.6);
-    line-height: 1.65;
-  }
-  .model-picker {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 8px; margin-top: 24px;
-  }
-  .model-chip {
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    font-size: 12px; color: rgba(255,255,255,0.8);
-    font-family: var(--mono);
-    text-align: center;
-    transition: background 160ms;
-  }
-  .model-chip.active { background: var(--coral); color: white; border-color: var(--coral); }
-
-  /* ─── FAQ ─── */
-  .faq .container { max-width: 820px; }
-  .faq-header { text-align: center; margin-bottom: 60px; }
-  .faq-list { display: flex; flex-direction: column; }
-  .faq-item { border-top: 1px solid var(--clay); }
-  .faq-item:last-child { border-bottom: 1px solid var(--clay); }
-  .faq-q {
-    width: 100%; text-align: left;
-    padding: 26px 0;
-    background: none; border: 0;
-    font-family: inherit;
-    font-size: 18px; font-weight: 500;
-    color: var(--ink);
-    cursor: pointer;
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 24px;
-  }
-  .faq-q .icon {
-    width: 28px; height: 28px; flex: 0 0 28px;
-    border-radius: 50%;
-    background: var(--stone);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-secondary);
-    transition: transform 220ms ease, background 120ms;
-  }
-  .faq-item.open .faq-q .icon { transform: rotate(45deg); background: var(--coral); color: white; }
-  .faq-a {
-    max-height: 0; overflow: hidden;
-    transition: max-height 320ms cubic-bezier(.4,0,.2,1);
-  }
-  .faq-a-inner {
-    padding: 0 0 26px;
-    font-size: 16px; line-height: 1.7;
-    color: var(--text-secondary);
-    max-width: 700px;
-  }
-
-  /* ─── Footer CTA ─── */
-  .cta-final {
-    background: var(--ink);
-    color: white;
-    text-align: center;
-    padding: 160px 48px 120px;
-    position: relative;
-    overflow: hidden;
-  }
-  .cta-final::before {
-    content: ''; position: absolute; inset: 0;
-    background:
-      radial-gradient(circle at 50% -20%, rgba(255,107,74,0.18), transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(255,107,74,0.08), transparent 50%);
-    pointer-events: none;
-  }
-  .cta-final-mascot {
-    width: 88px; height: 88px;
-    margin: 0 auto 40px;
-    position: relative;
-    animation: float 5s ease-in-out infinite;
-  }
-  .cta-final h2 {
-    color: white;
-    font-size: clamp(48px, 6.5vw, 84px);
-    margin-bottom: 18px;
-    position: relative;
-  }
-  .cta-final h2 em { color: #FFB199; }
-  .cta-final p {
-    font-size: 18px; color: rgba(255,255,255,0.6);
-    max-width: 480px; margin: 0 auto 40px;
-    position: relative;
-  }
-  .cta-final .hero-cta { position: relative; }
-  .cta-final .hero-meta { color: rgba(255,255,255,0.4); margin-top: 18px; }
-
-  footer {
-    background: var(--ink);
-    color: rgba(255,255,255,0.4);
-    padding: 28px 48px 36px;
-    border-top: 1px solid rgba(255,255,255,0.07);
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 13px;
-  }
-  footer a { color: rgba(255,255,255,0.5); text-decoration: none; margin-right: 18px; }
-  footer a:hover { color: white; }
-  footer .footer-mark { display: flex; align-items: center; gap: 8px; }
-  footer .footer-mark-mascot { width: 18px; height: 18px; }
-
-  /* ─── Responsive ─── */
-
-  /* Large tablet / small desktop */
-  @media (max-width: 1100px) {
-    nav { padding: 16px 32px; }
-    .nav-links { gap: 24px; }
-    .hero { padding: 60px 32px 32px; }
-    .hero-visual { margin-top: 64px; }
-    section { padding: 100px 32px; }
-    h2 { font-size: clamp(36px, 5vw, 52px); }
-  }
-
-  /* Tablet */
-  @media (max-width: 900px) {
-    .thinking-grid, .ops-header, .privacy-grid { grid-template-columns: 1fr; gap: 40px; }
-    .notes-grid { grid-template-columns: 1fr; min-height: 0; }
-    .notes-doc { border-right: none; border-bottom: 1px solid var(--stone); padding: 40px 32px; }
-    .notes-gutter { padding: 32px 28px 40px; }
-    .notes-gutter-label { position: static; margin-bottom: 18px; }
-    .notes-anno-spacer { display: none; }
-    .notes-h { font-size: 28px; }
-    .belief { padding: 100px 28px; }
-    .privacy { padding: 100px 28px; }
-    .cta-final { padding: 120px 28px 100px; }
-    .hero { padding: 48px 24px 24px; }
-    .hero-visual { margin-top: 56px; }
-    .thinking-grid { padding: 0 24px; }
-    .model-picker { grid-template-columns: repeat(2, 1fr); }
-    .nav-link { font-size: 13px; }
-  }
-
-  /* Mobile */
-  @media (max-width: 720px) {
-    nav { padding: 14px 20px; }
-    .nav-links { display: none; }
-    .nav-logo { font-size: 15px; }
-    .nav-logo-mark { width: 28px; height: 28px; }
-    .btn { padding: 9px 14px; font-size: 13px; }
-    .btn-lg { padding: 12px 18px; font-size: 14px; gap: 8px; }
-
-    .hero { padding: 36px 20px 16px; }
-    .hero-mascot-wrap { width: 96px; height: 96px; margin-bottom: 28px; }
-    .hero-eyebrow { font-size: 12px; padding: 5px 10px 5px 7px; margin-bottom: 24px; }
-    .hero h1 { font-size: clamp(40px, 11vw, 60px); margin-bottom: 22px; line-height: 1.0; }
-    .hero-sub { font-size: 16px; margin-bottom: 28px; padding: 0 4px; }
-    .hero-cta { gap: 10px; }
-    .hero-meta { font-size: 12px; }
-    .hero-visual { margin-top: 48px; padding: 0; }
-    .window-frame { border-radius: 12px; }
-    .window-bar { padding: 10px 12px; }
-    .traffic-light { width: 10px; height: 10px; }
-    .window-title { font-size: 11px; margin-left: 8px; }
-    .window-body { aspect-ratio: 4/3; }
-
-    section { padding: 64px 20px; }
-    h2 { font-size: clamp(30px, 7.5vw, 42px); margin-bottom: 18px; }
-    .lede { font-size: 16px; }
-    .eyebrow { font-size: 11px; margin-bottom: 16px; }
-
-    .belief { padding: 80px 20px; }
-    .belief-quote { font-size: clamp(26px, 6vw, 36px); }
-    .belief-tag { margin-bottom: 24px; }
-    .belief-attrib { margin-top: 24px; }
-
-    .thinking { }
-    .thinking-grid { gap: 32px; padding: 0 4px; }
-    .thinking-copy p { font-size: 16px; }
-    .chat-frame { padding: 22px 18px; height: 400px; }
-    .chat-bubble { font-size: 14px; padding: 11px 14px; }
-    .chat-tool { font-size: 11px; padding: 6px 10px; margin-left: 30px; }
-    .chat-avatar { width: 22px; height: 22px; flex: 0 0 22px; }
-
-    .ops-cards { grid-template-columns: 1fr; gap: 12px; }
-    .ops-card { padding: 22px 22px 20px; }
-    .ops-card-icon { width: 36px; height: 36px; margin-bottom: 16px; }
-    .ops-card-icon svg { width: 20px; height: 20px; }
-    .ops-card h3 { font-size: 16px; }
-    .ops-card p { font-size: 14px; }
-
-    .tools .container { max-width: 100%; }
-    .tools-row { gap: 8px; }
-    .tool-pill { padding: 9px 14px 9px 10px; font-size: 13px; }
-    .tools-header { margin-bottom: 36px; }
-
-    .privacy { padding: 80px 20px; }
-    .privacy-grid { margin-top: 48px; gap: 14px; }
-    .privacy-card { padding: 24px; }
-    .privacy-card h3 { font-size: 22px; }
-    .privacy-card p { font-size: 14px; }
-    .privacy-card-num { margin-bottom: 24px; }
-    .model-picker { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-    .model-chip { padding: 8px 10px; font-size: 11px; }
-
-    .faq { }
-    .faq-q { font-size: 16px; padding: 22px 0; gap: 16px; }
-    .faq-q .icon { width: 26px; height: 26px; flex: 0 0 26px; }
-    .faq-a-inner { font-size: 15px; padding-bottom: 22px; }
-
-    .cta-final { padding: 100px 20px 80px; }
-    .cta-final-mascot { width: 72px; height: 72px; margin-bottom: 28px; }
-    .cta-final h2 { font-size: clamp(40px, 11vw, 64px); }
-    .cta-final p { font-size: 16px; margin-bottom: 28px; }
-
-    footer { flex-direction: column; gap: 14px; padding: 24px 20px 32px; text-align: center; font-size: 12px; }
-    footer .footer-mark { justify-content: center; }
-  }
-
-  /* Narrow mobile */
-  @media (max-width: 420px) {
-    .hero { padding-top: 24px; }
-    .hero-mascot-wrap { width: 84px; height: 84px; margin-bottom: 22px; }
-    .hero h1 { font-size: clamp(36px, 10vw, 48px); }
-    .hero-cta { flex-direction: column; width: 100%; align-items: stretch; }
-    .hero-cta .btn { justify-content: center; }
-    .hero-cta .btn-ghost { background: transparent; }
-    section { padding: 56px 18px; }
-    .belief-quote { font-size: 24px; line-height: 1.2; }
-    .ops-card { padding: 20px; }
-    .privacy-card { padding: 20px; }
-    .model-picker { grid-template-columns: 1fr 1fr; }
-    .nav-right .btn { padding: 8px 12px; font-size: 12px; }
-    .chat-frame { height: 360px; }
-    .cta-final h2 { font-size: clamp(34px, 10vw, 48px); }
-  }
+.rv{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.3,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}.rv{opacity:1;transform:none;transition:none}.pip-mascot *{transition:none!important}}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="pip" viewBox="0 0 1024 1024">
+<path class="b" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/>
+<path fill="#fff" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/>
+<path fill="#090A49" transform="translate(10,32)" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/>
+<path fill="#fff" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/>
+<path fill="#090A49" transform="translate(36,32)" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/>
+<path fill="none" stroke="#D4502E" stroke-width="6" stroke-linecap="round" d="M490 580 Q510 600 530 580"/>
+</symbol></svg>
+
+<template id="pip-animated">
+  <svg class="pip-mascot pip-animate" viewBox="0 0 1024 1024" aria-hidden="true">
+    <path class="pip-body" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/>
+    <g class="pip-eye-left">
+      <path class="pip-eye-white" fill="#fff" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/>
+      <path class="pip-pupil pip-pupil-left" fill="#090A49" transform="translate(10,32)" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/>
+    </g>
+    <g class="pip-eye-right">
+      <path class="pip-eye-white" fill="#fff" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/>
+      <path class="pip-pupil pip-pupil-right" fill="#090A49" transform="translate(36,32)" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/>
+    </g>
+    <path class="pip-mouth" fill="none" stroke="#D4502E" stroke-width="6" stroke-linecap="round" d="M490 580 Q510 600 530 580"/>
+  </svg>
+</template>
+
 <nav id="nav">
-  <a href="#" class="nav-logo">
-    <span class="nav-logo-mark" id="nav-mascot"></span>
-    Pip
-  </a>
+  <a class="brand" href="#top"><svg class="mascot" width="30" height="30"><use href="#pip"/></svg>Pip</a>
   <div class="nav-links">
-    <a href="#thinking" class="nav-link">Thinking</a>
-    <a href="#ops" class="nav-link">What Pip handles</a>
-    <a href="#privacy" class="nav-link">Privacy</a>
-    <a href="#faq" class="nav-link">FAQ</a>
+    <a href="#notes">Notes</a>
+    <a href="#canvas">Canvas</a>
+    <a href="#continuity">Continuity</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#faq">FAQ</a>
   </div>
-  <div class="nav-right">
-    <a href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest" class="btn btn-primary js-download">Download for Mac</a>
-  </div>
+  <a class="btn btn-primary js-download" href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest">Download for Mac</a>
 </nav>
 
-<!-- HERO -->
-<header class="hero">
-  <div class="hero-eyebrow">
-    <span class="dot"></span>
-    Free download for macOS
-  </div>
-  <div class="hero-mascot-wrap" id="hero-mascot"></div>
-  <h1><span class="hero-pip">Pip</span> thinks <em>with</em> you,<br>not <em>for</em> you.</h1>
-  <p class="hero-sub">
-    Most AI tools produce output. Pip takes the operational noise off your plate — Slack, email, meetings — and when something needs working through, he thinks alongside you.
-  </p>
+<header class="hero" id="top">
+  <span class="pill"><i></i>Free download for macOS</span>
+  <span class="hero-mascot-slot"></span>
+  <h1>Pip thinks <span class="w">with</span> you, not <span class="f">for</span> you.</h1>
+  <p class="sub">A local workspace you and an AI write in together. Your notes, your canvases, the files that come out of them, all sat on your Mac. Nothing leaves it unless you send it.</p>
   <div class="hero-cta">
-    <a href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest" class="btn btn-primary btn-lg js-download">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-      Download for Mac
-    </a>
+    <a class="btn btn-primary js-download" href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>Download for Mac</a>
+    <a class="btn btn-ghost" href="#try">Try it first</a>
   </div>
+  <p class="meta">Universal · macOS 13+ · free in beta</p>
 
-  <!-- Hero visual: product window -->
-  <div class="hero-visual">
-    <div class="window-frame">
-      <div class="window-bar">
-        <span class="traffic-light r"></span>
-        <span class="traffic-light y"></span>
-        <span class="traffic-light g"></span>
-        <span class="window-title">Pip — Home</span>
+  <div class="window" id="try">
+    <div class="winbar"><span class="tl" style="background:#FF5F57"></span><span class="tl" style="background:#FEBC2E"></span><span class="tl" style="background:#28C840"></span><span class="title">Pip — Notes / Q3 strategy</span><span class="live">live demo</span></div>
+    <div class="app" aria-hidden="true">
+      <div class="app-side">
+        <div class="ic on"><svg class="mascot" width="22" height="22"><use href="#pip"/></svg></div>
+        <div class="ic"></div><div class="ic"></div><div class="ic"></div>
       </div>
-      <div class="window-body">
-        <div class="mock-home">
-          <div class="mock-sidebar">
-            <div class="nav-icon active" id="mock-nav-mascot"></div>
-            <div class="nav-icon"></div>
-            <div class="nav-icon"></div>
-            <div class="nav-icon"></div>
-          </div>
-          <div class="mock-main">
-            <div class="mock-home-mascot" id="mock-home-mascot"></div>
-            <h2 class="mock-greeting">Morning.</h2>
-            <div class="mock-briefing">
-              <p>Your <strong>quarterly review</strong> is on Thursday. Three of the five sections still need shaping — I've blocked an hour tomorrow so you can sit with them.</p>
-              <p><strong>Sam</strong> tagged you in <strong>#planning</strong> yesterday about the new pricing tier. He's asked for your take before Wednesday's call. I've drafted a reply — want a look?</p>
-              <p>From Tuesday's product sync, two open actions never made it to the tracker. Both look medium effort.</p>
-            </div>
-            <div class="mock-input">
-              <span>Chuck something at Pip…</span>
-              <div class="send">→</div>
-            </div>
-            <div class="mock-todos">
-              <p class="mock-todos-title">Needs actioning</p>
-              <div class="mock-todo"><span class="check"></span>Reply to Sam re: pricing tier — draft ready</div>
-              <div class="mock-todo"><span class="check"></span>Shape "metrics" section for Thursday's review</div>
-              <div class="mock-todo"><span class="check"></span>Confirm slot for Friday's customer call</div>
-            </div>
-          </div>
+      <div class="app-note">
+        <p class="k">draft · edited just now</p>
+        <h3>Q3 strategy — early thinking</h3>
+        <p>We should double down on enterprise. The <span class="hl">mid-market segment has underperformed</span> for two cycles, so it's worth moving our weight to where the real deals are.</p>
+        <div class="newblock">
+          <p class="who"><svg class="mascot" width="13" height="13"><use href="#pip"/></svg>Pip added this</p>
+          <p style="margin:0">Three live deals worth naming here: <strong>Acme</strong> (enterprise, in procurement), <strong>Northwind</strong> (enterprise, qualifying) and <strong>Tessa</strong> (mid-market, stalled). Landing Acme and Northwind covers H2.</p>
         </div>
       </div>
+      <div class="app-chat">
+        <span class="lbl">Side chat · this note</span>
+        <div class="bub me">Pull in the three live deals and say where each one's at.</div>
+        <div class="tool">reading Granola · pipeline sync</div>
+        <div class="bub pip">Added them under your first paragraph. <b>Tessa's stalled</b>, so I've flagged it. Want me to give Sam a heads up?</div>
+      </div>
+    </div>
+    <div class="demo-over" id="demo-over">
+      <button class="play" id="demo-launch" aria-label="Launch the demo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <h3>Have a play, no download needed</h3>
+      <p>This is the real Pip, running right here in your browser with some example content. Poke around before you install anything.</p>
     </div>
   </div>
 </header>
 
-<!-- BELIEF / PULL QUOTE -->
 <section class="belief">
-  <div class="belief-tag">
-    <span class="line"></span><span>our belief</span><span class="line"></span>
-  </div>
-  <p class="belief-quote">
-    The value isn't in the output. It's in the <em style="color:var(--coral);font-style:italic">thinking</em> that gets you there.
-  </p>
-  <p class="belief-attrib">— how Pip is built</p>
-</section>
-
-<!-- THINKING -->
-<section class="thinking" id="thinking">
-  <div class="thinking-grid">
-    <div class="thinking-copy">
-      <span class="eyebrow">thinking partner</span>
-      <h2>When you want to <em>think</em> something through.</h2>
-      <p>When you're working through a decision, Pip shifts. He stops being the doer and starts being the person who asks the question you haven't got to yet.</p>
-      <p>He surfaces context you might have missed. Challenges reasoning with evidence, not opinion. <strong>Pushes back when something doesn't add up.</strong> And knows when to stop — because the conclusion is always yours.</p>
-    </div>
-    <div class="chat-frame" id="chat-frame">
-      <!-- chat rows injected by JS -->
-    </div>
+  <div class="wrap narrow">
+    <span class="eyebrow rv">the idea</span>
+    <p class="q rv">Your workspace isn't a staging area. It's the <span class="coral">record.</span></p>
+    <p class="sub rv">Send a note out to Slack or Notion and it doesn't leave. It stays here, as the version you both keep working on, and it's still findable in six months.</p>
   </div>
 </section>
 
-<!-- IN YOUR NOTES -->
-<section class="notes-section" id="notes">
-  <div class="container">
-    <div class="notes-head">
-      <span class="eyebrow">in your notes</span>
-      <h2>He reads as <em>you</em> write.</h2>
-      <p class="lede">When you're drafting in your notes, Pip reads along. He surfaces questions in the margin — to sharpen what you're building, not to dictate it.</p>
-    </div>
-
-    <div class="notes-mock">
-      <div class="notes-bar">
-        <span class="traffic-light r"></span>
-        <span class="traffic-light y"></span>
-        <span class="traffic-light g"></span>
-        <span class="notes-title">Pip · Notes / Q3 strategy</span>
+<section id="notes">
+  <div class="wrap">
+    <div class="split">
+      <div class="copy rv">
+        <span class="eyebrow">your notes</span>
+        <h2>Write together in the same document.</h2>
+        <p>Ask Pip for a section and he writes it straight into the note, rather than handing you a wall of text in the chat to copy out yourself. Open the side chat and he edits whatever you've got in front of you, in place.</p>
+        <p>Reading along as you write, he'll drop a question in the margin to sharpen the thinking, without ever taking it over.</p>
+        <p class="quote">"Write in the note, not about the note."</p>
       </div>
-      <div class="notes-grid">
-        <div class="notes-doc">
-          <h3 class="notes-h">Q3 strategy — early thinking</h3>
-          <p class="notes-meta">draft <span class="dot"></span> last edited just now</p>
-          <p>We should double down on enterprise. The <mark>mid-market segment has been underperforming</mark> for two cycles. Time to refocus.</p>
-          <p>Three deals look real right now:</p>
-          <ul class="notes-list">
-            <li><strong>Acme Co</strong> — enterprise, in procurement</li>
-            <li><strong>Tessa Inc</strong> — mid-market, stalled</li>
-            <li><strong>Northwind</strong> — enterprise, qualifying</li>
-          </ul>
-          <p>If we get Acme and Northwind across the line, that covers H2 targets. <mark>Mid-market can wait.</mark><span class="notes-cursor"></span></p>
-        </div>
-        <div class="notes-gutter">
-          <div class="notes-gutter-label">
-            <span class="pip-mini" id="gutter-mascot"></span>
-            <span>pip is reading</span>
-          </div>
-          <div class="notes-anno-spacer"></div>
-          <div class="notes-annotation">
-            <div class="notes-anno-avatar"></div>
-            <div class="notes-anno-bubble">
-              <strong>Quick one —</strong> "underperforming" against what baseline? The targets you set in January look high in hindsight.
+      <div class="fig rv">
+        <div class="notecard">
+          <div class="head"><h3>Q3 strategy — early thinking</h3><p class="meta">draft · last edited just now</p></div>
+          <div class="body">
+            <p>We should double down on enterprise. The <span class="hl">mid-market segment has underperformed</span> for two cycles.</p>
+            <p>If we land Acme and Northwind, that covers H2. <span class="hl">Mid-market can wait.</span></p>
+            <div class="anno">
+              <div class="av"><svg class="mascot" width="22" height="22"><use href="#pip"/></svg></div>
+              <p class="t"><b>Quick one.</b> "Underperformed" against what baseline? The targets you set in January look high now.</p>
             </div>
-          </div>
-          <div class="notes-annotation">
-            <div class="notes-anno-avatar"></div>
-            <div class="notes-anno-bubble">
-              Worth flagging: Sam's team has been chasing Tessa for three cycles. He'll want a heads-up before this lands.
-            </div>
-          </div>
-          <div class="notes-annotation">
-            <div class="notes-anno-avatar"></div>
-            <div class="notes-anno-bubble">
-              You committed to mid-market progress at last month's all-hands. Worth pulling that recording before the cycle review?
+            <div class="anno">
+              <div class="av"><svg class="mascot" width="22" height="22"><use href="#pip"/></svg></div>
+              <p class="t">That last line reads like a decision that was never actually made anywhere else. Worth checking before it sticks?</p>
             </div>
           </div>
         </div>
@@ -1156,247 +388,158 @@
   </div>
 </section>
 
-
-<!-- OPERATIONAL -->
-<section class="ops" id="ops">
-  <div class="container-wide">
-    <div class="ops-header">
-      <div>
-        <span class="eyebrow">gets things done</span>
-        <h2>Everything else, handled.</h2>
+<section id="canvas" style="background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="split flip">
+      <div class="copy rv">
+        <span class="eyebrow">canvas</span>
+        <h2>Think it out on a canvas.</h2>
+        <p>Sketch a flow, map the pieces, move the boxes around. Ask Pip to connect two of them and he'll do it on the canvas itself, rather than describing the change back to you in chat.</p>
+        <p>Each canvas is a real file in your workspace, sat right next to your notes.</p>
       </div>
-      <p class="lede">The thinking only works if you have time for it. Pip handles the operational load that eats that time — without being asked.</p>
-    </div>
-    <div class="ops-cards" style="margin-top:60px">
-      <div class="ops-card">
-        <div class="ops-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg>
+      <div class="fig rv">
+        <div class="canvas-fig">
+          <div class="head"><span class="tl" style="background:#FF5F57"></span><span class="tl" style="background:#FEBC2E"></span><span class="tl" style="background:#28C840"></span><span class="title">Pip — Canvas / Launch flow</span></div>
+          <div class="canvas-stage">
+            <svg style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true">
+              <line x1="26%" y1="30%" x2="52%" y2="30%" stroke="var(--coral)" stroke-width="2"/>
+              <line x1="64%" y1="38%" x2="64%" y2="60%" stroke="var(--line)" stroke-width="2"/>
+              <line x1="26%" y1="38%" x2="38%" y2="60%" stroke="var(--line)" stroke-width="2"/>
+            </svg>
+            <div class="node" style="left:8%;top:22%">Draft brief<div class="sub">note</div></div>
+            <div class="node accent" style="left:52%;top:22%">Sign-off<div class="sub">blocked · legal</div></div>
+            <div class="node" style="left:52%;top:62%">Ship<div class="sub">week 6</div></div>
+            <div class="node" style="left:12%;top:62%">Announce</div>
+            <div class="pip-cursor" style="left:53%;top:12%"><svg class="mascot" width="15" height="15"><use href="#pip"/></svg>connecting…</div>
+          </div>
         </div>
-        <h3>Catches what's falling through</h3>
-        <p>Monitors Slack, flags obligations going stale, chases loose ends before they disappear.</p>
-      </div>
-      <div class="ops-card">
-        <div class="ops-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        </div>
-        <h3>Preps you for meetings</h3>
-        <p>Spots meetings that need prep and surfaces what you need before you walk in.</p>
-      </div>
-      <div class="ops-card">
-        <div class="ops-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
-        </div>
-        <h3>Works from real conversations</h3>
-        <p>Drafts from your actual meetings and threads — not generic templates.</p>
-      </div>
-      <div class="ops-card">
-        <div class="ops-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v6a6 6 0 0 0 6 6h2"/></svg>
-        </div>
-        <h3>Connects your tools</h3>
-        <p>Pull from Granola, draft, push to Notion, flag in Slack. Each tool stays in its lane.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- INTEGRATIONS -->
-<section class="tools">
-  <div class="container">
-    <div class="tools-header">
-      <span class="eyebrow">integrations</span>
-      <h2>Your tools, <em>connected</em>.</h2>
-      <p class="lede">Pip doesn't replace any of these. He's the connective tissue between them.</p>
-    </div>
-    <div class="tools-row">
-      <span class="tool-pill">
-        <span class="tool-mark">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10.25" y="1" width="3.5" height="9" rx="1.75" fill="#36C5F0"/>
-            <rect x="14" y="10.25" width="9" height="3.5" rx="1.75" fill="#2EB67D"/>
-            <rect x="10.25" y="14" width="3.5" height="9" rx="1.75" fill="#ECB22E"/>
-            <rect x="1" y="10.25" width="9" height="3.5" rx="1.75" fill="#E01E5A"/>
-          </svg>
-        </span>Slack
-      </span>
-      <span class="tool-pill">
-        <span class="tool-mark">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <rect width="24" height="24" rx="4" fill="white" stroke="#E0DDD7" stroke-width="0.6"/>
-            <path d="M7 6.2h2.4l5.6 8.2V6.2h2V18h-2.4L8.9 9.6V18H7V6.2z" fill="#0A0A0A"/>
-          </svg>
-        </span>Notion
-      </span>
-      <span class="tool-pill">
-        <span class="tool-mark">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <rect width="24" height="24" rx="4" fill="white"/>
-            <path d="M3 8l9 6 9-6v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" fill="#EA4335"/>
-            <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1l-9 6-9-6V7z" fill="#FBBC04"/>
-            <path d="M21 8v9a2 2 0 0 1-2 2h-2v-8l4-3z" fill="#34A853"/>
-            <path d="M3 8l4 3v8H5a2 2 0 0 1-2-2V8z" fill="#4285F4"/>
-          </svg>
-        </span>Gmail
-      </span>
-      <span class="tool-pill">
-        <span class="tool-mark">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="3" width="20" height="18" rx="3" fill="white" stroke="#E0DDD7" stroke-width="0.6"/>
-            <path d="M2 6a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v2H2V6z" fill="#4285F4"/>
-            <text x="12" y="18.6" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-weight="700" font-size="9" fill="#4285F4">31</text>
-          </svg>
-        </span>Google Calendar
-      </span>
-      <span class="tool-pill">
-        <span class="tool-mark">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <rect width="24" height="24" rx="6" fill="#F4A93B"/>
-            <text x="12" y="17.5" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif" font-weight="800" font-size="13" fill="white">G</text>
-          </svg>
-        </span>Granola
-      </span>
-      <span class="tool-pill">
-        <span class="tool-mark">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <defs><linearGradient id="linGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#5E6AD2"/><stop offset="100%" stop-color="#9BA4F2"/></linearGradient></defs>
-            <rect width="24" height="24" rx="5" fill="url(#linGrad)"/>
-            <g stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.95">
-              <line x1="6" y1="13" x2="11" y2="18"/>
-              <line x1="6" y1="9" x2="15" y2="18"/>
-              <line x1="6" y1="5" x2="18" y2="17"/>
-              <line x1="10" y1="5" x2="18" y2="13"/>
-            </g>
-          </svg>
-        </span>Linear
-      </span>
+<section id="continuity">
+  <div class="wrap">
+    <div class="split">
+      <div class="copy rv">
+        <span class="eyebrow">continuity</span>
+        <h2>He keeps the thread across notes, chats, and lunch.</h2>
+        <p>Draft something in a note, open a chat about it, wander off for lunch, then come back and say "carry on with that." <strong>Pip knows what that is.</strong></p>
+        <p>Scribble "buy bread" at the bottom of a strategy note and he won't think you've switched to groceries. And if he's lost the thread after a while away, he'll tell you what he thinks you were doing rather than guess and sound certain about it.</p>
+      </div>
+      <div class="fig rv">
+        <div class="thread">
+          <p class="carry">Pip is carrying</p>
+          <div class="cur">
+            <h4>Q3 strategy</h4>
+            <div class="tags"><span class="tag">2 notes</span><span class="tag">1 chat</span><span class="tag">canvas</span></div>
+          </div>
+          <div class="row"><span class="dot" style="background:var(--coral)"></span>Enterprise refocus, the through-line</div>
+          <div class="row"><span class="dot" style="background:var(--coral)"></span>Acme and Northwind cover H2</div>
+          <div class="row"><span class="dot" style="background:var(--muted)"></span>Sam to hear about Tessa first</div>
+          <div class="ignored"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Left out: <s>"buy bread"</s>, nothing to do with this</span></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- PRIVACY -->
-<section class="privacy" id="privacy">
-  <div class="container">
-    <span class="eyebrow">on your machine</span>
-    <h2>Your data <em>stays</em> here.</h2>
-    <p class="lede">Pip lives on your computer. Your notes, your context, your history — saved on your hardware, not ours. The trust holds because it's specific.</p>
-    <div class="privacy-grid">
-      <div class="privacy-card">
-        <p class="privacy-card-num">01 / local-first</p>
+<section style="background:var(--panel);border-top:1px solid var(--line)">
+  <div class="wrap center">
+    <span class="eyebrow rv">and there's more</span>
+    <h2 class="big rv">Built to hold a whole project.</h2>
+    <div class="grid3">
+      <div class="fcard rv">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+        <h3>Folders that remember the project</h3>
+        <p>A folder keeps a running sense of how its notes and canvases relate, so Pip can reason about one thing using what he's picked up from the rest.</p>
+      </div>
+      <div class="fcard rv">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 14h6M9 17h4"/></svg></div>
+        <h3>Real files, not just replies</h3>
+        <p>Ask for a report and you get a file, an HTML page or a chart or a diagram, built and rendered from your own disk. None of it is uploaded anywhere to be looked at.</p>
+      </div>
+      <div class="fcard rv">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3"/></svg></div>
+        <h3>Works alongside Claude Code</h3>
+        <p>When Claude writes into your workspace, Pip treats it like your own work, shared and carried forward rather than stranded in a chat session somewhere.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tools center">
+  <div class="wrap">
+    <span class="eyebrow rv">your tools</span>
+    <h2 class="big rv">Your tools, when you ask.</h2>
+    <p class="lede rv">Pull in a Granola transcript, a Slack thread or an email when you need it, then push the finished thing back out when it's ready. Nothing sits in the background watching your accounts.</p>
+    <div class="tool-row rv">
+      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect x="10.25" y="1" width="3.5" height="9" rx="1.75" fill="#36C5F0"/><rect x="14" y="10.25" width="9" height="3.5" rx="1.75" fill="#2EB67D"/><rect x="10.25" y="14" width="3.5" height="9" rx="1.75" fill="#ECB22E"/><rect x="1" y="10.25" width="9" height="3.5" rx="1.75" fill="#E01E5A"/></svg></span>Slack</span>
+      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#fff" stroke="#E0DDD7" stroke-width=".6"/><path d="M7 6.2h2.4l5.6 8.2V6.2h2V18h-2.4L8.9 9.6V18H7z" fill="#0A0A0A"/></svg></span>Notion</span>
+      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#fff"/><path d="M3 8l9 6 9-6v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#EA4335"/><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1l-9 6-9-6z" fill="#FBBC04"/><path d="M21 8v9a2 2 0 0 1-2 2h-2v-8z" fill="#34A853"/><path d="M3 8l4 3v8H5a2 2 0 0 1-2-2z" fill="#4285F4"/></svg></span>Gmail</span>
+      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3" fill="#fff" stroke="#E0DDD7" stroke-width=".6"/><path d="M2 6a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v2H2z" fill="#4285F4"/><text x="12" y="18.6" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="9" fill="#4285F4">31</text></svg></span>Calendar</span>
+      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#F4A93B"/><text x="12" y="17.5" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="13" fill="#fff">G</text></svg></span>Granola</span>
+      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="1" stop-color="#9BA4F2"/></linearGradient></defs><rect width="24" height="24" rx="5" fill="url(#lg)"/><g stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".95"><line x1="6" y1="13" x2="11" y2="18"/><line x1="6" y1="9" x2="15" y2="18"/><line x1="6" y1="5" x2="18" y2="17"/><line x1="10" y1="5" x2="18" y2="13"/></g></svg></span>Linear</span>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="privacy">
+  <div class="wrap">
+    <span class="eyebrow rv">on your machine</span>
+    <h2 class="big rv">Yours, and under your control.</h2>
+    <p class="lede rv">Pip lives on your computer. Your notes, your context and your history are saved on your own hardware, not on a server of ours.</p>
+    <div class="dark-grid">
+      <div class="dcard rv">
+        <p class="n">01 / local-first</p>
         <h3>Stays on your machine.</h3>
-        <p>Everything Pip knows about you — your notes, your history, your context — is saved on your computer. Nothing leaves unless you explicitly connect a service.</p>
+        <p>Everything Pip knows is stored on your disk. Nothing leaves it unless you connect a service or send something out yourself.</p>
       </div>
-      <div class="privacy-card">
-        <p class="privacy-card-num">02 / your choice of AI</p>
-        <h3>Pick a model. Any model.</h3>
-        <p>Plug in Anthropic, OpenAI, or Google. Or keep everything completely private with a local model that never leaves your computer.</p>
-        <div class="model-picker">
-          <div class="model-chip active">claude-sonnet-4-5</div>
-          <div class="model-chip">gpt-5</div>
-          <div class="model-chip">gemini-2.5</div>
-          <div class="model-chip">llama 3.2 (local)</div>
-          <div class="model-chip">deepseek (local)</div>
-          <div class="model-chip">+ custom</div>
-        </div>
+      <div class="dcard rv">
+        <p class="n">02 / any model</p>
+        <h3>Pick a model, any model.</h3>
+        <p>Connect one key through OpenRouter, or run a local model that never leaves your Mac. If the model you've picked can't handle a particular turn, Pip tells you and offers one of your others that can, instead of switching behind your back.</p>
+        <div class="chips"><span class="on">claude</span><span>gpt</span><span>gemini</span><span>llama · local</span></div>
+      </div>
+      <div class="dcard rv">
+        <p class="n">03 / no surprises</p>
+        <h3>Nothing changes silently.</h3>
+        <p>When Pip learns something about how you work, he shows you the change and waits for you to approve it. He never edits himself behind your back.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="faq" id="faq">
-  <div class="container">
-    <div class="faq-header">
-      <span class="eyebrow">questions</span>
-      <h2>Things people ask.</h2>
-    </div>
-    <div class="faq-list">
-      <div class="faq-item open">
-        <button class="faq-q">Is Pip free?
-          <span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-        <div class="faq-a"><div class="faq-a-inner">Yes, while we're in beta. We're figuring out the model. When we land on one, you'll hear about it before anything changes — and there'll always be a free, local-only tier.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q">Does Pip work on Windows or Linux?
-          <span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-        <div class="faq-a"><div class="faq-a-inner">macOS only for now. Windows and Linux are on the list but we want Mac to be excellent before splitting our attention.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q">What's an LLM, and does it matter which one?
-          <span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-        <div class="faq-a"><div class="faq-a-inner">An LLM — large language model — is the bit that does the actual thinking. Claude, GPT, Gemini are the well-known ones. They read what you say, weigh it against everything they've been trained on, and write a response. Pip is the layer that connects an LLM to your tools, remembers context, and decides when to act.<br><br>It matters because different models think differently. Some are better at writing, some at reasoning, some are faster, some are cheaper. And some run entirely on your machine — slower, but nothing ever leaves. Pip lets you pick the one that fits the work, and switch any time.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q">Where does my data live?
-          <span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-        <div class="faq-a"><div class="faq-a-inner">On your machine. Your notes, your history, your context — all stored locally. The only things that leave are tool calls you've connected (Slack, Gmail, etc.) and prompts to whichever LLM you choose to route through.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q">Can I use a local model?
-          <span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-        <div class="faq-a"><div class="faq-a-inner">Yes. Llama and DeepSeek both run on your machine — free, private, slower than frontier models, but nothing ever leaves your computer.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q">Why "Pip"?
-          <span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-        <div class="faq-a"><div class="faq-a-inner">Short, warm, a bit of a name and a bit of a noise. He's a character, not a product feature.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q">Who's building this?
-          <span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        </button>
-        <div class="faq-a"><div class="faq-a-inner">Just me — Hayden, in Brighton, UK. I was tired of AI tools that confidently wrote things I didn't ask for, so I'm building the one I actually wanted.</div></div>
-      </div>
-    </div>
+<section id="faq">
+  <div class="wrap center">
+    <span class="eyebrow rv">questions</span>
+    <h2 class="big rv">Things people ask.</h2>
+  </div>
+  <div class="wrap faq-list">
+    <details open><summary>Is Pip free?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">Yes, while it's in beta. When I land on a pricing model you'll hear about it before anything changes, and there'll always be a free tier that runs entirely on your own machine.</div></details>
+    <details><summary>Does it work on Windows or Linux?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">Mac only for now. Windows and Linux are on the list, but I want Mac to be genuinely good before I split my attention.</div></details>
+    <details><summary>What's an LLM, and does it matter which one?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">It's the part that does the actual thinking. Claude, GPT and Gemini are the well known ones. Pip is the layer that connects one of them to your workspace and your tools. Different models are good at different things, and some run entirely on your machine, so Pip lets you pick one and switch whenever you want.</div></details>
+    <details><summary>Who's building this?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">Just me. I'm Hayden, based in Brighton. I got tired of AI tools that confidently wrote things I hadn't asked for, so I started building the one I actually wanted.</div></details>
   </div>
 </section>
 
-<!-- FOOTER CTA -->
-<section class="cta-final" id="download">
-  <div class="cta-final-mascot" id="cta-mascot"></div>
-  <h2>Try <em>Pip.</em></h2>
-  <p>The thinking is yours. The admin isn't.</p>
-  <div class="hero-cta">
-    <a href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest" class="btn btn-primary btn-lg js-download" id="download-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-      Download for Mac
-    </a>
+<section class="final" id="get">
+  <div class="wrap">
+    <span class="final-mascot-slot"></span>
+    <h2>Give <span class="w">Pip</span> a go.</h2>
+    <p>Free while it's in beta. Download it and see how you get on.</p>
+    <div class="hero-cta">
+      <a class="btn btn-light js-download" href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>Download for Mac</a>
+    </div>
+    <p class="meta">Universal · macOS 13+ · free in beta</p>
   </div>
 </section>
 
 <footer>
-  <div class="footer-mark">
-    <span class="footer-mark-mascot" id="footer-mascot"></span>
-    <span>© 2026 Pip. Built in Brighton.</span>
-  </div>
-  <div>
-    <a href="#privacy">Privacy</a>
-    <a href="#faq">FAQ</a>
-    <a href="mailto:hello@pip.com">Contact</a>
-  </div>
+  <div class="mk"><svg class="mascot" width="20" height="20"><use href="#pip"/></svg>Pip</div>
+  <div>© 2026 Pip · Built in Brighton<a href="#privacy">Privacy</a><a href="#faq">FAQ</a><a href="mailto:hello@hellopip.co.uk">Contact</a></div>
 </footer>
 
-<!-- Mascot SVG template -->
-<template id="mascot-template">
-  <svg class="pip-mascot" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path class="pip-body" fill="#FF6B4A" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/>
-    <g class="pip-eye-left">
-      <path class="pip-eye-white" fill="white" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/>
-      <path class="pip-pupil pip-pupil-left" fill="#090A49" transform="translate(10, 32)" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/>
-    </g>
-    <g class="pip-eye-right">
-      <path class="pip-eye-white" fill="white" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/>
-      <path class="pip-pupil pip-pupil-right" fill="#090A49" transform="translate(36, 32)" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/>
-    </g>
-    <path class="pip-mouth" d="M490 580 Q510 600 530 580" fill="none" stroke="#D4502E" stroke-width="6" stroke-linecap="round"/>
-  </svg>
-</template>
-
-<script src="direction-a.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
