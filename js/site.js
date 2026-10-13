@@ -4,6 +4,7 @@
    guarded on its own markup so every page can load the same file:
 
      util       helpers the modules share
+     dates      every date in the examples, worked out from today
      header     the scrolled header and the phone menu sheet
      mascots    the live Pip: blink, and eyes that follow the cursor
      reveal     sections arriving on scroll
@@ -166,6 +167,55 @@
     };
   }
 
+
+
+  /* ── dates ─────────────────────────────────────────────────────────────────
+     Nothing on the site goes stale. Every date in the Lume examples is worked
+     out from today: the drum workshop is the next Saturday at least four days
+     away, the lino day three weeks after it, chats are so many days ago, and
+     the sales sheet is this year's (last year's until April). The HTML holds
+     a sensible fallback in each [data-date] span for when this doesn't run. */
+
+  var D = (function () {
+    var DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var today = new Date(); today.setHours(12, 0, 0, 0);
+    function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+    var drum = addDays(today, 4);
+    while (drum.getDay() !== 6) drum = addDays(drum, 1);
+    var lino = addDays(drum, 21);
+    var xmas = new Date(today.getFullYear(), 11, 18, 12);
+    if (today > xmas) xmas = new Date(today.getFullYear() + 1, 11, 18, 12);
+    var prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    function long(d) { return DAYS[d.getDay()] + " " + d.getDate() + " " + MONTHS[d.getMonth()]; }
+    function lower(d) { return (DAYS[d.getDay()].slice(0, 3) + " " + d.getDate() + " " + MONTHS[d.getMonth()].slice(0, 3)).toLowerCase(); }
+    function short(d) { return d.getDate() + " " + MONTHS[d.getMonth()].slice(0, 3); }
+    function dayMonth(d) { return d.getDate() + " " + MONTHS[d.getMonth()]; }
+    return {
+      drum: drum, lino: lino, xmas: xmas, long: long, lower: lower, short: short, dayMonth: dayMonth,
+      month: MONTHS[today.getMonth()],
+      monthPrev: MONTHS[prevMonth.getMonth()],
+      year: String(today.getFullYear()),
+      salesYear: String(today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1),
+      ago: function (n) { return short(addDays(today, -n)); }
+    };
+  })();
+
+  function dates() {
+    $$("[data-date]").forEach(function (node) {
+      var key = node.getAttribute("data-date");
+      var fmt = node.getAttribute("data-fmt");
+      var text = null;
+      if (key === "drum" || key === "lino") text = fmt === "lower" ? D.lower(D[key]) : D.long(D[key]);
+      else if (key === "xmas") text = fmt === "lower" ? D.dayMonth(D.xmas).toLowerCase().replace(/ (\w{3})\w*$/, " $1") : D.dayMonth(D.xmas);
+      else if (key === "month") text = D.month;
+      else if (key === "month-prev") text = D.monthPrev;
+      else if (key === "year") text = D.year;
+      else if (key === "sales-year") text = D.salesYear;
+      else if (key.indexOf("ago:") === 0) text = D.ago(parseInt(key.slice(4), 10) || 0);
+      if (text) node.textContent = text;
+    });
+  }
 
   /* ── header ────────────────────────────────────────────────────────────────
      Transparent at the top; after 8px of scroll it takes a Canvas ground at
@@ -832,7 +882,7 @@
     }
     function lastSold() {
       say("What did the last scallop sell for?", function () {
-        return { act: "Looked in your tables", parts: ["Your ", { src: "Sales 2025" }, " table says £250, for the medium in sage linen in August. It sold in two days."] };
+        return { act: "Looked in your tables", parts: ["Your ", { src: "Sales " + D.salesYear }, " table says £250, for the medium in sage linen in August. It sold in two days."] };
       });
     }
 
@@ -901,7 +951,7 @@
 
     var RATES = [15, 20, 25];
     var JOBS = [
-      { title: "Lume Lighting › Newsletter: October", intro: "You've got this month's news as rough notes. Want a first draft of the newsletter, in your words?", go: "Yes, draft it", done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
+      { title: "Lume Lighting › Newsletter: " + D.month, intro: "You've got this month's news as rough notes. Want a first draft of the newsletter, in your words?", go: "Yes, draft it", done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
       { title: "Lume Lighting › mustard-scallop.jpg", intro: "There's a mug and some scissors behind the shade. Want me to take the background out, brighten it and make it square for the shop?", go: "Yes, clean it up", done: "Background out, a little brighter, and square for the listing. Your original is still there if you want it back." },
       { title: "Lume Lighting › Costs: large scallop", intro: "I can add up what a large scallop costs you to make. I'll need one number from you first.", go: "Yes, add it up",
         ask: {
@@ -924,13 +974,13 @@
           },
           after: function (i) { return this.opts[i] + " leads, then. One gap to fill: the 50cm scallop has no price yet."; }
         } },
-      { title: "Lume Lighting › Sales 2025", intro: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?", go: "Yes, show me", done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year." }
+      { title: "Lume Lighting › Sales " + D.salesYear, intro: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?", go: "Yes, show me", done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year." }
     ];
     var NL = [
       "Hello, and thank you for such a lovely summer at the studio.",
       "The mustard scallop is finally in the shop. It's the linen I've been saving for months, and as always there's only one.",
-      "Two places left on the drum workshop on Saturday 17 October. And the lino printing day is open for Saturday 7 November: eight places, £110, and you take your printed shade home.",
-      "The last posting day for Christmas is 18 December.",
+      "Two places left on the drum workshop on " + D.long(D.drum) + ". And the lino printing day is open for " + D.long(D.lino) + ": eight places, £110, and you take your printed shade home.",
+      "The last posting day for Christmas is " + D.dayMonth(D.xmas) + ".",
       "Speak soon."
     ];
     var ADDED = [["Materials", "£38.00", "is-sub"], ["Courier", "£12.00", ""]];
@@ -1363,7 +1413,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [header, mascots, reveal, scenes, demo, jobs, accordion, jumpList, download].forEach(function (init) {
+  [dates, header, mascots, reveal, scenes, demo, jobs, accordion, jumpList, download].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }
