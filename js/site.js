@@ -882,7 +882,7 @@
     }
     function lastSold() {
       say("What did the last scallop sell for?", function () {
-        return { act: "Looked in your tables", parts: ["Your ", { src: "Sales " + D.salesYear }, " table says £250, for the medium in sage linen in August. It sold in two days."] };
+        return { act: "Looked in your tables", parts: ["Your ", { src: "Shades sold" }, " table says £250, for the medium in sage linen in August. It sold in two days."] };
       });
     }
 
