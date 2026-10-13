@@ -1,360 +1,474 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en-GB">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pip — thinks with you, not for you</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>document.documentElement.classList.add("js");setTimeout(function(){if(!window.PIP_READY)document.documentElement.classList.add("no-reveal")},3000);</script>
+<title>Pip · Stop losing your work in AI chats</title>
+<meta name="description" content="Not a chat with files. A workspace with AI. Your work lives on your Mac, and Pip's AI runs in the EU and never trains on it.">
+<link rel="canonical" href="https://hellopip.co.uk/">
+<link rel="preload" href="assets/fonts/nunito-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/site.css">
+<script src="js/site.js" defer></script>
 
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#FAFAF8">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FAFAF8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1B1A" media="(prefers-color-scheme: dark)">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pip">
-<meta property="og:title" content="Pip — thinks with you, not for you">
-<meta property="og:description" content="A local workspace you and an AI write in together. Your notes, your canvases, the files that come out of them, all sat on your Mac.">
+<meta property="og:locale" content="en_GB">
+<meta property="og:title" content="Pip · Stop losing your work in AI chats">
+<meta property="og:description" content="Not a chat with files. A workspace with AI. Your work lives on your Mac, and Pip's AI runs in the EU and never trains on it.">
 <meta property="og:url" content="https://hellopip.co.uk/">
 <meta property="og:image" content="https://hellopip.co.uk/assets/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pip, a workspace with AI for your Mac">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pip · Stop losing your work in AI chats">
+<meta name="twitter:description" content="Not a chat with files. A workspace with AI. Your work lives on your Mac, and Pip's AI runs in the EU and never trains on it.">
 <meta name="twitter:image" content="https://hellopip.co.uk/assets/og-card.png">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --paper:#FAFAF8;--panel:#F3F1EC;--sand:#ECE9E3;--line:#E4E1DA;--line-soft:#EDEAE3;
-  --ink:#0B0C3A;--body:#2B2B2E;--muted:#6B6960;--faint:#9A978F;
-  --coral:#FF6B4A;--coral-deep:#D4502E;--coral-tint:rgba(255,107,74,.10);
-  --card:#FFFFFF;--onnavy:#EDEBF5;--onnavy-mut:rgba(237,235,245,.62);
-  --ok:#34C759;
-  --shadow-sm:0 1px 2px rgba(11,12,58,.05),0 2px 8px -3px rgba(11,12,58,.08);
-  --shadow-md:0 2px 6px rgba(11,12,58,.05),0 16px 40px -20px rgba(11,12,58,.18);
-  --shadow-lg:0 30px 80px -34px rgba(11,12,58,.34),0 3px 10px rgba(11,12,58,.06);
-  --disp:'Bricolage Grotesque',system-ui,sans-serif;
-  --sans:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
-  --edge:clamp(20px,5.5vw,64px);
-}
-:root:not([data-theme="light"]){@media (prefers-color-scheme:dark){
-  --paper:#181716;--panel:#201E1C;--sand:#292723;--line:rgba(255,255,255,.09);--line-soft:rgba(255,255,255,.06);
-  --ink:#F0ECE4;--body:#D8D4CC;--muted:#9E9A91;--faint:#726E67;
-  --coral:#FF7F5C;--coral-deep:#FF9877;--coral-tint:rgba(255,127,92,.14);
-  --card:#221F1E;--onnavy:#EDEBF5;--onnavy-mut:rgba(237,235,245,.6);
-  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
-  --shadow-md:0 2px 6px rgba(0,0,0,.4),0 18px 44px -22px rgba(0,0,0,.7);
-  --shadow-lg:0 34px 84px -34px rgba(0,0,0,.75),0 3px 10px rgba(0,0,0,.4);
-}}
-:root[data-theme="dark"]{
-  --paper:#181716;--panel:#201E1C;--sand:#292723;--line:rgba(255,255,255,.09);--line-soft:rgba(255,255,255,.06);
-  --ink:#F0ECE4;--body:#D8D4CC;--muted:#9E9A91;--faint:#726E67;
-  --coral:#FF7F5C;--coral-deep:#FF9877;--coral-tint:rgba(255,127,92,.14);
-  --card:#221F1E;--onnavy:#EDEBF5;--onnavy-mut:rgba(237,235,245,.6);
-  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
-  --shadow-md:0 2px 6px rgba(0,0,0,.4),0 18px 44px -22px rgba(0,0,0,.7);
-  --shadow-lg:0 34px 84px -34px rgba(0,0,0,.75),0 3px 10px rgba(0,0,0,.4);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--paper);color:var(--body);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
-::selection{background:var(--coral);color:#fff}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1120px;margin:0 auto;padding:0 var(--edge)}
-.narrow{max-width:820px}
-
-.mascot{display:block;fill:var(--coral)}
-.pip-mascot{display:block}
-.pip-mascot .pip-body{fill:var(--coral)}
-.pip-mascot .pip-pupil{transition:transform .28s cubic-bezier(.4,0,.2,1)}
-.pip-mascot .pip-eye-white{transition:transform .18s ease;transform-origin:center;transform-box:fill-box}
-.pip-mascot.blink .pip-eye-white{transform:scaleY(.08)}
-.pip-mascot .pip-mouth{transition:d .3s ease}
-
-h1,h2,h3,h4{font-family:var(--disp);color:var(--ink);font-weight:600;letter-spacing:-.02em;text-wrap:balance;line-height:1.02}
-.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);display:inline-flex;align-items:center;gap:9px}
-.eyebrow::before{content:"";width:16px;height:1px;background:var(--coral);opacity:.8}
-.coral{color:var(--coral)}
-
-.btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-weight:500;font-size:15px;border-radius:11px;padding:13px 20px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .12s ease,background .15s ease,border-color .15s}
-.btn svg{width:15px;height:15px}
-.btn-primary{background:var(--coral);color:#fff}
-.btn-primary:hover{background:var(--coral-deep)}
-.btn:active{transform:scale(.98)}
-.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-.btn-ghost:hover{background:var(--panel)}
-.btn-light{background:var(--coral);color:#fff}
-
-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:15px var(--edge);background:color-mix(in srgb,var(--paper) 82%,transparent);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-bottom:1px solid transparent;transition:border-color .2s}
-nav.scrolled{border-bottom-color:var(--line)}
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:19px;color:var(--ink);letter-spacing:-.02em}
-.brand .mascot{width:30px;height:30px}
-.nav-links{display:flex;gap:30px}
-.nav-links a{font-size:14px;color:var(--muted);transition:color .12s}
-.nav-links a:hover{color:var(--ink)}
-@media (max-width:760px){.nav-links{display:none}}
-
-.hero{text-align:center;padding:clamp(48px,8vw,92px) var(--edge) 0}
-.pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px 6px 11px;box-shadow:var(--shadow-sm);margin-bottom:30px}
-.pill i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(52,199,89,.2)}
-.hero .pip-mascot{width:104px;height:104px;margin:0 auto 30px;filter:drop-shadow(0 18px 30px rgba(255,107,74,.22));animation:bob 6s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.hero h1{font-size:clamp(44px,8vw,84px);letter-spacing:-.035em;max-width:15ch;margin:0 auto;font-weight:700}
-.hero h1 .w{color:var(--coral)}
-.hero h1 .f{position:relative;color:var(--muted)}
-.hero h1 .f::after{content:"";position:absolute;left:-2%;right:-2%;top:52%;height:3px;background:var(--coral);border-radius:2px;transform:rotate(-3deg)}
-.hero .sub{font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:52ch;margin:26px auto 34px;line-height:1.5;text-wrap:pretty}
-.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.hero .meta{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:18px}
-
-.window{margin:clamp(48px,7vw,80px) auto 0;max-width:1000px;border-radius:16px;background:var(--card);box-shadow:var(--shadow-lg);border:1px solid var(--line-soft);overflow:hidden;position:relative}
-.winbar{display:flex;align-items:center;gap:7px;padding:12px 15px;background:var(--panel);border-bottom:1px solid var(--line)}
-.tl{width:11px;height:11px;border-radius:50%}
-.winbar .title{margin-left:12px;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
-.winbar .live{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--coral);display:inline-flex;align-items:center;gap:6px}
-.winbar .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 3px var(--coral-tint)}
-.app{display:grid;grid-template-columns:56px 1fr 260px;min-height:420px}
-.app-side{background:var(--panel);border-right:1px solid var(--line);padding:16px 0;display:flex;flex-direction:column;align-items:center;gap:12px}
-.app-side .ic{width:30px;height:30px;border-radius:9px;background:var(--sand)}
-.app-side .ic.on{background:var(--card);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;padding:4px}
-.app-side .ic.on .mascot{width:100%;height:100%}
-.app-note{padding:34px 38px;border-right:1px solid var(--line);min-width:0}
-.app-note .k{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em;margin-bottom:12px}
-.app-note h3{font-family:var(--disp);font-weight:600;font-size:26px;color:var(--ink);margin-bottom:16px;letter-spacing:-.02em}
-.app-note p{font-size:14.5px;line-height:1.7;color:var(--body);margin-bottom:13px}
-.app-note p .hl{background:var(--coral-tint);border-radius:3px;padding:0 3px;box-decoration-break:clone}
-.app-note .newblock{border-left:2px solid var(--coral);padding-left:14px;margin-top:4px}
-.app-note .newblock .who{font-family:var(--mono);font-size:10.5px;color:var(--coral);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.app-note .newblock .who .mascot{width:13px;height:13px}
-.app-chat{background:var(--paper);padding:20px 18px;display:flex;flex-direction:column;gap:14px}
-.app-chat .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
-.bub{font-size:13px;line-height:1.5;border-radius:14px;padding:11px 13px;max-width:92%}
-.bub.me{align-self:flex-end;background:var(--ink);color:var(--onnavy);border-bottom-right-radius:5px}
-.bub.pip{align-self:flex-start;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-sm);border-bottom-left-radius:5px;color:var(--body)}
-.bub.pip b{color:var(--ink)}
-.tool{align-self:flex-start;font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--sand);border-radius:8px;padding:6px 10px;display:inline-flex;gap:7px;align-items:center}
-.tool::before{content:"✓";color:var(--coral);font-weight:700}
-@media (max-width:820px){.app{grid-template-columns:1fr}.app-side{flex-direction:row;justify-content:flex-start;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line)}.app-note{border-right:0;border-bottom:1px solid var(--line);padding:26px}.app-chat{padding:18px}}
-
-.demo-over{position:absolute;inset:44px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px;background:color-mix(in srgb,var(--paper) 60%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-.demo-over .play{width:66px;height:66px;border-radius:50%;background:var(--coral);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px -10px rgba(255,107,74,.6);border:none;cursor:pointer;transition:transform .15s}
-.demo-over .play:hover{transform:scale(1.06)}
-.demo-over .play svg{width:24px;height:24px;margin-left:3px}
-.demo-over h3{font-family:var(--disp);font-size:clamp(20px,3vw,26px);color:var(--ink);letter-spacing:-.01em}
-.demo-over p{font-size:14px;color:var(--muted);max-width:38ch}
-.demo-frame{width:100%;height:min(72vh,620px);border:0;display:block;background:var(--paper)}
-.demo-fallback{padding:56px 24px;text-align:center}
-.demo-fallback h3{font-family:var(--disp);font-size:24px;color:var(--ink);margin-bottom:10px}
-.demo-fallback p{font-size:15px;color:var(--muted);max-width:44ch;margin:0 auto 22px}
-
-section{padding:clamp(72px,11vw,130px) 0}
-.center{text-align:center}
-.center .eyebrow{justify-content:center}
-h2.big{font-size:clamp(32px,5.4vw,58px);letter-spacing:-.03em;max-width:18ch;margin:18px 0 0}
-.center h2.big{margin-left:auto;margin-right:auto}
-.lede{font-size:17px;color:var(--muted);max-width:56ch;line-height:1.55;margin-top:20px}
-.center .lede{margin-left:auto;margin-right:auto}
-
-.belief{text-align:center}
-.belief .q{font-family:var(--disp);font-weight:500;font-size:clamp(28px,4.6vw,50px);letter-spacing:-.025em;color:var(--ink);max-width:20ch;margin:22px auto 0;line-height:1.08}
-.belief .q .coral{color:var(--coral)}
-.belief .sub{font-size:16px;color:var(--muted);max-width:50ch;margin:26px auto 0;line-height:1.55}
-
-.split{display:grid;grid-template-columns:1fr 1.08fr;gap:clamp(32px,5vw,72px);align-items:center}
-.split.flip .fig{order:-1}
-.split .copy h2{font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;margin:16px 0 0}
-.split .copy p{font-size:16.5px;color:var(--body);line-height:1.65;margin-top:18px;max-width:48ch}
-.split .copy p strong{color:var(--ink);font-weight:600}
-.split .copy .quote{font-size:14.5px;color:var(--muted);border-left:2px solid var(--coral);padding-left:14px;margin-top:22px;font-style:italic;line-height:1.5}
-@media (max-width:840px){.split{grid-template-columns:1fr;gap:36px}.split.flip .fig{order:0}}
-
-.fig{position:relative}
-.notecard{background:var(--card);border-radius:18px;box-shadow:var(--shadow-md);border:1px solid var(--line-soft);overflow:hidden}
-.notecard .head{padding:22px 26px 0}
-.notecard h3{font-family:var(--disp);font-weight:600;font-size:22px;color:var(--ink);letter-spacing:-.02em}
-.notecard .meta{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:6px}
-.notecard .body{padding:16px 26px 26px;font-size:14.5px;line-height:1.7;color:var(--body)}
-.notecard .body p{margin-bottom:12px}
-.notecard .body .hl{background:var(--coral-tint);border-radius:3px;padding:0 3px}
-.anno{margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:var(--panel);border-radius:12px;padding:12px 14px}
-.anno .av{width:26px;height:26px;flex:0 0 26px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.anno .av .mascot{width:22px;height:22px}
-.anno .t{font-size:13px;line-height:1.5;color:var(--body)}
-.anno .t b{color:var(--coral-deep)}
-
-.canvas-fig{background:var(--card);border-radius:18px;box-shadow:var(--shadow-md);border:1px solid var(--line-soft);overflow:hidden}
-.canvas-fig .head{display:flex;align-items:center;gap:7px;padding:12px 15px;background:var(--panel);border-bottom:1px solid var(--line)}
-.canvas-fig .head .title{margin-left:10px;font-family:var(--mono);font-size:11px;color:var(--faint)}
-.canvas-stage{position:relative;height:360px;background:radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0/22px 22px;background-color:var(--paper)}
-.node{position:absolute;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:13px;font-weight:500;color:var(--ink);box-shadow:var(--shadow-sm);min-width:96px;text-align:center}
-.node.accent{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-tint),var(--shadow-sm)}
-.node .sub{font-weight:400;font-size:11px;color:var(--muted);margin-top:3px}
-.pip-cursor{position:absolute;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;color:#fff;background:var(--coral);padding:4px 9px 4px 6px;border-radius:999px;box-shadow:var(--shadow-md);white-space:nowrap}
-.pip-cursor .mascot{width:15px;height:15px;fill:#fff}
-
-.thread{background:var(--card);border-radius:18px;box-shadow:var(--shadow-md);border:1px solid var(--line-soft);padding:22px}
-.thread .row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:10px 0;border-bottom:1px dashed var(--line)}
-.thread .row:last-of-type{border-bottom:0}
-.thread .row .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
-.thread .carry{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.thread .cur{background:var(--panel);border-radius:12px;padding:14px 16px;margin-bottom:14px}
-.thread .cur h4{font-family:var(--disp);font-size:17px;color:var(--ink);margin-bottom:8px}
-.thread .cur .tags{display:flex;gap:6px;flex-wrap:wrap}
-.thread .tag{font-family:var(--mono);font-size:10.5px;color:var(--coral);background:var(--coral-tint);border-radius:999px;padding:3px 9px}
-.thread .ignored{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--faint);margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
-.thread .ignored s{color:var(--faint)}
-
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px}
-.fcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;box-shadow:var(--shadow-sm);transition:transform .22s cubic-bezier(.2,.7,.3,1),box-shadow .22s}
-.fcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
-.fcard .ic{width:42px;height:42px;border-radius:11px;background:var(--coral-tint);color:var(--coral);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
-.fcard .ic svg{width:22px;height:22px}
-.fcard h3{font-family:var(--disp);font-weight:600;font-size:19px;color:var(--ink);letter-spacing:-.01em}
-.fcard p{font-size:14.5px;color:var(--muted);line-height:1.55;margin-top:9px}
-@media (max-width:820px){.grid3{grid-template-columns:1fr}}
-
-.tools{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.tool-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:760px;margin:44px auto 0}
-.tpill{display:inline-flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 18px 11px 13px;font-size:14px;font-weight:500;color:var(--ink);box-shadow:var(--shadow-sm);transition:transform .16s,border-color .16s}
-.tpill:hover{transform:translateY(-2px);border-color:var(--coral)}
-.tpill .m{width:19px;height:19px;display:flex;align-items:center;justify-content:center;border-radius:5px;overflow:hidden}
-.tpill .m svg{width:100%;height:100%}
-
-.dark{background:var(--ink);color:var(--onnavy);position:relative;overflow:hidden}
-.dark::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 70% at 85% -10%,rgba(255,107,74,.16),transparent 55%);pointer-events:none}
-.dark .eyebrow{color:var(--onnavy-mut)}
-.dark .eyebrow::before{background:var(--coral)}
-.dark h2{color:#fff}
-.dark .lede{color:var(--onnavy-mut)}
-.dark-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px;position:relative}
-.dcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:26px}
-.dcard .n{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.4);margin-bottom:22px}
-.dcard h3{font-family:var(--disp);font-weight:600;font-size:20px;color:#fff;margin-bottom:10px;letter-spacing:-.01em}
-.dcard p{font-size:14px;color:var(--onnavy-mut);line-height:1.6}
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
-.chips span{font-family:var(--mono);font-size:11px;color:var(--onnavy-mut);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:6px 9px}
-.chips span.on{background:var(--coral);color:#fff;border-color:var(--coral)}
-@media (max-width:820px){.dark-grid{grid-template-columns:1fr}}
-
-.faq-list{max-width:760px;margin:52px auto 0}
-details{border-top:1px solid var(--line)}
-details:last-child{border-bottom:1px solid var(--line)}
-summary{list-style:none;cursor:pointer;padding:24px 0;display:flex;justify-content:space-between;align-items:center;gap:20px;font-family:var(--disp);font-weight:500;font-size:19px;color:var(--ink)}
-summary::-webkit-details-marker{display:none}
-summary .pl{width:26px;height:26px;flex:0 0 26px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;transition:transform .25s,background .15s,color .15s;color:var(--muted)}
-details[open] summary .pl{transform:rotate(45deg);background:var(--coral);color:#fff}
-.faq-a{padding:0 0 24px;font-size:15.5px;color:var(--muted);line-height:1.65;max-width:64ch}
-
-.final{background:var(--ink);color:#fff;text-align:center;position:relative;overflow:hidden}
-.final::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 50% -5%,rgba(255,107,74,.22),transparent 55%);pointer-events:none}
-.final .pip-mascot{width:84px;height:84px;margin:0 auto 30px;position:relative;animation:bob 6s ease-in-out infinite}
-.final h2{font-size:clamp(40px,7vw,76px);color:#fff;letter-spacing:-.035em;position:relative}
-.final h2 .w{color:var(--coral)}
-.final p{color:var(--onnavy-mut);font-size:17px;margin:16px auto 32px;position:relative}
-.final .hero-cta{position:relative}
-.final .meta{color:rgba(255,255,255,.4);font-family:var(--mono);font-size:12px;margin-top:18px}
-
-footer{background:var(--ink);color:rgba(255,255,255,.42);padding:26px var(--edge) 36px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px}
-footer .mk{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;color:#fff;font-size:15px}
-footer .mk .mascot{width:20px;height:20px}
-footer a{color:rgba(255,255,255,.5);margin-left:18px}
-footer a:hover{color:#fff}
-
-.rv{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.3,1)}
-.rv.in{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){*{animation:none!important}.rv{opacity:1;transform:none;transition:none}.pip-mascot *{transition:none!important}}
-</style>
 </head>
-<body>
+<body data-page="index">
+<a class="skip-link" href="#main">Skip to content</a>
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+  <!-- Pip, canonical idle (assets/pip/pip-idle.svg). The mouth stroke reads --mw so small faces never draw it under 1px. -->
+  <symbol id="pip-face" viewBox="160 160 700 700">
+    <path fill="#FF6B4A" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/>
+    <path fill="#FFFFFF" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/>
+    <path fill="#090A49" transform="translate(10 32)" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/>
+    <path fill="#FFFFFF" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/>
+    <path fill="#090A49" transform="translate(36 32)" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/>
+    <path fill="none" stroke="#D4502E" stroke-linecap="round" style="stroke-width:var(--mw,20)" d="M457 590 Q512 645 567 590"/>
+  </symbol>
+  <!-- Pip, thinking (assets/pip/pip-thinking.svg): "something's coming" -->
+  <symbol id="pip-think" viewBox="160 160 700 700">
+    <path fill="#FF6B4A" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/>
+    <path fill="#FFFFFF" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/>
+    <path fill="#090A49" transform="translate(10 -30)" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/>
+    <path fill="#FFFFFF" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/>
+    <path fill="#090A49" transform="translate(36 -30)" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/>
+    <path fill="none" stroke="#D4502E" stroke-linecap="round" style="stroke-width:var(--mw,20)" d="M457 598 Q512 612 567 598"/>
+  </symbol>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="pip" viewBox="0 0 1024 1024">
-<path class="b" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/>
-<path fill="#fff" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/>
-<path fill="#090A49" transform="translate(10,32)" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/>
-<path fill="#fff" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/>
-<path fill="#090A49" transform="translate(36,32)" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/>
-<path fill="none" stroke="#D4502E" stroke-width="6" stroke-linecap="round" d="M490 580 Q510 600 530 580"/>
-</symbol></svg>
+  <!-- Lucide 1.40 (outlined, 24 grid). Stroke and size come from .i classes. -->
+  <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M4 18h16"/><path d="M4 6h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+  <symbol id="i-table" viewBox="0 0 24 24"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></symbol>
+  <symbol id="i-shapes" viewBox="0 0 24 24"><path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"/><rect x="3" y="14" width="7" height="7" rx="1"/><circle cx="17.5" cy="17.5" r="3.5"/></symbol>
+  <symbol id="i-presentation" viewBox="0 0 24 24"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></symbol>
+  <symbol id="i-dashboard" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="i-hard-drive" viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></symbol>
+  <symbol id="i-folder-lock" viewBox="0 0 24 24"><rect width="8" height="5" x="14" y="17" rx="1"/><path d="M10 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v2.5"/><path d="M20 17v-2a2 2 0 1 0-4 0v2"/></symbol>
+  <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol>
+  <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="i-crop" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
 
-<template id="pip-animated">
-  <svg class="pip-mascot pip-animate" viewBox="0 0 1024 1024" aria-hidden="true">
-    <path class="pip-body" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/>
-    <g class="pip-eye-left">
-      <path class="pip-eye-white" fill="#fff" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/>
-      <path class="pip-pupil pip-pupil-left" fill="#090A49" transform="translate(10,32)" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/>
-    </g>
-    <g class="pip-eye-right">
-      <path class="pip-eye-white" fill="#fff" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/>
-      <path class="pip-pupil pip-pupil-right" fill="#090A49" transform="translate(36,32)" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/>
-    </g>
-    <path class="pip-mouth" fill="none" stroke="#D4502E" stroke-width="6" stroke-linecap="round" d="M490 580 Q510 600 530 580"/>
-  </svg>
-</template>
-
-<nav id="nav">
-  <a class="brand" href="#top"><svg class="mascot" width="30" height="30"><use href="#pip"/></svg>Pip</a>
-  <div class="nav-links">
-    <a href="#notes">Notes</a>
-    <a href="#canvas">Canvas</a>
-    <a href="#continuity">Continuity</a>
-    <a href="#privacy">Privacy</a>
-    <a href="#faq">FAQ</a>
+  <!-- Fabric swatches for the canvas job: patterns in the system's own colours, not photos -->
+  <defs>
+    <pattern id="pt-leaf" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#7A9278"/><path d="M3 11c1.6-4.6 5.4-6.6 8-7.2-.8 3.2-3.2 6.4-8 7.2z" fill="#9AB398"/></pattern>
+    <pattern id="pt-dots" width="9" height="9" patternUnits="userSpaceOnUse"><rect width="9" height="9" fill="#E8E5E0"/><circle cx="4.5" cy="4.5" r="1.5" fill="#090A49" fill-opacity=".55"/></pattern>
+    <pattern id="pt-stripe" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(90)"><rect width="10" height="10" fill="#F2F0ED"/><rect width="4" height="10" fill="#B07C18" fill-opacity=".55"/></pattern>
+  </defs>
+</svg>
+<header class="site-header" data-header>
+  <div class="container header-row">
+    <a class="brand" href="index.html" aria-label="Pip, home"><svg class="pf pf-28" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span class="brand-word">pip</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="pricing.html" data-nav="pricing">Pricing</a>
+      <a href="privacy.html" data-nav="privacy">Privacy</a>
+      <a href="questions.html" data-nav="questions">Questions</a>
+    </nav>
+    <div class="header-end">
+      <a class="btn btn--primary btn--sm" href="download.html?start=1" data-nav="download"><span>Download<span class="hide-sm"> for Mac</span></span></a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Menu" data-menu-btn>
+        <svg class="i i-20 i-open" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg>
+        <svg class="i i-20 i-close" aria-hidden="true" focusable="false"><use href="#i-x"/></svg>
+      </button>
+    </div>
   </div>
-  <a class="btn btn-primary js-download" href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest">Download for Mac</a>
-</nav>
-
-<header class="hero" id="top">
-  <span class="pill"><i></i>Free download for macOS</span>
-  <span class="hero-mascot-slot"></span>
-  <h1>Pip thinks <span class="w">with</span> you, not <span class="f">for</span> you.</h1>
-  <p class="sub">A local workspace you and an AI write in together. Your notes, your canvases, the files that come out of them, all sat on your Mac. Nothing leaves it unless you send it.</p>
-  <div class="hero-cta">
-    <a class="btn btn-primary js-download" href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>Download for Mac</a>
-    <a class="btn btn-ghost" href="#try">Try it first</a>
-  </div>
-  <p class="meta">Universal · macOS 13+ · free in beta</p>
-
-  <div class="window" id="try">
-    <div class="winbar"><span class="tl" style="background:#FF5F57"></span><span class="tl" style="background:#FEBC2E"></span><span class="tl" style="background:#28C840"></span><span class="title">Pip — Notes / Q3 strategy</span><span class="live">live demo</span></div>
-    <iframe class="demo-frame" src="https://hello-hayden-slaughter.github.io/hellopip-demo/" title="Pip — live demo you can click around" loading="lazy" allow="clipboard-write"></iframe>
-  </div>
+  <nav class="sheet" id="site-menu" aria-label="Menu" data-sheet hidden>
+    <a href="pricing.html" data-nav="pricing">Pricing <svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></a>
+    <a href="privacy.html" data-nav="privacy">Privacy <svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></a>
+    <a href="questions.html" data-nav="questions">Questions <svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></a>
+  </nav>
 </header>
+<main id="main">
 
-<section class="belief">
-  <div class="wrap narrow">
-    <span class="eyebrow rv">the idea</span>
-    <p class="q rv">Your workspace isn't a staging area. It's the <span class="coral">record.</span></p>
-    <p class="sub rv">Send a note out to Slack or Notion and it doesn't leave. It stays here, as the version you both keep working on, and it's still findable in six months.</p>
+<!-- ═══ Hero ═══════════════════════════════════════════════════════════════ -->
+<section class="hero" aria-labelledby="hero-h">
+  <div class="container hero-inner">
+    <h1 class="h1 hero-h" id="hero-h"><span class="hero-line" style="--i: 0">Stop losing your work</span> <span class="hero-line" style="--i: 1">in AI chats.</span></h1>
+    <p class="lead hero-sub">Not a chat with files. A workspace with AI.</p>
+    <div class="btn-row btn-row--center hero-cta">
+      <a class="btn btn--primary" href="download.html?start=1">Download for Mac, free</a>
+    </div>
   </div>
 </section>
 
-<section id="notes">
-  <div class="wrap">
-    <div class="split">
-      <div class="copy rv">
-        <span class="eyebrow">your notes</span>
-        <h2>Write together in the same document.</h2>
-        <p>Ask Pip for a section and he writes it straight into the note, rather than handing you a wall of text in the chat to copy out yourself. Open the side chat and he edits whatever you've got in front of you, in place.</p>
-        <p>Reading along as you write, he'll drop a question in the margin to sharpen the thinking, without ever taking it over.</p>
-        <p class="quote">"Write in the note, not about the note."</p>
+<!-- ═══ Have a play: the demo sits in #play so a live embed can replace it ═══ -->
+<section class="play-sec" aria-labelledby="play-h">
+  <h2 class="sr-only" id="play-h">A sample to play with</h2>
+  <div class="container play-wrap">
+    <div class="play-stage">
+      <div class="hero-pip" aria-hidden="true"><div class="pip-float"><svg class="pip-live" viewBox="160 160 700 700" width="112" height="112" aria-hidden="true" focusable="false" data-pip-live><path fill="#FF6B4A" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/><g class="pip-eye"><path fill="#FFFFFF" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/><g class="pip-pupil" data-x="10" data-y="32" transform="translate(10 32)"><path fill="#090A49" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/></g></g><g class="pip-eye"><path fill="#FFFFFF" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/><g class="pip-pupil" data-x="36" data-y="32" transform="translate(36 32)"><path fill="#090A49" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/></g></g><path fill="none" stroke="#D4502E" stroke-width="20" stroke-linecap="round" d="M457 590 Q512 645 567 590"/></svg></div></div>
+      <div class="play-hint" aria-hidden="true">
+        <span class="hand">go on, have a play</span>
+        <svg class="hand-arrow" viewBox="0 0 84 76" width="84" height="76" focusable="false"><path pathLength="100" d="M3 15C18 6 44 2 61 15C73 25 74 44 67 64L75.5 57.5L67 64L63 54"/></svg>
       </div>
-      <div class="fig rv">
-        <div class="notecard">
-          <div class="head"><h3>Q3 strategy — early thinking</h3><p class="meta">draft · last edited just now</p></div>
-          <div class="body">
-            <p>We should double down on enterprise. The <span class="hl">mid-market segment has underperformed</span> for two cycles.</p>
-            <p>If we land Acme and Northwind, that covers H2. <span class="hl">Mid-market can wait.</span></p>
-            <div class="anno">
-              <div class="av"><svg class="mascot" width="22" height="22"><use href="#pip"/></svg></div>
-              <p class="t"><b>Quick one.</b> "Underperformed" against what baseline? The targets you set in January look high now.</p>
+      <div class="play" id="play">
+        <div class="win win--demo" id="demo" role="group" aria-label="A sample Pip workspace you can try">
+          <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Lume Lighting › Mustard scallop shade</span><span class="win-end"></span></div>
+          <div class="demo-grid">
+            <nav class="demo-files" aria-label="Files">
+              <p class="files-head">Files <svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></p>
+              <button class="files-toggle" type="button" aria-expanded="false" aria-controls="demo-tree">Files <svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button>
+              <ul class="tree" id="demo-tree">
+                <li class="tree-row tree-folder"><svg class="i i-12 tree-caret" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><span>Lume Lighting</span></li>
+                <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Blog: scallop shades</span></li>
+                <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Costs: large scallop</span></li>
+                <li class="tree-row tree-file is-selected" aria-current="true"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Mustard scallop shade</span></li>
+                <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Drum workshop steps</span></li>
+                <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg><span>Spring collection</span></li>
+                <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Sales 2025</span></li>
+              </ul>
+            </nav>
+            <article class="demo-doc" aria-labelledby="demo-doc-title">
+              <div class="doc-col">
+                <p class="doc-meta">New listing, draft · edited just now</p>
+                <h3 class="doc-title" id="demo-doc-title">Mustard scallop shade</h3>
+                <div class="ph doc-photo" data-photo="demo-listing" role="img" aria-label="Photo: mustard scallop shade on a plain wall, 4:3" title="Photo: mustard scallop shade on a plain wall, 4:3" style="--ar: 4 / 3"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: mustard scallop shade on a plain wall, 4:3</span></div>
+                <p class="para" data-i="0" tabindex="0" role="button" aria-pressed="false">New scallop shade going in the shop tonight. This one's in a mustard linen I've been saving for months. It took me two goes to get the scallops even, honestly I think it was probably worth it in the end but my fingers might not agree. Only one, as always.</p>
+                <p class="para" data-i="1" tabindex="0" role="button" aria-pressed="false">Handmade in my studio in Hove, with a cotton lining that gives a warm glow. It works really well as a ceiling pendant but it also works on a lamp base too, depending on what you prefer, either is fine. Free UK delivery, in recyclable packaging.</p>
+                <h4 class="doc-h4">Sizes</h4>
+                <div class="doc-sizes" id="demo-sizes">
+                  <ul class="doc-list">
+                    <li>Small: 30cm wide, box 35 x 35 x 30</li>
+                    <li>Medium: 40cm wide, box 45 x 45 x 40</li>
+                    <li>Large: 50cm wide, box 55 x 55 x 50</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+            <section class="demo-pip" aria-label="Pip">
+              <div class="demo-pip-inner">
+                <div class="pip-head">
+                  <span class="pip-head-face" id="demo-face"><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
+                  <span class="pip-name">Pip</span>
+                  <button type="button" class="ghost-btn" id="demo-reset">Start over</button>
+                </div>
+                <div class="pip-log" id="demo-log" aria-live="polite">
+                  <div class="msg msg--pip"><svg class="pf pf-22" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><div class="msg-col"><p>You've got a caption and a list of sizes open. Want me to tighten the caption, or put the sizes in a table? Or ask me something else.</p></div></div>
+                </div>
+                <div class="pip-ask">
+                  <div class="sugs" id="demo-sugs">
+                    <button type="button" class="sug">Tighten the caption</button>
+                    <button type="button" class="sug">Turn the sizes into a table</button>
+                    <button type="button" class="sug">What did the last scallop sell for?</button>
+                  </div>
+                  <div class="inbox">
+                    <span class="selchip" id="demo-selchip" hidden><span class="selchip-text">Text selected</span><button type="button" class="selchip-x" id="demo-clearsel" aria-label="Clear selection"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></span>
+                    <form class="inrow" id="demo-form">
+                      <input id="demo-input" type="text" placeholder="Ask Pip anything…" autocomplete="off" aria-label="Ask Pip">
+                      <button type="submit" class="send" aria-label="Send"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-arrow-up"/></svg></button>
+                    </form>
+                  </div>
+                  <p class="demo-note">A sample to play with. The replies are set.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Why I built Pip ════════════════════════════════════════════════════ -->
+<section class="section why" id="why" aria-labelledby="why-h">
+  <div class="container">
+    <div class="why-inner" data-reveal>
+      <h2 class="label why-label" id="why-h">Why I built Pip</h2>
+      <blockquote class="why-quote">
+        <span class="why-mark" aria-hidden="true">“</span>
+        <p>I used Claude for real work. Then I'd go looking for something I'd made last week and find it buried in a conversation. I couldn't write my own notes into it, it didn't sit with the rest of my work, and every change went through a chat box. So I built Pip. The work sits in the middle, where I can see it. The AI comes to it.”</p>
+      </blockquote>
+      <div class="why-by">
+        <div class="ph ph--icon ph--round why-photo" data-photo="hayden" role="img" aria-label="Photo: Hayden, head and shoulders, 1:1" title="Photo: Hayden, head and shoulders, 1:1" style="--ar: 1 / 1"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: Hayden, head and shoulders, 1:1</span></div>
+        <p>Hayden, in Brighton <span class="rm">[Hayden to approve the wording]</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Find it again ══════════════════════════════════════════════════════ -->
+<section class="section find" id="find" aria-labelledby="find-h">
+  <div class="container">
+    <div class="sec-head" data-reveal>
+      <h2 class="h2" id="find-h">Find it again.</h2>
+      <p class="lead">Chats bury what you make. In Pip, it's right where you left it.</p>
+    </div>
+    <div class="find-grid stack-gap" data-reveal-visual data-scene="find">
+      <div class="find-col">
+        <p class="label find-label">In a chat</p>
+        <div class="win win--chat" role="group" aria-label="A chat app, searching for caption: 40 chats">
+          <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">A chat app</span><span class="win-end"></span></div>
+          <div class="chat-search">
+            <svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>
+            <span class="chat-q"><span data-query>caption</span><i class="caret" aria-hidden="true"></i></span>
+            <span class="chat-count tnum"><span data-count>40</span> chats</span>
+          </div>
+          <ul class="chat-list" data-chats>
+            <li class="chat-row"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-message"/></svg><span class="chat-t">Instagram caption</span><span class="chat-d">2 Oct</span></li>
+            <li class="chat-row"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-message"/></svg><span class="chat-t">Instagram caption (2)</span><span class="chat-d">2 Oct</span></li>
+            <li class="chat-row"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-message"/></svg><span class="chat-t">Caption, scallop shade</span><span class="chat-d">30 Sep</span></li>
+            <li class="chat-row"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-message"/></svg><span class="chat-t">Caption, final</span><span class="chat-d">29 Sep</span></li>
+            <li class="chat-row"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-message"/></svg><span class="chat-t">Workshop caption</span><span class="chat-d">18 Sep</span></li>
+            <li class="chat-row"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-message"/></svg><span class="chat-t">Caption (old)</span><span class="chat-d">4 Sep</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="find-col">
+        <p class="label find-label">In Pip</p>
+        <div class="win win--tree" role="group" aria-label="Lume Lighting, folders">
+          <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Lume Lighting</span><span class="win-end"><button type="button" class="replay" data-replay hidden><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg><span>Replay</span></button></span></div>
+          <ul class="tree tree--find" data-tree>
+            <li class="tree-row tree-folder"><svg class="i i-12 tree-caret" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><span>Products</span></li>
+            <li class="tree-row tree-file is-selected" data-pick><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Mustard scallop shade</span></li>
+            <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Sage drum</span></li>
+            <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg><span>Spring collection</span></li>
+            <li class="tree-row tree-folder"><svg class="i i-12 tree-caret" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><span>Workshops</span></li>
+            <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Drum workshop steps</span></li>
+            <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Lino printing day</span></li>
+            <li class="tree-row tree-folder"><svg class="i i-12 tree-caret" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><span>Newsletters</span></li>
+            <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>October</span></li>
+            <li class="tree-row tree-file"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>September</span></li>
+            <li class="tree-row tree-top"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Sales 2025</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ It's your page ═════════════════════════════════════════════════════ -->
+<section class="section yours" id="yours" aria-labelledby="yours-h">
+  <div class="container grid12">
+    <div class="sec-head yours-head" data-reveal>
+      <h2 class="h2" id="yours-h">It's your page.</h2>
+      <p class="lead">Write in it yourself. Ask Pip about one paragraph, and the rest stays yours.</p>
+    </div>
+    <div class="yours-visual" data-reveal-visual>
+      <div class="win win--note" role="group" aria-label="Lume Lighting › Mustard scallop shade, with one paragraph changed by Pip" data-scene="yours">
+        <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Lume Lighting › Mustard scallop shade</span><span class="win-end"><button type="button" class="replay" data-replay hidden><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg><span>Replay</span></button></span></div>
+        <div class="note-body">
+          <h3 class="doc-title">Mustard scallop shade</h3>
+          <div class="nrow">
+            <p class="npara">New scallop shade going in the shop tonight. This one's in a mustard linen I've been saving for months.</p>
+            <span class="nlab">your words</span>
+          </div>
+          <div class="nrow nrow--edit" data-edit>
+            <p class="npara"><span class="npara-wash" aria-hidden="true"></span><del>It works really well as a ceiling pendant but it also works on a lamp base too, depending on what you prefer, either is fine.</del> <ins><span data-typed>Hang it from the ceiling or sit it on a lamp base.</span><span class="typed-rest" data-rest></span></ins></p>
+            <span class="nlab" data-edit-label><i class="nlab-dot" aria-hidden="true"></i><span>Pip's edit</span></span>
+          </div>
+          <div class="nrow">
+            <p class="npara">Only one, as always.</p>
+            <span class="nlab">your words</span>
+          </div>
+        </div>
+        <div class="pip-line" data-pip-line>
+          <svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg>
+          <p>Changed that paragraph. The rest is yours, untouched.</p>
+          <button type="button" class="text-btn" data-undo>Undo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Not just words: the six jobs ═══════════════════════════════════════ -->
+<section class="section band jobs" id="jobs" aria-labelledby="jobs-h">
+  <div class="container">
+    <div class="sec-head" data-reveal>
+      <h2 class="h2" id="jobs-h">Not just words.</h2>
+      <p class="lead">Open anything you've made, and see what it could become.</p>
+    </div>
+  </div>
+  <div class="container container--wide stack-gap" data-reveal-visual>
+    <div class="win win--jobs" id="jobs-win" role="group" aria-label="Six jobs Pip can help with">
+      <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title" id="jobs-title">Lume Lighting › Newsletter: October</span><span class="win-end"></span></div>
+      <div class="jobs-grid">
+        <div class="jobs-rail" role="group" aria-label="Jobs">
+          <button type="button" class="job is-on" data-job="0" aria-pressed="true"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg></span><span class="job-t"><span class="job-name">Write the newsletter</span><span class="job-kind">Note</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+          <button type="button" class="job" data-job="1" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg></span><span class="job-t"><span class="job-name">Clean up a photo</span><span class="job-kind">Photo</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+          <button type="button" class="job" data-job="2" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg></span><span class="job-t"><span class="job-name">Work out a price</span><span class="job-kind">Table</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+          <button type="button" class="job" data-job="3" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg></span><span class="job-t"><span class="job-name">Make slides for a workshop</span><span class="job-kind">Deck</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+          <button type="button" class="job" data-job="4" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg></span><span class="job-t"><span class="job-name">Plan a new collection</span><span class="job-kind">Canvas</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+          <button type="button" class="job" data-job="5" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg></span><span class="job-t"><span class="job-name">See how the year is going</span><span class="job-kind">Dashboard</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+        </div>
+        <div class="jobs-main">
+          <div class="jobs-stage" id="jobs-stage">
+
+            <div class="surf surf--note" data-surf="0">
+              <p class="doc-meta">Note · edited yesterday</p>
+              <h3 class="surf-title">Newsletter: October</h3>
+              <div class="nl" id="nl-text">
+                <ul class="rough">
+                  <li>mustard scallop finally in the shop, only one</li>
+                  <li>drum workshop sat 17 oct, 2 places left</li>
+                  <li>lino printing day sat 7 nov, 8 places, £110, you take your shade home</li>
+                  <li>last christmas post 18 dec</li>
+                  <li>say thanks for the summer!!</li>
+                </ul>
+              </div>
             </div>
-            <div class="anno">
-              <div class="av"><svg class="mascot" width="22" height="22"><use href="#pip"/></svg></div>
-              <p class="t">That last line reads like a decision that was never actually made anywhere else. Worth checking before it sticks?</p>
+
+            <div class="surf surf--photo" data-surf="1">
+              <div class="photo-job" id="photo-job">
+                <div class="photo-frame">
+                  <div class="photo-cut"><div class="ph ph--cut" data-photo="job-photo-cutout" role="img" aria-label="Cutout: the same shade, background removed, transparent PNG, 1:1" title="Cutout: the same shade, background removed, transparent PNG, 1:1" style="--ar: 1 / 1"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Cutout: the same shade, background removed, transparent PNG, 1:1</span></div></div>
+                  <div class="photo-orig"><div class="ph ph--fill" data-photo="job-photo" role="img" aria-label="Photo: mustard scallop shade on the workbench, a mug and scissors behind, 4:3" title="Photo: mustard scallop shade on the workbench, a mug and scissors behind, 4:3" style="--ar: 4 / 3"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: mustard scallop shade on the workbench, a mug and scissors behind, 4:3</span></div></div>
+                </div>
+                <div class="photo-tools" aria-hidden="true">
+                  <span class="ptool" data-tool="clean"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-eraser"/></svg>Remove background</span>
+                  <span class="ptool" data-tool="bright"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg>Brighten</span>
+                  <span class="ptool" data-tool="square"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-crop"/></svg>Square for the shop</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="surf surf--table" data-surf="2">
+              <div class="tbl-wrap"><table class="tbl tbl--cost" id="cost-tbl" aria-label="Costs: large scallop">
+                <thead><tr><th scope="col">Item</th><th scope="col">Cost</th></tr></thead>
+                <tbody>
+                  <tr><td>Linen, 0.6m</td><td>£16.80</td></tr>
+                  <tr><td>Lampshade panel</td><td>£7.50</td></tr>
+                  <tr><td>Rings, 50cm</td><td>£6.20</td></tr>
+                  <tr><td>Cotton lining</td><td>£4.00</td></tr>
+                  <tr><td>Box and packing</td><td>£3.50</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+
+            <div class="surf surf--deck" data-surf="3">
+              <div class="deck-job">
+                <div class="step-note">
+                  <p class="doc-meta">Note</p>
+                  <p class="step-note-title">Drum workshop steps</p>
+                  <ol>
+                    <li>Cut the panel to size</li>
+                    <li>Stick the fabric on</li>
+                    <li>Roll it round the rings</li>
+                    <li>Tuck in the edges</li>
+                    <li>Trim and finish</li>
+                  </ol>
+                </div>
+                <div class="slides" id="slides">
+                  <div class="slide"><div class="slide-face s-cover"><div class="ph ph--icon ph--fill" data-photo="slide-cover" role="img" aria-label="Photo: a finished drum lampshade, 16:10" title="Photo: a finished drum lampshade, 16:10" style="--ar: 16 / 10"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: a finished drum lampshade, 16:10</span></div><div class="s-cap"><b>Make a drum lampshade</b><small>Saturday workshop</small></div></div></div>
+                  <div class="slide"><div class="slide-face s-split"><div class="ph ph--icon ph--fill" data-photo="step-1" role="img" aria-label="Photo: cutting the lampshade panel to size, 4:5" title="Photo: cutting the lampshade panel to size, 4:5" style="--ar: 4 / 5"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: cutting the lampshade panel to size, 4:5</span></div><div class="s-txt"><span class="s-n">Step 1</span><b>Cut the panel to size</b><small>Measure twice. The panel sets the size.</small></div></div></div>
+                  <div class="slide"><div class="slide-face s-bleed"><div class="ph ph--icon ph--fill" data-photo="step-2" role="img" aria-label="Photo: sticking the fabric to the panel, 16:10" title="Photo: sticking the fabric to the panel, 16:10" style="--ar: 16 / 10"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: sticking the fabric to the panel, 16:10</span></div><div class="s-bar"><span class="s-n">Step 2</span><b>Stick the fabric on</b></div></div></div>
+                  <div class="slide"><div class="slide-face s-num"><span class="s-big tnum">3</span><div class="s-txt"><b>Roll it round the rings</b><small>Keep it tight and even.</small></div></div></div>
+                  <div class="slide"><div class="slide-face s-stack"><div class="ph ph--icon ph--fill" data-photo="step-4" role="img" aria-label="Photo: tucking in the edges, 5:2" title="Photo: tucking in the edges, 5:2" style="--ar: 5 / 2"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: tucking in the edges, 5:2</span></div><div class="s-txt"><span class="s-n">Step 4</span><b>Tuck in the edges</b></div></div></div>
+                  <div class="slide"><div class="slide-face s-split s-rev"><div class="s-txt"><span class="s-n">Step 5</span><b>Trim and finish</b><small>Then take it home.</small></div><div class="ph ph--icon ph--fill" data-photo="step-5" role="img" aria-label="Photo: the trimmed, finished drum shade, 4:5" title="Photo: the trimmed, finished drum shade, 4:5" style="--ar: 4 / 5"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: the trimmed, finished drum shade, 4:5</span></div></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surf surf--canvas" data-surf="4">
+              <div class="cv" id="cv">
+                <span class="cvh" style="--x: 4%">Fabrics</span>
+                <span class="cvh" style="--x: 37%">Shapes</span>
+                <span class="cvh" style="--x: 70%">Notes</span>
+                <div class="cvi cvi--sw" data-fabric="0" style="--x0: 5%; --y0: 9%; --r0: -6deg; --x1: 4%; --y1: 15%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Green leaf linen"><rect width="60" height="40" fill="url(#pt-leaf)"/></svg></div>
+                <div class="cvi cvi--sw" data-fabric="1" style="--x0: 52%; --y0: 58%; --r0: 5deg; --x1: 4%; --y1: 42%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Dotted cotton"><rect width="60" height="40" fill="url(#pt-dots)"/></svg></div>
+                <div class="cvi cvi--sw" data-fabric="2" style="--x0: 27%; --y0: 66%; --r0: -3deg; --x1: 4%; --y1: 69%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Striped linen"><rect width="60" height="40" fill="url(#pt-stripe)"/></svg></div>
+                <div class="cvi cvi--shape" style="--x0: 71%; --y0: 7%; --r0: 4deg; --x1: 37%; --y1: 15%"><svg viewBox="0 0 120 80" role="img" aria-label="Scallop shape"><path d="M60 3v11"/><path d="M46 14h28l20 46q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-8 0z"/></svg></div>
+                <div class="cvi cvi--shape" style="--x0: 35%; --y0: 5%; --r0: -4deg; --x1: 37%; --y1: 52%"><svg viewBox="0 0 120 80" role="img" aria-label="Drum shape"><path d="M60 3v11"/><ellipse cx="60" cy="20" rx="28" ry="6"/><path d="M32 20v38a28 6 0 0 0 56 0V20"/></svg></div>
+                <div class="cvi cvi--sticky" style="--x0: 8%; --y0: 54%; --r0: 3deg; --x1: 70%; --y1: 15%">Mustard sold out in two days</div>
+                <div class="cvi cvi--sticky" style="--x0: 75%; --y0: 50%; --r0: -5deg; --x1: 70%; --y1: 41%">Try a 50cm scallop</div>
+                <div class="cvi cvi--sticky" style="--x0: 57%; --y0: 24%; --r0: 2deg; --x1: 70%; --y1: 67%">Scallop, 50cm: £?</div>
+              </div>
+            </div>
+
+            <div class="surf surf--dash" data-surf="5">
+              <div class="dash" id="dash">
+                <div class="dash-before">
+                  <div class="tbl-wrap"><table class="tbl tbl--sales" aria-label="Sales 2025">
+                    <thead><tr><th scope="col">Month</th><th scope="col">Shades</th><th scope="col">Workshops</th></tr></thead>
+                    <tbody>
+                      <tr><td>Jan</td><td>£1,320</td><td>£540</td></tr>
+                      <tr><td>Feb</td><td>£1,440</td><td>£660</td></tr>
+                      <tr><td>Mar</td><td>£1,620</td><td>£960</td></tr>
+                      <tr><td>Apr</td><td>£1,500</td><td>£960</td></tr>
+                      <tr><td>May</td><td>£1,920</td><td>£1,620</td></tr>
+                      <tr><td>Jun</td><td>£1,620</td><td>£1,380</td></tr>
+                      <tr><td>Jul</td><td>£1,740</td><td>£1,620</td></tr>
+                      <tr><td>Aug</td><td>£2,040</td><td>£1,860</td></tr>
+                      <tr><td>Sep</td><td>£2,400</td><td>£2,160</td></tr>
+                    </tbody>
+                  </table></div>
+                </div>
+                <div class="dash-after">
+                  <div class="tiles">
+                    <div class="tile"><span class="tile-k">Shades</span><b class="tile-v tnum" data-to="15600" data-pre="£">0</b></div>
+                    <div class="tile"><span class="tile-k">Workshops</span><b class="tile-v tnum" data-to="11760" data-pre="£">0</b></div>
+                    <div class="tile tile--find"><span class="tile-k">Workshops' share</span><b class="tile-v tnum" data-to="43" data-suf="%">0</b></div>
+                  </div>
+                  <div class="chart">
+                    <div class="bars">
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 49.5%"></i><i class="b2" style="--h: 20.25%"></i></div><span>Jan</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 54%"></i><i class="b2" style="--h: 24.75%"></i></div><span>Feb</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 60.75%"></i><i class="b2" style="--h: 36%"></i></div><span>Mar</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 56.25%"></i><i class="b2" style="--h: 36%"></i></div><span>Apr</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 72%"></i><i class="b2" style="--h: 60.75%"></i></div><span>May</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 60.75%"></i><i class="b2" style="--h: 51.75%"></i></div><span>Jun</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 65.25%"></i><i class="b2" style="--h: 60.75%"></i></div><span>Jul</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 76.5%"></i><i class="b2" style="--h: 69.75%"></i></div><span>Aug</span></div>
+                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 90%"></i><i class="b2" style="--h: 81%"></i></div><span>Sep</span></div>
+                    </div>
+                    <div class="key"><span><i class="k1"></i>Shades</span><span><i class="k2"></i>Workshops</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="pipbar">
+            <span class="pipbar-face" id="jobs-face"><svg class="pf pf-28" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
+            <div class="pipbar-text">
+              <p class="pipbar-label">How Pip can help</p>
+              <p class="pipbar-msg" id="jobs-msg" aria-live="polite">You've got this month's news as rough notes. Want a first draft of the newsletter, in your words?</p>
+            </div>
+            <div class="pipbar-actions">
+              <span class="pipbar-opts" id="jobs-opts" hidden></span>
+              <button type="button" class="btn btn--primary btn--xs" id="jobs-go">Yes, draft it</button>
+              <button type="button" class="btn btn--secondary btn--xs" id="jobs-reset" hidden>Reset</button>
+              <button type="button" class="btn btn--primary btn--xs" id="jobs-next" hidden><span>Next job</span><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button>
             </div>
           </div>
         </div>
@@ -363,29 +477,54 @@ footer a:hover{color:#fff}
   </div>
 </section>
 
-<section id="canvas" style="background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
-  <div class="wrap">
-    <div class="split flip">
-      <div class="copy rv">
-        <span class="eyebrow">canvas</span>
-        <h2>Think it out on a canvas.</h2>
-        <p>Sketch a flow, map the pieces, move the boxes around. Ask Pip to connect two of them and he'll do it on the canvas itself, rather than describing the change back to you in chat.</p>
-        <p>Each canvas is a real file in your workspace, sat right next to your notes.</p>
+<!-- ═══ Already briefed ════════════════════════════════════════════════════ -->
+<section class="section memory" id="memory" aria-labelledby="memory-h">
+  <div class="container">
+    <div class="sec-head" data-reveal>
+      <h2 class="h2" id="memory-h">Already briefed.</h2>
+      <p class="lead">Pip knows how your work fits together, so his help fits too.</p>
+    </div>
+    <div class="memory-grid stack-gap" data-reveal-visual>
+      <div class="memory-col">
+        <div class="memory-head">
+          <h3 class="h3">Ask about your business</h3>
+          <p class="label">answered from your own notes</p>
+        </div>
+        <div class="win win--ask" role="group" aria-label="Lume Lighting › Pip" data-scene="briefed">
+          <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Lume Lighting › Pip</span><span class="win-end"><button type="button" class="replay" data-replay hidden><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg><span>Replay</span></button></span></div>
+          <div class="chat-body">
+            <div class="msg msg--user" data-step>What does a large scallop cost me to make?</div>
+            <div class="msg msg--pip" data-step><svg class="pf pf-22" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><div class="msg-col"><p class="act"><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span>Looked in your notes</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p><p class="ans">£38 in materials and £12 to send it, from <span class="src"><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-table"/></svg>Costs: large scallop</span>. Your time isn't in there yet.</p></div></div>
+            <div class="msg msg--user" data-step>How many places are left on the drum workshop?</div>
+            <div class="msg msg--pip" data-step><svg class="pf pf-22" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><div class="msg-col"><p class="act"><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span>Looked in your tables</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p><p class="ans">Two, from your <span class="src"><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-table"/></svg>Workshops</span> table. It's Saturday 17 October, £40 each.</p></div></div>
+          </div>
+        </div>
       </div>
-      <div class="fig rv">
-        <div class="canvas-fig">
-          <div class="head"><span class="tl" style="background:#FF5F57"></span><span class="tl" style="background:#FEBC2E"></span><span class="tl" style="background:#28C840"></span><span class="title">Pip — Canvas / Launch flow</span></div>
-          <div class="canvas-stage">
-            <svg style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true">
-              <line x1="26%" y1="30%" x2="52%" y2="30%" stroke="var(--coral)" stroke-width="2"/>
-              <line x1="64%" y1="38%" x2="64%" y2="60%" stroke="var(--line)" stroke-width="2"/>
-              <line x1="26%" y1="38%" x2="38%" y2="60%" stroke="var(--line)" stroke-width="2"/>
-            </svg>
-            <div class="node" style="left:8%;top:22%">Draft brief<div class="sub">note</div></div>
-            <div class="node accent" style="left:52%;top:22%">Sign-off<div class="sub">blocked · legal</div></div>
-            <div class="node" style="left:52%;top:62%">Ship<div class="sub">week 6</div></div>
-            <div class="node" style="left:12%;top:62%">Announce</div>
-            <div class="pip-cursor" style="left:53%;top:12%"><svg class="mascot" width="15" height="15"><use href="#pip"/></svg>connecting…</div>
+      <div class="memory-col memory-col--offset">
+        <div class="memory-head">
+          <h3 class="h3">See what Pip knows</h3>
+          <p class="label">and put him right</p>
+        </div>
+        <div class="win win--knows" role="group" aria-label="Settings › What Pip knows">
+          <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Settings › What Pip knows</span><span class="win-end"></span></div>
+          <div class="knows-body">
+            <p class="knows-title"><svg class="pf pf-22" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>What Pip knows</span></p>
+            <div class="kitem">
+              <p class="kitem-t">Lume Lighting: lampshades and workshops, from a studio in Hove</p>
+              <p class="kitem-m">From your notes</p>
+            </div>
+            <div class="kitem">
+              <p class="kitem-t">How you write: short and warm. Ends on a small joke.</p>
+              <p class="kitem-m">From your notes · <button type="button" class="text-btn kitem-why" aria-expanded="true" aria-controls="knows-why">How does Pip know this?</button></p>
+              <div class="kwhy" id="knows-why">
+                <p>“It took me two goes to get the scallops even … my fingers might not agree.”</p>
+                <span class="src"><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg>Mustard scallop shade · 30 Sep</span>
+              </div>
+            </div>
+            <div class="kitem">
+              <p class="kitem-t">Signs off with “Speak soon”</p>
+              <p class="kitem-m">From your notes</p>
+            </div>
           </div>
         </div>
       </div>
@@ -393,128 +532,104 @@ footer a:hover{color:#fff}
   </div>
 </section>
 
-<section id="continuity">
-  <div class="wrap">
-    <div class="split">
-      <div class="copy rv">
-        <span class="eyebrow">continuity</span>
-        <h2>He keeps the thread across notes, chats, and lunch.</h2>
-        <p>Draft something in a note, open a chat about it, wander off for lunch, then come back and say "carry on with that." <strong>Pip knows what that is.</strong></p>
-        <p>Scribble "buy bread" at the bottom of a strategy note and he won't think you've switched to groceries. And if he's lost the thread after a while away, he'll tell you what he thinks you were doing rather than guess and sound certain about it.</p>
+<!-- ═══ Switch AI ══════════════════════════════════════════════════════════ -->
+<section class="section switch" id="switch" aria-labelledby="switch-h">
+  <div class="container grid12">
+    <div class="sec-head switch-head" data-reveal>
+      <h2 class="h2" id="switch-h"><span class="beat-line">Switch AI.</span> <span class="beat beat-line">Keep everything.</span></h2>
+      <p class="lead">Claude and more, included. Try a different AI in any conversation, and your work stays put.</p>
+      <div class="switch-more">
+        <p>Already pay for Claude, or have an OpenAI key? Use it in Pip, free.</p>
+        <p>Claude Desktop and Claude Code can read and write your Pip notes too.</p>
       </div>
-      <div class="fig rv">
-        <div class="thread">
-          <p class="carry">Pip is carrying</p>
-          <div class="cur">
-            <h4>Q3 strategy</h4>
-            <div class="tags"><span class="tag">2 notes</span><span class="tag">1 chat</span><span class="tag">canvas</span></div>
+    </div>
+    <figure class="switch-visual" data-reveal-visual>
+      <div class="win win--switch" role="group" aria-label="Lume Lighting › Pip, choosing an AI for this chat" data-scene="switch">
+        <div class="win-bar"><span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Lume Lighting › Pip</span><span class="win-end"><button type="button" class="replay" data-replay hidden><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg><span>Replay</span></button></span></div>
+        <div class="switch-body">
+          <div class="model-chip" data-chip><span class="model-chip-label" data-chip-label>Claude Sonnet</span><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></div>
+          <div class="model-menu" data-menu>
+            <p class="mm-group">Pip subscription</p>
+            <div class="mm-opt is-on" data-model="Claude Sonnet"><span class="mm-tick"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span><span class="mm-name"><span class="sr-only" data-sel>Selected: </span><b>Claude Sonnet</b><small>Careful work on longer pieces</small></span></div>
+            <div class="mm-opt" data-model="Claude Opus"><span class="mm-tick"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span><span class="mm-name"><b>Claude Opus</b><small>The hardest problems</small></span></div>
+            <div class="mm-opt" data-model="Claude Haiku"><span class="mm-tick"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span><span class="mm-name"><b>Claude Haiku</b><small>Quick tasks</small></span></div>
+            <div class="mm-opt" data-model="GLM Flash"><span class="mm-tick"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span><span class="mm-name"><b>GLM Flash</b><small>Quick answers, fast</small></span></div>
+            <p class="mm-group">Your Claude plan</p>
+            <div class="mm-opt"><span class="mm-tick"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span><span class="mm-name"><b>Claude Opus</b></span></div>
+            <p class="mm-group">Your keys</p>
+            <div class="mm-opt"><span class="mm-tick"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span><span class="mm-name"><b>GPT-4o</b><small>OpenAI</small></span></div>
+            <p class="mm-group">On this Mac</p>
+            <div class="mm-opt"><span class="mm-tick"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span><span class="mm-name"><b>Llama 3.1</b></span></div>
+            <p class="mm-note">For this chat only. Settings sets the default.</p>
           </div>
-          <div class="row"><span class="dot" style="background:var(--coral)"></span>Enterprise refocus, the through-line</div>
-          <div class="row"><span class="dot" style="background:var(--coral)"></span>Acme and Northwind cover H2</div>
-          <div class="row"><span class="dot" style="background:var(--muted)"></span>Sam to hear about Tessa first</div>
-          <div class="ignored"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Left out: <s>"buy bread"</s>, nothing to do with this</span></div>
+          <div class="switch-chat">
+            <div class="msg msg--user">Give me three names for the autumn collection.</div>
+            <div class="msg msg--pip"><svg class="pf pf-22" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><div class="msg-col"><p>Ember, Hearth and Low Sun. Ember fits the mustard best.</p></div></div>
+          </div>
         </div>
       </div>
+      <figcaption class="switch-cap">Your work stays put.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══ Kept on your Mac ═══════════════════════════════════════════════════ -->
+<section class="section kept" id="kept" aria-labelledby="kept-h">
+  <div class="container">
+    <div class="sec-head sec-head--wide" data-reveal>
+      <h2 class="h2" id="kept-h"><span class="beat-line">Kept on your Mac.</span> <span class="beat beat-line">Kept out of training.</span></h2>
+      <p class="lead">Your work lives on your Mac. Pip's AI runs in the EU and never trains on it.</p>
+    </div>
+    <ul class="facts stack-gap" data-reveal>
+      <li class="fact"><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-hard-drive"/></svg></span><h3 class="h3">Your files.</h3><p>In a folder on your Mac. Back them up and take them anywhere.</p></li>
+      <li class="fact"><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-globe"/></svg></span><h3 class="h3">EU servers.</h3><p>Pip's AI runs in the EU, under EU privacy law.</p></li>
+      <li class="fact"><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-eye-off"/></svg></span><h3 class="h3">No tracking.</h3><p>No ads, nothing tracked, nothing sold.</p></li>
+    </ul>
+    <p class="kept-more" data-reveal><a class="more-link" href="privacy.html"><span>How privacy works</span><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a></p>
+  </div>
+</section>
+
+<!-- ═══ Close ══════════════════════════════════════════════════════════════ -->
+<section class="section band close" id="close" aria-labelledby="close-h">
+  <div class="container close-inner" data-reveal>
+    <div class="close-pip" aria-hidden="true"><div class="pip-float"><svg class="pip-live" viewBox="160 160 700 700" width="140" height="140" aria-hidden="true" focusable="false" data-pip-live><path fill="#FF6B4A" d="M490.829 183.72C574.143 179.943 691.914 193.472 755.609 252.712C816.228 309.091 834.641 412.785 837.227 492.372C840.06 579.575 826.531 690.324 767.668 759.495C712.118 823.719 615.411 835.955 535.504 839.929C453.479 843.655 334.098 831.835 270.921 774.035C260.482 764.485 250.562 753.362 242.56 741.694C204.804 686.645 191.021 607.668 188.058 542.273C184.029 453.348 196.045 331.642 259.05 262.88C316.3 200.397 410.599 187.29 490.829 183.72Z"/><g class="pip-eye"><path fill="#FFFFFF" d="M390.446 334.902C452.032 329.947 505.934 375.948 510.722 437.546C515.51 499.145 469.365 552.922 407.754 557.545C346.377 562.149 292.848 516.218 288.078 454.853C283.308 393.489 329.095 339.837 390.446 334.902Z"/><g class="pip-pupil" data-x="10" data-y="32" transform="translate(10 32)"><path fill="#090A49" d="M375.012 386.136C393.249 382.926 410.641 395.092 413.879 413.324C417.117 431.556 404.978 448.967 386.751 452.233C368.484 455.506 351.027 443.335 347.782 425.063C344.537 406.791 356.735 389.353 375.012 386.136Z"/></g></g><g class="pip-eye"><path fill="#FFFFFF" d="M617.132 335.202C678.45 330.201 732.211 375.857 737.21 437.175C742.208 498.493 696.551 552.253 635.232 557.249C573.917 562.245 520.161 516.591 515.163 455.276C510.164 393.961 555.817 340.203 617.132 335.202Z"/><g class="pip-pupil" data-x="36" data-y="32" transform="translate(36 32)"><path fill="#090A49" d="M598.815 386.662C617.308 385.942 632.907 400.301 633.718 418.791C634.528 437.28 620.246 452.95 601.76 453.851C583.146 454.758 567.344 440.354 566.528 421.736C565.712 403.118 580.193 387.387 598.815 386.662Z"/></g></g><path fill="none" stroke="#D4502E" stroke-width="20" stroke-linecap="round" d="M457 590 Q512 645 567 590"/></svg></div></div>
+    <h2 class="h2" id="close-h"><span class="beat-line">Pip does the legwork.</span> <span class="beat beat-line">You make the call.</span></h2>
+    <p class="lead">Free with your own AI, or £12 a month with ours. 14&nbsp;days free, no card.</p>
+    <div class="btn-row btn-row--center">
+      <a class="btn btn--primary" href="download.html?start=1">Download for Mac, free</a>
+      <a class="btn btn--secondary" href="pricing.html">See pricing</a>
+    </div>
+  </div>
+  <div class="container lume" data-reveal>
+    <div class="lume-strip">
+      <div class="ph lume-photo" data-photo="lume-studio" role="img" aria-label="Photo: shades in the Lume studio, 4:3" title="Photo: shades in the Lume studio, 4:3" style="--ar: 4 / 3"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span class="ph-cap" aria-hidden="true">Photo: shades in the Lume studio, 4:3</span></div>
+      <p>The lampshades on this page are real. They're from Lume Lighting, my partner Jo's studio in Hove. <span class="rm">[Check with Jo before this goes live]</span></p>
     </div>
   </div>
 </section>
-
-<section style="background:var(--panel);border-top:1px solid var(--line)">
-  <div class="wrap center">
-    <span class="eyebrow rv">and there's more</span>
-    <h2 class="big rv">Built to hold a whole project.</h2>
-    <div class="grid3">
-      <div class="fcard rv">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
-        <h3>Folders that remember the project</h3>
-        <p>A folder keeps a running sense of how its notes and canvases relate, so Pip can reason about one thing using what he's picked up from the rest.</p>
-      </div>
-      <div class="fcard rv">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 14h6M9 17h4"/></svg></div>
-        <h3>Real files, not just replies</h3>
-        <p>Ask for a report and you get a file, an HTML page or a chart or a diagram, built and rendered from your own disk. None of it is uploaded anywhere to be looked at.</p>
-      </div>
-      <div class="fcard rv">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3"/></svg></div>
-        <h3>Works alongside Claude Code</h3>
-        <p>When Claude writes into your workspace, Pip treats it like your own work, shared and carried forward rather than stranded in a chat session somewhere.</p>
-      </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-about">
+      <a class="brand" href="index.html" aria-label="Pip, home"><svg class="pf pf-28" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span class="brand-word">pip</span></a>
+      <p>Not a chat with files. A workspace with AI. Made in Brighton.</p>
     </div>
-  </div>
-</section>
-
-<section class="tools center">
-  <div class="wrap">
-    <span class="eyebrow rv">your tools</span>
-    <h2 class="big rv">Your tools, when you ask.</h2>
-    <p class="lede rv">Pull in a Granola transcript, a Slack thread or an email when you need it, then push the finished thing back out when it's ready. Nothing sits in the background watching your accounts.</p>
-    <div class="tool-row rv">
-      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect x="10.25" y="1" width="3.5" height="9" rx="1.75" fill="#36C5F0"/><rect x="14" y="10.25" width="9" height="3.5" rx="1.75" fill="#2EB67D"/><rect x="10.25" y="14" width="3.5" height="9" rx="1.75" fill="#ECB22E"/><rect x="1" y="10.25" width="9" height="3.5" rx="1.75" fill="#E01E5A"/></svg></span>Slack</span>
-      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#fff" stroke="#E0DDD7" stroke-width=".6"/><path d="M7 6.2h2.4l5.6 8.2V6.2h2V18h-2.4L8.9 9.6V18H7z" fill="#0A0A0A"/></svg></span>Notion</span>
-      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#fff"/><path d="M3 8l9 6 9-6v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#EA4335"/><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1l-9 6-9-6z" fill="#FBBC04"/><path d="M21 8v9a2 2 0 0 1-2 2h-2v-8z" fill="#34A853"/><path d="M3 8l4 3v8H5a2 2 0 0 1-2-2z" fill="#4285F4"/></svg></span>Gmail</span>
-      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3" fill="#fff" stroke="#E0DDD7" stroke-width=".6"/><path d="M2 6a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v2H2z" fill="#4285F4"/><text x="12" y="18.6" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="9" fill="#4285F4">31</text></svg></span>Calendar</span>
-      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#F4A93B"/><text x="12" y="17.5" text-anchor="middle" font-family="system-ui" font-weight="800" font-size="13" fill="#fff">G</text></svg></span>Granola</span>
-      <span class="tpill"><span class="m"><svg viewBox="0 0 24 24"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5E6AD2"/><stop offset="1" stop-color="#9BA4F2"/></linearGradient></defs><rect width="24" height="24" rx="5" fill="url(#lg)"/><g stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".95"><line x1="6" y1="13" x2="11" y2="18"/><line x1="6" y1="9" x2="15" y2="18"/><line x1="6" y1="5" x2="18" y2="17"/><line x1="10" y1="5" x2="18" y2="13"/></g></svg></span>Linear</span>
+    <nav class="footer-col" aria-labelledby="footer-pip">
+      <h2 id="footer-pip">Pip</h2>
+      <a href="index.html">Home</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="questions.html">Questions</a>
+      <a href="download.html?start=1">Download for Mac</a>
+    </nav>
+    <div class="footer-col">
+      <h2>Legal</h2>
+      <span>Terms</span>
+      <span>Privacy policy</span>
+      <span>Contact</span>
     </div>
+    <p class="footer-small">Pip <span class="rm">[version]</span> · © 2026 Pip. Claude is a trademark of Anthropic. Pip is independent and isn't made or endorsed by Anthropic. <span class="rm">[check wording]</span></p>
   </div>
-</section>
-
-<section class="dark" id="privacy">
-  <div class="wrap">
-    <span class="eyebrow rv">on your machine</span>
-    <h2 class="big rv">Yours, and under your control.</h2>
-    <p class="lede rv">Pip lives on your computer. Your notes, your context and your history are saved on your own hardware, not on a server of ours.</p>
-    <div class="dark-grid">
-      <div class="dcard rv">
-        <p class="n">01 / local-first</p>
-        <h3>Stays on your machine.</h3>
-        <p>Everything Pip knows is stored on your disk. Nothing leaves it unless you connect a service or send something out yourself.</p>
-      </div>
-      <div class="dcard rv">
-        <p class="n">02 / any model</p>
-        <h3>Pick a model, any model.</h3>
-        <p>Connect one key through OpenRouter, or run a local model that never leaves your Mac. If the model you've picked can't handle a particular turn, Pip tells you and offers one of your others that can, instead of switching behind your back.</p>
-        <div class="chips"><span class="on">claude</span><span>gpt</span><span>gemini</span><span>llama · local</span></div>
-      </div>
-      <div class="dcard rv">
-        <p class="n">03 / no surprises</p>
-        <h3>Nothing changes silently.</h3>
-        <p>When Pip learns something about how you work, he shows you the change and waits for you to approve it. He never edits himself behind your back.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="faq">
-  <div class="wrap center">
-    <span class="eyebrow rv">questions</span>
-    <h2 class="big rv">Things people ask.</h2>
-  </div>
-  <div class="wrap faq-list">
-    <details open><summary>Is Pip free?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">Yes, while it's in beta. When I land on a pricing model you'll hear about it before anything changes, and there'll always be a free tier that runs entirely on your own machine.</div></details>
-    <details><summary>Does it work on Windows or Linux?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">Mac only for now. Windows and Linux are on the list, but I want Mac to be genuinely good before I split my attention.</div></details>
-    <details><summary>What's an LLM, and does it matter which one?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">It's the part that does the actual thinking. Claude, GPT and Gemini are the well known ones. Pip is the layer that connects one of them to your workspace and your tools. Different models are good at different things, and some run entirely on your machine, so Pip lets you pick one and switch whenever you want.</div></details>
-    <details><summary>Who's building this?<span class="pl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="faq-a">Just me. I'm Hayden, based in Brighton. I got tired of AI tools that confidently wrote things I hadn't asked for, so I started building the one I actually wanted.</div></details>
-  </div>
-</section>
-
-<section class="final" id="get">
-  <div class="wrap">
-    <span class="final-mascot-slot"></span>
-    <h2>Give <span class="w">Pip</span> a go.</h2>
-    <p>Free while it's in beta. Download it and see how you get on.</p>
-    <div class="hero-cta">
-      <a class="btn btn-light js-download" href="https://github.com/hello-hayden-slaughter/Pip-release/releases/latest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>Download for Mac</a>
-    </div>
-    <p class="meta">Universal · macOS 13+ · free in beta</p>
-  </div>
-</section>
-
-<footer>
-  <div class="mk"><svg class="mascot" width="20" height="20"><use href="#pip"/></svg>Pip</div>
-  <div>© 2026 Pip · Built in Brighton<a href="#privacy">Privacy</a><a href="#faq">FAQ</a><a href="mailto:hello@hellopip.co.uk">Contact</a></div>
 </footer>
-
-<script src="main.js"></script>
 </body>
 </html>
