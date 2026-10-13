@@ -10,6 +10,7 @@
      reveal     sections arriving on scroll
      scenes     the vignette moments: find, yours, briefed, switch
      demo       "have a play": the Lume listing sample
+     liveDemo   on a laptop, the real Pip in a frame once it's ready
      jobs       the six one-click jobs
      accordion  questions that open with height and fade
      jumpList   the questions page's group list
@@ -939,6 +940,50 @@
   }
 
 
+
+  /* ── live demo ─────────────────────────────────────────────────────────────
+     On a laptop, load the real Pip web demo in a frame behind the scripted
+     window, and swap only when the demo posts pip-demo:ready from its own
+     origin. A frame the host refuses (or a slow network) never swaps, so the
+     scripted window is always the floor. Phones and Save-Data keep the stand-in. */
+  function liveDemo() {
+    var play = $("#play");
+    if (!play) return;
+    var src = play.getAttribute("data-live-demo");
+    if (!src || !window.matchMedia || !window.matchMedia("(min-width: 1024px)").matches) return;
+    if (navigator.connection && navigator.connection.saveData) return;
+    var origin;
+    try { origin = new URL(src, location.href).origin; } catch (e) { return; }
+
+    function start() {
+      var win = el("div", "win win--live");
+      win.setAttribute("aria-hidden", "true");
+      var bar = el("div", "win-bar");
+      bar.innerHTML = '<span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Lume Lighting</span><span class="win-end"></span>';
+      var frame = document.createElement("iframe");
+      frame.src = src;
+      frame.title = "Pip, with a sample workspace you can play with";
+      frame.setAttribute("referrerpolicy", "no-referrer");
+      frame.tabIndex = -1;
+      win.appendChild(bar);
+      win.appendChild(frame);
+      play.appendChild(win);
+      var note = el("p", "live-note", "A sample workspace to play with. The replies are set, and nothing you do is saved.");
+      note.hidden = true;
+      play.appendChild(note);
+      window.addEventListener("message", function onReady(e) {
+        if (e.origin !== origin || !e.data || e.data.type !== "pip-demo:ready") return;
+        window.removeEventListener("message", onReady);
+        win.removeAttribute("aria-hidden");
+        frame.tabIndex = 0;
+        note.hidden = false;
+        play.classList.add("is-live");
+      });
+    }
+    var go = function () { (window.requestIdleCallback || function (f) { return setTimeout(f, 600); })(start); };
+    if (document.readyState === "complete") go(); else window.addEventListener("load", go, { once: true });
+  }
+
   /* ── jobs ──────────────────────────────────────────────────────────────────
      Six things you've made, and what each could become. Pick a job on the
      left; the window changes in place (old out 100ms, new in 150ms, frame
@@ -1413,7 +1458,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [dates, header, mascots, reveal, scenes, demo, jobs, accordion, jumpList, download].forEach(function (init) {
+  [dates, header, mascots, reveal, scenes, demo, liveDemo, jobs, accordion, jumpList, download].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }

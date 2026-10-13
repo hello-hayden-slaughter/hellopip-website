@@ -2517,3 +2517,34 @@ small { font-size: inherit; }
   .tbl tr.is-new td { animation: none; }
   .btn:active, .sug:active, .send:active, .replay:active, .job:active { transform: none; }
 }
+
+
+/* ── the live demo ───────────────────────────────────────────────────────────
+   On a laptop, the real Pip (the web demo, in a frame) replaces the stand-in
+   once it says it has painted (pip-demo:ready). Until then, and on phones, the
+   scripted window stays. */
+.win--live {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: clamp(600px, 58vw, 800px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms var(--ease-out);
+}
+.win--live iframe {
+  display: block;
+  width: 100%;
+  height: calc(100% - 40px);
+  border: 0;
+  background: var(--bg-primary);
+}
+.play.is-live .win--demo { display: none; }
+.play.is-live .win--live { position: relative; opacity: 1; pointer-events: auto; }
+.live-note {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.live-note[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .win--live { transition: none; } }
