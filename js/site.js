@@ -1145,19 +1145,19 @@
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
      "Help with everything you make." A try-it demo with the site's one shape:
-     the strip on top holds every control (the six jobs as pills; at its end
-     the one button that does the next step, or View original), Pip's line
-     under it tells the story, and the result is below.
-     Each job is a short chain of steps. Most have one; the product shot has
-     three (tidy it up, cut it out, add a backdrop), each starting from where
-     the last one ended. A step plays with Pip's face thinking and one live
-     line saying what's happening now. View original puts the before back
-     with Pip's first offer. Picking another job mid-step switches at once:
-     the running step stops and that job goes back to its before.
-     The window always fits the screen and never changes size: CSS sizes it
-     from the view, and Pip's line keeps room for its tallest message
-     (fitBar). Picking a job, a step and View original bring the whole window
-     into view. Under reduced motion every step lands on its end at once. */
+     the strip on top holds the choices (the six jobs), Pip's line under it
+     asks, with the one button to press at the end of that same line, and the
+     work fills the box below.
+     Every job is one step with one yes. Pressing it plays the job with Pip's
+     face thinking and one live line saying what's happening now; then Pip
+     says what was done and View original takes the button's place. View
+     original puts the before back, with the offer. Picking a job, at any
+     moment, stops whatever is playing and shows that job's before, fresh, at
+     once.
+     CSS holds the box at one height for every job; Pip's line keeps room for
+     its tallest message at this width (fitBar), so the window never changes
+     size. Picking, pressing and View original bring the whole window into
+     view. Under reduced motion a job lands on its end at once. */
 
   function jobs() {
     var win = $("#jobs-win");
@@ -1175,7 +1175,6 @@
     var WORD_MS = 34, PARA_MS = 140;
 
     var jobBtns = $$(".job", win);
-    var rail = $(".jobs-rail", win);
     var surfs = $$(".surf", win);
     var title = $("#jobs-title");
     var pip = $(".jobs-pip", win);
@@ -1193,6 +1192,7 @@
     var frame = $("#photo-frame");
     var tools = $$(".ptool", photo);
     var PHOTO_BEFORE = frame.getAttribute("aria-label");
+    var PHOTO_AFTER = "The same sage lamp, cropped square, tidied, brightened and cut out, on a plain sand backdrop with a soft shadow, like a studio shot";
     var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-bright", "is-tracing", "is-cut", "is-backdrop"];
 
     var costs = $("#costs");
@@ -1201,7 +1201,6 @@
 
     var deck = $("#deck-job");
     var slideEls = $$(".slide", deck);
-    var stepLines = $$("[data-step-line]", deck);
 
     var cv = $("#cv");
     var cvPrices = $("#cv-prices");
@@ -1214,64 +1213,61 @@
     var chart = $(".chart", dash);
     var tiles = $$(".tile-v", dash);
 
-    /* ── the steps ──────────────────────────────────────────────────────────
-       Each job: a title, its steps (what Pip offers, the button, the live
-       lines, play and end), and what Pip says when the last step is done. */
+    /* ── the jobs ───────────────────────────────────────────────────────────
+       Each: the crumb, what Pip offers and the button that says yes, the live
+       lines while it plays, what Pip says when it's done, and how it plays,
+       ends and goes back to its before. */
 
     var JOBS = [
-      { title: "Lume Lighting › Newsletter: " + D.month,
-        steps: [{ offer: "You've jotted down this month's news. Want me to turn it into a first draft, in your words?",
-                  go: "Yes, draft it", lines: ["Writing it in your words…"], play: nlPlay, end: nlEnd }],
-        done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check.",
-        undo: nlUndo },
-      { title: "Lume Lighting › sage-slim-lamp.jpg",
-        steps: [
-          { offer: "Your sage lamp's on a busy desk. Want me to make it a product shot?",
-            go: "Tidy it up", lines: ["Cropping it square…", "Taking out the notepad…", "Brightening it…"], play: tidyPlay, end: tidyEnd,
-            label: "The same sage lamp, cropped square on the desk, tidied and brightened" },
-          { offer: "Tidied. Want me to cut the lamp out too?",
-            go: "Cut it out", lines: ["Finding the edge of the lamp…", "Cutting it out…"], play: cutPlay, end: cutEnd,
-            label: "The sage lamp cut out on its own, on a transparent background" },
-          { offer: "Cut out. Want it on a clean backdrop?",
-            go: "Add a backdrop", lines: ["Setting it on a clean backdrop…"], play: backdropPlay, end: backdropEnd,
-            label: "The sage lamp on a plain sand backdrop with a soft shadow, like a studio shot" }
-        ],
-        done: "There's your product shot: clean, bright and ready for the shop.",
-        undo: photoUndo },
+      { title: "Lume Lighting › Newsletters › Newsletter: " + D.month,
+        offer: "You've jotted down this month's news. Want me to turn it into a first draft, in your words?",
+        go: "Yes, draft it",
+        lines: ["Reading your ideas…", "Writing it in your words…"],
+        done: "Drafted from your ideas, in your words. The dates and prices are the bit to check.",
+        play: nlPlay, end: nlEnd, undo: nlUndo },
+      { title: "Lume Lighting › Photos › sage-slim-lamp.jpg",
+        offer: "Your sage lamp's on a busy desk. Want me to turn it into a product shot for the shop?",
+        go: "Yes, make it",
+        lines: ["Cropping it square…", "Taking out the clutter…", "Brightening it…", "Cutting the lamp out…", "Setting it on a clean backdrop…"],
+        done: "There's your product shot: square, bright and on a clean backdrop, ready for the shop.",
+        play: photoPlay, end: photoEnd, undo: photoUndo },
       { title: "Lume Lighting › Costs",
-        steps: [{ offer: "Want me to work out what each shade costs to make, and how much you keep?",
-                  go: "Yes, work it out", lines: ["Adding a Cost to make column…", "Working out your margins…", "Highlighting anything under 50%…"], play: costsPlay, end: costsEnd }],
+        offer: "Want me to work out what each shade costs to make, and how much you keep?",
+        go: "Yes, work it out",
+        lines: ["Adding a Cost to make column…", "Working out your margins…", "Highlighting anything under 50%…"],
         done: "The slim lamp makes the least, 33%. Its oak base is £28 of the £70 it costs to make.",
-        undo: costsUndo },
-      { title: "Lume Lighting › Drum workshop steps",
-        steps: [{ offer: "You've got the steps for Sunday. Want them as a deck?",
-                  go: "Yes, make the deck", lines: ["Making a slide for each step…"], play: deckPlay, end: deckEnd }],
-        done: "Six slides, one for each step, with your step photos in. Move anything you like.",
-        undo: deckUndo },
-      { title: "Lume Lighting › Spring collection · Canvas",
-        steps: [{ offer: "Your spring ideas are all over the place. Want me to sort them and fill in what's missing?",
-                  go: "Yes, sort them", lines: ["Sorting your ideas…", "Pricing the 60cm scallop…"], play: cvPlay, end: cvEnd }],
-        done: "Sorted into fabrics, shapes and notes. Your 60cm scallop had no price, so I've pencilled in £400, following your sizes. Change it if you like.",
-        undo: cvUndo },
+        play: costsPlay, end: costsEnd, undo: costsUndo },
+      { title: "Lume Lighting › Workshops › Drum workshop steps",
+        offer: "You've got the steps for Sunday. Want them as a slide deck?",
+        go: "Yes, make the deck",
+        lines: ["Making a slide for each step…", "Adding your step photos…"],
+        done: "Six slides, one for each step, with your photos in. Move anything you like.",
+        play: deckPlay, end: deckEnd, undo: deckUndo },
+      { title: "Lume Lighting › Spring collection",
+        offer: "Your spring ideas are all over the place. Want me to sort them and fill in what's missing?",
+        go: "Yes, sort them",
+        lines: ["Sorting your ideas…", "Pricing the 60cm scallop…"],
+        done: "Sorted into fabrics, shapes and notes. The 60cm scallop had no price, so I've pencilled in £400 to match your sizes.",
+        play: cvPlay, end: cvEnd, undo: cvUndo },
       { title: "Lume Lighting › Sales " + D.salesYear,
-        steps: [{ offer: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?",
-                  go: "Yes, show me", lines: ["Reading your sales sheet…", "Adding up the year…", "Drawing the chart…", "Looking for what stands out…"], play: dashPlay, end: dashEnd }],
-        done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year.",
-        undo: dashUndo }
+        offer: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?",
+        go: "Yes, show me",
+        lines: ["Adding up the year…", "Drawing the chart…", "Looking for what stands out…"],
+        done: "One you might have missed: workshops made 43% of sales this year, up from 22% last year.",
+        play: dashPlay, end: dashEnd, undo: dashUndo }
     ];
 
     var cur = 0, shown = 0;
-    var at = [0, 0, 0, 0, 0, 0];   // how many of each job's steps are done
-    var busy = false;
+    var state = "before";          // before, busy or done
     var timers = [];
-    var run = 0;                   // bumps when a step stops, so late callbacks know
-    var swapping = null;
+    var run = 0;                   // bumps when a job stops, so late callbacks know
     var lineNode = null;
 
     surfs.forEach(function (s, i) { s.hidden = i !== 0; });
     win.classList.add("is-ready");
     $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
     $$(".pair", chart).forEach(function (p, i) { $$("i", p).forEach(function (b) { b.style.setProperty("--n", i); }); });
+    slideEls.forEach(function (s, i) { s.style.setProperty("--n", i); });
 
     // The do-it button asks to be pressed until the visitor has clicked anything here
     win.addEventListener("click", function tried() {
@@ -1283,16 +1279,11 @@
       var id = run;
       timers.push(setTimeout(function () { if (id === run) fn(); }, ms));
     }
-    // Stop whatever is playing: every pending step and every moving thing
+    // Stop whatever is playing: every pending moment and every moving thing
     function stopAll() {
       run++;
       timers.forEach(clearTimeout);
       timers = [];
-      busy = false;
-    }
-    function lit(node, ms) {
-      node.classList.add("is-lit");
-      later(function () { node.classList.remove("is-lit"); }, ms);
     }
 
     /* Put a job's before back at once: no transition plays backwards */
@@ -1312,60 +1303,33 @@
       window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
     }
 
-    /* The jobs row scrolls sideways when it's too wide: keep the chosen job
-       in view and fade the edge that has more */
-    function railEdges() {
-      var max = rail.scrollWidth - rail.clientWidth;
-      rail.classList.toggle("is-scrolled", rail.scrollLeft > 2);
-      rail.classList.toggle("is-at-end", rail.scrollLeft >= max - 2);
-    }
-    function railTo(btn, smooth) {
-      var max = rail.scrollWidth - rail.clientWidth;
-      if (max > 0) {
-        var left = Math.max(0, Math.min(max, btn.offsetLeft - (rail.clientWidth - btn.offsetWidth) / 2));
-        if (smooth && !reduced()) rail.scrollTo({ left: left, behavior: "smooth" });
-        else rail.scrollLeft = left;
-      }
-      railEdges();
-    }
-    rail.addEventListener("scroll", railEdges, { passive: true });
-
-    /* The stage: change in place, with the frame held still */
+    /* The stage: the old file goes at once and the new one rises in */
     function showSurf(next) {
       if (next === shown) return;
-      var from = surfs[shown];
-      var to = surfs[next];
+      surfs[shown].hidden = true;
       shown = next;
-      if (swapping) { swapping.cancel(); swapping = null; }
-      surfs.forEach(function (s) { s.hidden = s !== from; });
-      if (reduced() || !from.animate) { from.hidden = true; to.hidden = false; return; }
-      var out = from.animate(
-        [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(2px)" }],
-        { duration: 100, easing: EASE_OUT, fill: "forwards" }
-      );
-      swapping = out;
-      out.onfinish = function () {
-        swapping = null;
-        from.hidden = true;
-        out.cancel();
-        to.hidden = false;
-        to.animate(
-          [{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }],
-          { duration: 150, easing: EASE_OUT }
-        );
-      };
+      var to = surfs[next];
+      to.hidden = false;
+      if (!reduced() && to.animate) {
+        to.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: EASE_OUT });
+      }
     }
 
-    /* Pip's line: an offer, then the dots and one live line per moment of
-       the step, then what was done */
-    function setMessage(text) {
+    /* Pip's line: the offer, then the dots and one live line per moment of
+       the job, then what was done. A change still on its way is dropped for
+       the newer one, so a quick pick or press never lands an old message. */
+    function settle(node) {
+      if (node.getAnimations) node.getAnimations().forEach(function (a) { a.cancel(); });
+    }
+    function say(text) {
+      settle(msg);
       msg.classList.remove("is-busy");
       lineNode = null;
       setThinking(faceHolder, false);
       swapText(msg, text);
     }
-
     function setBusy(text) {
+      settle(msg);
       setThinking(faceHolder, true);
       msg.textContent = "";
       msg.classList.add("is-busy");
@@ -1373,78 +1337,106 @@
       lineNode = el("span", "", text);
       msg.appendChild(lineNode);
     }
-
     function line(text) { if (lineNode) swapText(lineNode, text); }
-    function lines() { var j = JOBS[cur]; return j.steps[Math.min(at[cur], j.steps.length - 1)].lines; }
 
-    function paint() {
+    // A job's before: its file as it was, Pip's offer, and the do-it button
+    function before() {
       var j = JOBS[cur];
-      var n = at[cur], last = n >= j.steps.length;
-      jobBtns.forEach(function (b, i) {
-        b.classList.toggle("is-on", i === cur);
-        b.setAttribute("aria-pressed", i === cur ? "true" : "false");
-      });
-      railTo(jobBtns[cur], true);
-      showSurf(cur);
-      if (cur === 0) later(function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, 120);
+      state = "before";
+      jobBtns.forEach(function (b, i) { b.setAttribute("aria-pressed", i === cur ? "true" : "false"); });
+      settle(title);
       swapText(title, j.title);
-      if (!busy) setMessage(last ? j.done : j.steps[n].offer);
-      goBtn.hidden = busy || last;
-      if (!last) goBtn.textContent = j.steps[n].go;
-      backBtn.hidden = busy || n === 0;
+      pip.classList.remove("is-working");
+      say(j.offer);
+      goBtn.textContent = j.go;
+      goBtn.hidden = false;
+      backBtn.hidden = true;
     }
 
-    function stepDone() {
-      busy = false;
-      at[cur]++;
-      paint();
-      var next = !goBtn.hidden ? goBtn : backBtn;
-      if (!next.hidden) next.focus({ preventScroll: true });
-    }
-
+    // Yes: the do-it button keeps its place, unseen, while Pip works
     function play() {
-      var s = JOBS[cur].steps[at[cur]];
-      busy = true;
-      paint();
-      setBusy(s.lines[0]);
-      if (reduced()) { s.end(); stepDone(); return; }
-      s.play();
+      var j = JOBS[cur];
+      if (state !== "before") return;
+      stopAll();
+      state = "busy";
+      pip.classList.add("is-working");
+      setBusy(j.lines[0]);
+      if (reduced()) { j.end(); finish(); return; }
+      j.play();
     }
 
-    // Back to a job's before, at once, with Pip's first offer
-    function revert(i) {
-      instantly(JOBS[i].undo);
-      at[i] = 0;
+    // Done: what Pip did, and View original where the button was
+    function finish() {
+      var hadFocus = document.activeElement === goBtn || document.activeElement === document.body;
+      state = "done";
+      pip.classList.remove("is-working");
+      say(JOBS[cur].done);
+      goBtn.hidden = true;
+      backBtn.hidden = false;
+      if (hadFocus) backBtn.focus({ preventScroll: true });
     }
 
-    /* Pip's line keeps room for its tallest message at this width, so
-       nothing Pip says can make the window grow */
-    var MSGS = [];
-    JOBS.forEach(function (j) {
-      MSGS.push(j.done);
-      j.steps.forEach(function (s) { MSGS.push(s.offer); MSGS.push.apply(MSGS, s.lines); });
-    });
+    // Every pick starts fresh: whatever is playing stops, and the job shows its before
+    function pick(i) {
+      var was = cur;
+      stopAll();
+      instantly(function () { JOBS[was].undo(); JOBS[i].undo(); });
+      cur = i;
+      showSurf(i);
+      before();
+    }
 
+    /* Pip's line keeps room for its tallest message at this width (every
+       offer with its button, every live line, everything Pip says when it's
+       done with View original), so nothing Pip says can make the window grow */
     function fitBar() {
       pip.style.minHeight = "";
       var kids = Array.prototype.slice.call(msg.childNodes);
-      var busyCls = msg.classList.contains("is-busy");
-      msg.classList.remove("is-busy");
+      var busyMsg = msg.classList.contains("is-busy");
+      var working = pip.classList.contains("is-working");
+      var goText = goBtn.textContent, goHidden = goBtn.hidden, backHidden = backBtn.hidden;
       var h = 0;
-      MSGS.forEach(function (t) { msg.textContent = t; h = Math.max(h, pip.getBoundingClientRect().height); });
+      function take() { h = Math.max(h, pip.getBoundingClientRect().height); }
+      JOBS.forEach(function (j) {
+        goBtn.textContent = j.go;
+        goBtn.hidden = false;
+        backBtn.hidden = true;
+        msg.classList.remove("is-busy");
+        pip.classList.remove("is-working");
+        msg.textContent = j.offer;
+        take();
+        msg.classList.add("is-busy");
+        pip.classList.add("is-working");
+        j.lines.forEach(function (t) {
+          msg.textContent = "";
+          msg.appendChild(dots());
+          msg.appendChild(el("span", "", t));
+          take();
+        });
+        msg.classList.remove("is-busy");
+        pip.classList.remove("is-working");
+        goBtn.hidden = true;
+        backBtn.hidden = false;
+        msg.textContent = j.done;
+        take();
+      });
       msg.textContent = "";
       kids.forEach(function (k) { msg.appendChild(k); });
-      msg.classList.toggle("is-busy", busyCls);
+      msg.classList.toggle("is-busy", busyMsg);
+      pip.classList.toggle("is-working", working);
+      goBtn.textContent = goText;
+      goBtn.hidden = goHidden;
+      backBtn.hidden = backHidden;
       pip.style.minHeight = Math.ceil(h) + "px";
       measureNote();
-      railTo(jobBtns[cur], false);
     }
 
     /* ── 0 · The newsletter ─────────────────────────────────────────────────
-       Pip writes it under the title, word by word. While a paragraph writes,
-       the idea it comes from holds a wash; when it's written, that idea folds
-       away, and "Some ideas" goes with the last of them. The note follows the
-       writing point if it runs past the stage. */
+       Pip reads the ideas, washing each in turn; then writes the newsletter
+       under the title, word by word. While a paragraph writes, the idea it
+       comes from holds a wash; when it's written, that idea folds away, and
+       "Some ideas" goes with the last of them. The note follows the writing
+       point if it runs past the stage. */
 
     function topIn(node) {
       var y = 0;
@@ -1503,7 +1495,7 @@
     function nlPara(n) {
       if (n >= NL.length) {
         if (note.classList.contains("is-long")) note.scrollTo({ top: note.scrollHeight, behavior: "smooth" });
-        stepDone();
+        finish();
         return;
       }
       var src = NL_FROM[n].map(function (i) { return ideas[i]; });
@@ -1532,7 +1524,12 @@
 
     function nlPlay() {
       nlText.textContent = "";
-      later(function () { nlPara(0); }, 200);
+      ideas.forEach(function (li, i) { later(function () { li.classList.add("is-lit"); }, 120 + i * 160); });
+      later(function () {
+        ideas.forEach(function (li) { li.classList.remove("is-lit"); });
+        line(JOBS[0].lines[1]);
+      }, 1300);
+      later(function () { nlPara(0); }, 1550);
     }
 
     function nlEnd() {
@@ -1552,17 +1549,16 @@
       nlText.textContent = "";
       ideas.forEach(function (li) { li.classList.remove("is-lit"); });
       note.scrollTop = 0;
+      note.classList.remove("is-scrolled");
       measureNote();
     }
 
     /* ── 1 · The product shot ───────────────────────────────────────────────
-       A dim snapshot of the lamp on a busy desk, made into a product shot in
-       three steps, each from where the last one ended. Tidy it up: crop it
-       square (the notepad still in), paint a selection over what goes and
-       fill it in, then brighten it, still on the desk. Cut it out: trace the
-       lamp's edge and let the room fall away to transparency. Add a
-       backdrop: the cut-out onto a sand backdrop with a soft shadow. Each
-       tool lights as it works. */
+       A dim snapshot of the lamp on a busy desk, made into a product shot by
+       one yes: crop it square (the notepad still in), paint a selection over
+       what goes and fill it in, brighten it, trace the lamp's edge and let the
+       room fall away to transparency, then set it on a sand backdrop with a
+       soft shadow. Each tool lights as it works and keeps a tick once used. */
 
     function tool(name) {
       tools.forEach(function (t) {
@@ -1571,52 +1567,28 @@
       });
     }
     function add(c) { photo.classList.add.apply(photo.classList, c.split(" ")); }
-    function settle(names, label) {
-      tools.forEach(function (t) {
-        t.classList.remove("is-active");
-        if (names.indexOf(t.getAttribute("data-tool")) > -1) t.classList.add("is-done");
-      });
-      frame.setAttribute("aria-label", label);
-    }
 
-    function tidyPlay() {
-      var s = JOBS[1].steps[0].lines;
+    function photoPlay() {
+      var s = JOBS[1].lines;
       tool("crop");
       add("is-framing");
-      later(function () { add("is-cropped"); }, 1000);
-      later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 1950);
-      later(function () { line(s[1]); tool("remove"); add("is-selecting"); }, 2250);
-      later(function () { add("is-filled"); }, 3650);
-      later(function () { line(s[2]); tool("bright"); add("is-bright"); }, 4550);
-      later(function () { tidyEnd(); stepDone(); }, 5750);
-    }
-    function tidyEnd() {
-      photo.classList.remove("is-framing", "is-selecting");
-      add("is-cropped is-square is-filled is-bright");
-      settle(["crop", "remove", "bright"], JOBS[1].steps[0].label);
-    }
-
-    function cutPlay() {
-      var s = JOBS[1].steps[1].lines;
-      tool("cut");
-      add("is-tracing");
-      later(function () { line(s[1]); add("is-cut"); }, 1500);
-      later(function () { cutEnd(); stepDone(); }, 2900);
-    }
-    function cutEnd() {
-      photo.classList.remove("is-tracing");
-      add("is-cut");
-      settle(["cut"], JOBS[1].steps[1].label);
+      later(function () { add("is-cropped"); }, 800);
+      later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 1700);
+      later(function () { line(s[1]); tool("remove"); add("is-selecting"); }, 2000);
+      later(function () { add("is-filled"); }, 3200);
+      later(function () { line(s[2]); tool("bright"); add("is-bright"); }, 3800);
+      later(function () { line(s[3]); tool("cut"); add("is-tracing"); }, 5000);
+      later(function () { add("is-cut"); }, 6300);
+      later(function () { line(s[4]); tool("backdrop"); }, 7300);
+      later(function () { add("is-backdrop"); }, 7500);
+      later(function () { photoEnd(); finish(); }, 8800);
     }
 
-    function backdropPlay() {
-      tool("backdrop");
-      later(function () { add("is-backdrop"); }, 250);
-      later(function () { backdropEnd(); stepDone(); }, 2000);
-    }
-    function backdropEnd() {
-      add("is-backdrop");
-      settle(["backdrop"], JOBS[1].steps[2].label);
+    function photoEnd() {
+      photo.classList.remove("is-framing", "is-selecting", "is-tracing");
+      add("is-cropped is-square is-filled is-bright is-cut is-backdrop");
+      tools.forEach(function (t) { t.classList.remove("is-active"); t.classList.add("is-done"); });
+      frame.setAttribute("aria-label", PHOTO_AFTER);
     }
 
     function photoUndo() {
@@ -1631,14 +1603,14 @@
        colours any row whose margin is under 50%. */
 
     function costsPlay() {
-      var s = JOBS[2].steps[0].lines;
+      var s = JOBS[2].lines;
       later(function () { costs.classList.add("has-cost"); }, 350);
       costRows.forEach(function (r, i) { later(function () { r.classList.add("is-c"); }, 800 + i * 320); });
       later(function () { line(s[1]); costs.classList.add("has-marg"); }, 2450);
       costRows.forEach(function (r, i) { later(function () { r.classList.add("is-m"); }, 2900 + i * 320); });
       later(function () { line(s[2]); }, 4500);
       later(function () { costs.classList.add("is-ruled"); lowRow.classList.add("is-low"); }, 4900);
-      later(function () { stepDone(); }, 6100);
+      later(finish, 6100);
     }
 
     function costsEnd() {
@@ -1653,31 +1625,24 @@
     }
 
     /* ── 3 · The deck ───────────────────────────────────────────────────────
-       A slide is dealt for each step, and on a laptop the step it came from
-       lights as it lands (the cover answers to the note's title). On a phone
-       the note steps aside first and the slides take its place. */
+       The steps note steps aside, a slide is dealt for each step, then the
+       step photos go in. */
 
     function deckPlay() {
       deck.classList.add("is-dealing");
-      slideEls.forEach(function (s, i) {
-        later(function () {
-          s.classList.add("is-dealt");
-          lit(stepLines[i], 760);
-        }, 380 + i * 520);
-      });
-      later(stepDone, 380 + slideEls.length * 520 + 480);
+      slideEls.forEach(function (s, i) { later(function () { s.classList.add("is-dealt"); }, 300 + i * 280); });
+      later(function () { line(JOBS[3].lines[1]); deck.classList.add("has-photos"); }, 300 + slideEls.length * 280 + 250);
+      later(finish, 3600);
     }
 
     function deckEnd() {
-      deck.classList.add("is-dealing");
+      deck.classList.add("is-dealing", "has-photos");
       slideEls.forEach(function (s) { s.classList.add("is-dealt"); });
-      stepLines.forEach(function (l) { l.classList.remove("is-lit"); });
     }
 
     function deckUndo() {
-      deck.classList.remove("is-dealing");
+      deck.classList.remove("is-dealing", "has-photos");
       slideEls.forEach(function (s) { s.classList.remove("is-dealt"); });
-      stepLines.forEach(function (l) { l.classList.remove("is-lit"); });
     }
 
     /* ── 4 · The collection ─────────────────────────────────────────────────
@@ -1686,10 +1651,10 @@
 
     function cvPlay() {
       cv.classList.add("is-sorted");
-      later(function () { line(JOBS[4].steps[0].lines[1]); cvPrices.classList.add("is-lit"); }, 1900);
+      later(function () { line(JOBS[4].lines[1]); cvPrices.classList.add("is-lit"); }, 1900);
       later(function () { cvPrices.classList.remove("is-lit"); cvPrice.classList.add("is-lit"); }, 2800);
       later(function () { swapText(cvPriceText, PRICE_AFTER); }, 3250);
-      later(function () { cvPrice.classList.remove("is-lit"); stepDone(); }, 4300);
+      later(function () { cvPrice.classList.remove("is-lit"); finish(); }, 4300);
     }
 
     function cvEnd() {
@@ -1700,6 +1665,7 @@
     }
 
     function cvUndo() {
+      settle(cvPriceText);
       cv.classList.remove("is-sorted");
       cvPrices.classList.remove("is-lit");
       cvPrice.classList.remove("is-lit");
@@ -1708,7 +1674,7 @@
 
     /* ── 5 · The year ───────────────────────────────────────────────────────
        The sheet becomes a dashboard: totals that count up, a chart that
-       grows, and the one finding. */
+       grows, and the one finding, picked out. */
 
     function countUp(nodes, duration) {
       var t0 = null, id = run;
@@ -1732,21 +1698,21 @@
     }
 
     function dashPlay() {
-      var s = JOBS[5].steps[0].lines;
-      later(function () { line(s[1]); dash.classList.add("is-shown"); countUp(tiles, 1500); }, 1000);
-      later(function () { line(s[2]); chart.classList.add("is-grown"); }, 2000);
-      later(function () { line(s[3]); }, 3200);
-      later(stepDone, 4200);
+      var s = JOBS[5].lines;
+      later(function () { dash.classList.add("is-shown"); countUp(tiles, 1400); }, 300);
+      later(function () { line(s[1]); chart.classList.add("is-grown"); }, 1500);
+      later(function () { line(s[2]); dash.classList.add("is-found"); }, 2700);
+      later(finish, 3800);
     }
 
     function dashEnd() {
-      dash.classList.add("is-shown");
+      dash.classList.add("is-shown", "is-found");
       chart.classList.add("is-grown");
       setTiles(true);
     }
 
     function dashUndo() {
-      dash.classList.remove("is-shown");
+      dash.classList.remove("is-shown", "is-found");
       chart.classList.remove("is-grown");
       setTiles(false);
     }
@@ -1754,29 +1720,25 @@
     /* ── the controls ─────────────────────────────────────────────────────── */
 
     goBtn.addEventListener("click", function () {
-      if (busy || at[cur] >= JOBS[cur].steps.length) return;
+      if (state !== "before") return;
       bringIntoView();
       play();
     });
     backBtn.addEventListener("click", function () {
-      if (busy) return;
-      revert(cur);
-      paint();
+      stopAll();
+      instantly(JOBS[cur].undo);
+      before();
       bringIntoView();
       goBtn.focus({ preventScroll: true });
     });
     jobBtns.forEach(function (b, i) {
       b.addEventListener("click", function () {
-        if (i === cur) { bringIntoView(); return; }
-        // Mid-step: stop it now, and put that job back to its before
-        if (busy) { stopAll(); revert(cur); }
-        cur = i;
-        paint();
+        pick(i);
         bringIntoView();
       });
     });
 
-    paint();
+    before();
     fitBar();
     var lastW = win.getBoundingClientRect().width;
     var queued = false;

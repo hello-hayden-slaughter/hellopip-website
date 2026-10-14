@@ -328,25 +328,25 @@
     <div class="demo win--jobs" id="jobs-win" role="group" aria-label="Six jobs Pip can help with">
       <div class="demo-try jobs-try">
         <span class="demo-try-label">Try it: pick a job</span>
-        <div class="demo-try-actions jobs-rail" role="group" aria-label="Jobs">
-            <button type="button" class="try-btn job is-on" data-job="0" aria-pressed="true"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Write the newsletter</span></button>
-            <button type="button" class="try-btn job" data-job="1" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Make a product shot</span></button>
-            <button type="button" class="try-btn job" data-job="2" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Work out your costs</span></button>
-            <button type="button" class="try-btn job" data-job="3" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg><span>Make slides for a workshop</span></button>
-            <button type="button" class="try-btn job" data-job="4" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg><span>Plan a new collection</span></button>
-            <button type="button" class="try-btn job" data-job="5" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg><span>See how the year is going</span></button>
+        <div class="demo-try-actions jobs-pick" role="group" aria-label="Jobs">
+          <button type="button" class="try-btn job" data-job="0" aria-pressed="true"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Newsletter</span></button>
+          <button type="button" class="try-btn job" data-job="1" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Product shot</span></button>
+          <button type="button" class="try-btn job" data-job="2" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Costs</span></button>
+          <button type="button" class="try-btn job" data-job="3" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg><span>Workshop slides</span></button>
+          <button type="button" class="try-btn job" data-job="4" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg><span>New collection</span></button>
+          <button type="button" class="try-btn job" data-job="5" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg><span>Sales dashboard</span></button>
         </div>
-        <div class="demo-try-end jobs-end">
+      </div>
+      <div class="demo-pip demo-pip--act jobs-pip">
+        <span class="jobs-face" id="jobs-face"><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
+        <p class="jobs-msg" id="jobs-msg" aria-live="polite">You've jotted down this month's news. Want me to turn it into a first draft, in your words?</p>
+        <div class="demo-pip-act">
           <button type="button" class="try-go" id="jobs-go">Yes, draft it</button>
           <button type="button" class="try-back" id="jobs-back" hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg>View original</button>
         </div>
       </div>
-      <div class="demo-pip jobs-pip">
-        <span class="jobs-face" id="jobs-face"><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
-        <p class="jobs-msg" id="jobs-msg" aria-live="polite">You've jotted down this month's news. Want me to turn it into a first draft, in your words?</p>
-      </div>
       <div class="demo-body jobs-body">
-        <p class="jobs-crumb" id="jobs-title">Lume Lighting › Newsletter: <span data-date="month">October</span></p>
+        <p class="jobs-crumb"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><span id="jobs-title">Lume Lighting › Newsletters › Newsletter: <span data-date="month">October</span></span></p>
         <div class="jobs-stage" id="jobs-stage">
 
           <div class="surf surf--note" data-surf="0" id="nl">
@@ -383,21 +383,17 @@
                 </div>
               </div>
               <div class="photo-tools" aria-hidden="true">
-                <span class="ptool" data-tool="crop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-crop"/></svg><span>Crop</span></span>
-                <span class="ptool" data-tool="remove"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-eraser"/></svg><span>Remove</span></span>
-                <span class="ptool" data-tool="bright"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><span>Brighten</span></span>
-                <span class="ptool" data-tool="cut"><svg class="i i-14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg><span>Cut out</span></span>
-                <span class="ptool" data-tool="backdrop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Backdrop</span></span>
-                                </div>
+                <span class="ptool" data-tool="crop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-crop"/></svg><span>Crop</span><svg class="i i-14 ptool-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span>
+                <span class="ptool" data-tool="remove"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-eraser"/></svg><span>Remove</span><svg class="i i-14 ptool-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span>
+                <span class="ptool" data-tool="bright"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><span>Brighten</span><svg class="i i-14 ptool-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span>
+                <span class="ptool" data-tool="cut"><svg class="i i-14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg><span>Cut out</span><svg class="i i-14 ptool-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span>
+                <span class="ptool" data-tool="backdrop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Backdrop</span><svg class="i i-14 ptool-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span>
+              </div>
             </div>
           </div>
 
           <div class="surf surf--costs" data-surf="2">
             <div class="costs" id="costs">
-              <div class="costs-top">
-                <p class="file-tag"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-table"/></svg>Costs</p>
-                <p class="cf-rule" aria-hidden="true"><i></i>Highlighted: Margin under 50%</p>
-              </div>
               <div class="tbl-wrap costs-wrap"><table class="tbl tbl--costs" aria-label="Costs">
                 <thead><tr>
                   <th scope="col" class="c-name">Product</th>
@@ -415,20 +411,21 @@
                   <tr data-low><td class="c-name">Sage slim lamp</td><td class="c-price">£105</td><td class="c-mats">£42<small>£14 + £28 base</small></td><td class="c-time">£20</td><td class="c-post">£8</td><td class="c-cost">£70</td><td class="c-marg">33%</td></tr>
                 </tbody>
               </table></div>
+              <p class="cf-rule" aria-hidden="true"><i></i>Highlighted: Margin under 50%</p>
             </div>
           </div>
 
           <div class="surf surf--deck" data-surf="3">
             <div class="deck-job" id="deck-job">
               <div class="step-note">
-                <p class="doc-meta">Note</p>
-                <p class="step-note-title" data-step-line>Drum workshop steps</p>
+                <p class="doc-meta">Note · Workshops</p>
+                <h3 class="surf-title">Drum workshop steps</h3>
                 <ol>
-                  <li data-step-line>Cut the panel to size</li>
-                  <li data-step-line>Stick the fabric on</li>
-                  <li data-step-line>Roll it round the rings</li>
-                  <li data-step-line>Tuck in the edges</li>
-                  <li data-step-line>Trim and finish</li>
+                  <li>Cut the panel to size</li>
+                  <li>Stick the fabric on</li>
+                  <li>Roll it round the rings</li>
+                  <li>Tuck in the edges</li>
+                  <li>Trim and finish</li>
                 </ol>
               </div>
               <div class="slides" id="slides">
