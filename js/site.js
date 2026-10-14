@@ -722,7 +722,7 @@
           },
           after: function (i) { return "£" + (50 + 3 * RATES[i]) + " to make and send. Your large scallop sells for £350, so the margin's there. The price is your call."; }
         } },
-      { title: "Lume Lighting › Drum workshop steps", intro: "You've got the steps for Sunday. Want them as a deck?", go: "Yes, make the deck", done: "Six slides, one for each step. Move anything you like." },
+      { title: "Lume Lighting › Drum workshop steps", intro: "You've got the steps for Sunday. Want them as a deck?", go: "Yes, make the deck", done: "Six slides, one for each step, with your step photos in. Move anything you like." },
       { title: "Lume Lighting › Spring collection · Canvas", intro: "Your ideas for spring are all over the place. Want me to group them?", go: "Yes, group them",
         ask: {
           q: "Which fabric leads the spring collection?",
