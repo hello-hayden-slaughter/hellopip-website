@@ -2419,13 +2419,15 @@
       busy = true;
       btn.setAttribute("aria-busy", "true");
       btn.textContent = "Saving…";
+      // join_waitlist answers the same for a new email and one already on the
+      // list, so nobody can use the form to check who has signed up
       fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: key, Prefer: "return=minimal" },
-        body: JSON.stringify({ name: name, email: email, about: about || null, source: "website" })
+        headers: { "Content-Type": "application/json", apikey: key },
+        body: JSON.stringify({ p_name: name, p_email: email, p_about: about || null })
       }).then(function (r) {
-        // 409: they're already on the list, which is fine
-        if (r.ok || r.status === 409) finish(name, email);
+        if (r.ok) finish(name, email);
+        else if (r.status === 400) fail("That didn't look quite right. Check your name and email, or email me at", true);
         else fail("Sorry, that didn't save. Try again, or email me at", true);
       }, function () {
         fail("Sorry, that didn't send. Check your connection and try again, or email me at", true);
