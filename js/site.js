@@ -1103,12 +1103,14 @@
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
      Six things you've made, and what each could become. Pick a job on the
-     left; the window changes in place (old out 100ms, new in 150ms) and never
-     changes size: the stage is one fixed height at each width (CSS), and Pip's
-     bar keeps room for its longest message and widest buttons (fitBar). Pip
-     offers; "Yes, …" plays the job in named steps, his face thinking and one
-     live line saying what he's doing now; Reset puts the before back exactly.
-     Under reduced motion every job lands on its end state at once. */
+     left (on a phone, a row of pills); the window changes in place (old out
+     100ms, new in 150ms). The window always fits the screen and never changes
+     size: CSS sizes it from the view, and Pip's bar keeps room for its longest
+     message and widest buttons (fitBar). Pip offers; "Yes, …" plays the job in
+     named steps, his face thinking and one live line saying what he's doing
+     now; Replay puts the before back and plays it again. Picking a job, Next
+     job and Replay bring the whole window into view. Under reduced motion
+     every job lands on its end state at once. */
 
   function jobs() {
     var win = $("#jobs-win");
@@ -1118,13 +1120,13 @@
       { title: "Lume Lighting › Newsletter: " + D.month,
         intro: "You've jotted down this month's news. Want me to turn it into a first draft, in your words?",
         go: "Yes, draft it",
-        steps: ["Reading your ideas…", "Writing it in your words…"],
+        steps: ["Writing it in your words…"],
         done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
       { title: "Lume Lighting › sage-slim-lamp.jpg",
         intro: "Your sage lamp's on a busy desk. Want me to make it a product shot for the shop?",
         go: "Yes, make it a product shot",
-        steps: ["Cropping it square…", "Taking out the notepad…", "Clearing the background…", "Brightening it…"],
-        done: "There's your product shot: square, clean and bright, ready for the listing. Your original's still there if you want it back." },
+        steps: ["Cropping it square…", "Taking out the notepad…", "Brightening it…"],
+        done: "There's your product shot: square, bright and tidy, ready for the listing. Your original's still there if you want it back." },
       { title: "Lume Lighting › Bookings",
         intro: "Your lino day has six places. Want me to find who's likely to book?",
         go: "Yes, find them",
@@ -1139,7 +1141,7 @@
         intro: "Your spring ideas are all over the place. Want me to sort them and fill in what's missing?",
         go: "Yes, sort them",
         steps: ["Sorting your ideas…", "Pricing the 60cm scallop…"],
-        done: "Sorted into fabrics, shapes and notes. Your 60cm scallop had no price, so I followed your sizes, up £50 a step: £400. Change it if you like." },
+        done: "Sorted into fabrics, shapes and notes. Your 60cm scallop had no price, so I've pencilled in £400, following your sizes. Change it if you like." },
       { title: "Lume Lighting › Sales " + D.salesYear,
         intro: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?",
         go: "Yes, show me",
@@ -1155,9 +1157,10 @@
     ];
     // The idea(s) each paragraph is written from. "Speak soon." is how Jo signs off.
     var NL_FROM = [[4], [0], [1, 2], [3], []];
-    var WORD_MS = 40, PARA_MS = 200;
+    var WORD_MS = 34, PARA_MS = 140;
 
     var jobBtns = $$(".job", win);
+    var rail = $(".jobs-rail", win);
     var surfs = $$(".surf", win);
     var title = $("#jobs-title");
     var bar = $(".pipbar", win);
@@ -1165,12 +1168,11 @@
     var faceHolder = $("#jobs-face");
     var actions = $("#jobs-actions");
     var goBtn = $("#jobs-go");
-    var resetBtn = $("#jobs-reset");
+    var replayBtn = $("#jobs-replay");
     var nextBtn = $("#jobs-next");
     var nextLabel = $("span", nextBtn);
 
     var note = $("#nl");
-    var draft = $("#nl-draft");
     var nlText = $("#nl-text");
     var ideasBox = $("#nl-ideas");
     var ideas = $$(".rough li", ideasBox);
@@ -1179,8 +1181,8 @@
     var frame = $("#photo-frame");
     var tools = $$(".ptool", photo);
     var PHOTO_BEFORE = frame.getAttribute("aria-label");
-    var PHOTO_AFTER = "The same sage lamp as a square product shot, on its own against a plain white backdrop";
-    var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-studio", "is-bright"];
+    var PHOTO_AFTER = "The same sage lamp, cropped square on the desk, tidied and brightened";
+    var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-bright"];
 
     var bk = $("#bk");
     var bkRows = $$(".bk-all tbody tr", bk);
@@ -1215,6 +1217,41 @@
       node.classList.add("is-lit");
       later(function () { node.classList.remove("is-lit"); }, ms);
     }
+
+    /* Put a job's before back at once: no transition plays backwards */
+    function instantly(fn) {
+      win.classList.add("is-instant");
+      fn();
+      void win.offsetWidth;
+      win.classList.remove("is-instant");
+    }
+
+    /* The whole window in view, under the sticky header, with a little air */
+    function bringIntoView() {
+      var r = win.getBoundingClientRect();
+      var head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0;
+      var top = head + 12;
+      if (r.top >= top - 1 && r.bottom <= window.innerHeight - 11) return;
+      window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
+    }
+
+    /* On a phone the rail is one sideways row: keep the chosen job in view and
+       fade the edge that has more */
+    function railEdges() {
+      var max = rail.scrollWidth - rail.clientWidth;
+      rail.classList.toggle("is-scrolled", rail.scrollLeft > 2);
+      rail.classList.toggle("is-at-end", rail.scrollLeft >= max - 2);
+    }
+    function railTo(btn, smooth) {
+      var max = rail.scrollWidth - rail.clientWidth;
+      if (max > 0) {
+        var left = Math.max(0, Math.min(max, btn.offsetLeft - (rail.clientWidth - btn.offsetWidth) / 2));
+        if (smooth && !reduced()) rail.scrollTo({ left: left, behavior: "smooth" });
+        else rail.scrollLeft = left;
+      }
+      railEdges();
+    }
+    rail.addEventListener("scroll", railEdges, { passive: true });
 
     /* The stage: change in place, with the frame held still */
     function showSurf(next) {
@@ -1269,13 +1306,14 @@
         b.setAttribute("aria-pressed", i === cur ? "true" : "false");
         b.classList.toggle("is-done", done[i]);
       });
+      railTo(jobBtns[cur], true);
       showSurf(cur);
       if (cur === 0) later(function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, 120);
       swapText(title, j.title);
       if (!busy) setMessage(done[cur] ? j.done : j.intro);
       goBtn.textContent = j.go;
       goBtn.hidden = busy || done[cur];
-      resetBtn.hidden = nextBtn.hidden = busy || !done[cur];
+      replayBtn.hidden = nextBtn.hidden = busy || !done[cur];
       nextLabel.textContent = cur === JOBS.length - 1 ? "Back to the first job" : "Next job";
     }
 
@@ -1286,6 +1324,14 @@
       if (!nextBtn.hidden) nextBtn.focus({ preventScroll: true });
     }
 
+    function play() {
+      busy = true;
+      paint();
+      setBusy(JOBS[cur].steps[0]);
+      if (reduced()) { END[cur](); finish(); return; }
+      PLAY[cur]();
+    }
+
     /* The bar holds room for its widest buttons and its longest message at
        this width, so nothing Pip says can make the window grow */
     var MSGS = [];
@@ -1294,17 +1340,17 @@
     function fitBar() {
       actions.style.minWidth = "";
       msg.style.minHeight = "";
-      if (getComputedStyle(bar).flexWrap === "nowrap") {
-        var keep = [goBtn.hidden, resetBtn.hidden, nextBtn.hidden, goBtn.textContent, nextLabel.textContent];
+      if (getComputedStyle(bar).flexWrap === "nowrap" && getComputedStyle(bar).display === "flex") {
+        var keep = [goBtn.hidden, replayBtn.hidden, nextBtn.hidden, goBtn.textContent, nextLabel.textContent];
         var w = 0;
         goBtn.hidden = false;
-        resetBtn.hidden = nextBtn.hidden = true;
+        replayBtn.hidden = nextBtn.hidden = true;
         JOBS.forEach(function (j) { goBtn.textContent = j.go; w = Math.max(w, actions.getBoundingClientRect().width); });
         goBtn.hidden = true;
-        resetBtn.hidden = nextBtn.hidden = false;
+        replayBtn.hidden = nextBtn.hidden = false;
         ["Next job", "Back to the first job"].forEach(function (t) { nextLabel.textContent = t; w = Math.max(w, actions.getBoundingClientRect().width); });
         goBtn.hidden = keep[0];
-        resetBtn.hidden = keep[1];
+        replayBtn.hidden = keep[1];
         nextBtn.hidden = keep[2];
         goBtn.textContent = keep[3];
         nextLabel.textContent = keep[4];
@@ -1319,12 +1365,14 @@
       probe.remove();
       msg.style.minHeight = Math.ceil(h) + "px";
       measureNote();
+      railTo(jobBtns[cur], false);
     }
 
     /* ── 0 · The newsletter ─────────────────────────────────────────────────
-       Pip reads Jo's ideas one by one, then writes the draft above them word
-       by word; while a paragraph writes, the idea it comes from holds a wash.
-       The note follows the writing point if it runs past the stage. */
+       Pip writes it under the title, word by word. While a paragraph writes,
+       the idea it comes from holds a wash; when it's written, that idea folds
+       away, and "Some ideas" goes with the last of them. The note follows the
+       writing point if it runs past the stage. */
 
     function topIn(node) {
       var y = 0;
@@ -1332,17 +1380,24 @@
       return y;
     }
 
-    // The ideas slide down as the draft grows above them, never jump
-    function pushIdeas(before) {
-      var d = before - topIn(ideasBox);
-      if (d && ideasBox.animate) {
-        ideasBox.animate([{ transform: "translateY(" + d + "px)" }, { transform: "none" }], { duration: 240, easing: EASE_OUT });
-      }
+    function noteEnd() {
+      var end = topIn(nlText) + nlText.offsetHeight;
+      if (!ideasBox.hidden) end = Math.max(end, topIn(ideasBox) + ideasBox.offsetHeight);
+      return end;
     }
 
     // Only a note longer than the stage gets the fade at its foot
     function measureNote() {
-      note.classList.toggle("is-long", topIn(ideasBox) + ideasBox.offsetHeight > note.clientHeight - 2);
+      note.classList.toggle("is-long", noteEnd() > note.clientHeight - 2);
+    }
+
+    // The ideas slide down as the newsletter grows above them, never jump
+    function pushIdeas(before) {
+      if (ideasBox.hidden) return;
+      var d = before - topIn(ideasBox);
+      if (d && ideasBox.animate) {
+        ideasBox.animate([{ transform: "translateY(" + d + "px)" }, { transform: "none" }], { duration: 240, easing: EASE_OUT });
+      }
     }
 
     function follow(caret, n) {
@@ -1350,22 +1405,36 @@
       var view = note.clientHeight - 48;
       var caretTop = topIn(caret);
       var bottom = caretTop + caret.offsetHeight;
-      NL_FROM[n].forEach(function (i) { bottom = Math.max(bottom, topIn(ideas[i]) + ideas[i].offsetHeight); });
+      NL_FROM[n].forEach(function (i) { if (!ideas[i].hidden) bottom = Math.max(bottom, topIn(ideas[i]) + ideas[i].offsetHeight); });
       var want = Math.min(bottom - view, caretTop - 16);
       if (want > note.scrollTop + 2) note.scrollTo({ top: want, behavior: "smooth" });
     }
 
     note.addEventListener("scroll", function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, { passive: true });
 
+    // An idea that's been written folds away; the last takes the heading with it
+    function fold(lis) {
+      var left = ideas.filter(function (li) { return !li.hidden && lis.indexOf(li) < 0; });
+      var what = left.length ? lis : [ideasBox];
+      what.forEach(function (node) {
+        var h = node.offsetHeight;
+        var anim = node.animate && node.animate(
+          [{ height: h + "px", opacity: 1 }, { height: "0px", opacity: 0, paddingTop: "0px", paddingBottom: "0px" }],
+          { duration: 300, easing: EASE_OUT }
+        );
+        var gone = function () { node.hidden = true; measureNote(); };
+        if (anim) anim.onfinish = gone; else gone();
+      });
+    }
+
     function nlPara(n) {
-      ideas.forEach(function (li, i) { li.classList.toggle("is-lit", n < NL.length && NL_FROM[n].indexOf(i) > -1); });
       if (n >= NL.length) {
-        // Done: if the note runs long, settle at its foot, her ideas kept under the draft
-        ideasBox.classList.add("is-kept");
         if (note.classList.contains("is-long")) note.scrollTo({ top: note.scrollHeight, behavior: "smooth" });
         finish();
         return;
       }
+      var src = NL_FROM[n].map(function (i) { return ideas[i]; });
+      src.forEach(function (li) { li.classList.add("is-lit"); });
       var before = topIn(ideasBox);
       var p = el("p");
       var text = document.createTextNode("");
@@ -1382,50 +1451,41 @@
         text.data += (k ? " " : "") + words[k++];
         pushIdeas(at);
         follow(caret, n);
-        if (k < words.length) later(word, WORD_MS);
-        else later(function () { caret.remove(); nlPara(n + 1); }, PARA_MS);
+        if (k < words.length) { later(word, WORD_MS); return; }
+        if (src.length) fold(src);
+        later(function () { caret.remove(); nlPara(n + 1); }, PARA_MS);
       })();
     }
 
     function nlPlay() {
-      ideas.forEach(function (li, i) {
-        later(function () { lit(li, 600); }, 150 + i * 360);
-      });
-      later(function () {
-        step(JOBS[0].steps[1]);
-        var before = topIn(ideasBox);
-        nlText.textContent = "";
-        draft.hidden = false;
-        draft.classList.add("is-new");
-        pushIdeas(before);
-        later(function () { nlPara(0); }, 200);
-      }, 150 + ideas.length * 360 + 250);
+      nlText.textContent = "";
+      later(function () { nlPara(0); }, 200);
     }
 
     function nlEnd() {
       nlText.textContent = "";
       NL.forEach(function (t) { nlText.appendChild(el("p", "", t)); });
-      draft.hidden = false;
-      ideas.forEach(function (li) { li.classList.remove("is-lit"); });
-      ideasBox.classList.add("is-kept");
+      ideas.forEach(function (li) { li.classList.remove("is-lit"); li.hidden = true; });
+      ideasBox.hidden = true;
       note.scrollTop = 0;
       measureNote();
     }
 
     function nlUndo() {
+      [ideasBox].concat(ideas).forEach(function (node) {
+        if (node.getAnimations) node.getAnimations().forEach(function (a) { a.cancel(); });
+        node.hidden = false;
+      });
       nlText.textContent = "";
-      draft.hidden = true;
-      draft.classList.remove("is-new");
       ideas.forEach(function (li) { li.classList.remove("is-lit"); });
-      ideasBox.classList.remove("is-kept");
       note.scrollTop = 0;
       measureNote();
     }
 
     /* ── 1 · The product shot ───────────────────────────────────────────────
-       One photo, four tools: crop it square (the notepad still in), paint a
-       selection over what goes and fill it in, fade the room to a studio
-       sweep, then a gentle lift. Each tool lights as it works. */
+       One dim snapshot, three tools: crop it square (the notepad still in),
+       paint a selection over what goes and fill it in, then brighten it, still
+       on Jo's desk. Each tool lights as it works. */
 
     function tool(name) {
       tools.forEach(function (t) {
@@ -1437,18 +1497,17 @@
     function photoPlay() {
       tool("crop");
       photo.classList.add("is-framing");
-      later(function () { photo.classList.add("is-cropped"); }, 1100);
-      later(function () { photo.classList.add("is-square"); photo.classList.remove("is-framing"); }, 2050);
-      later(function () { step(JOBS[1].steps[1]); tool("remove"); photo.classList.add("is-selecting"); }, 2350);
-      later(function () { photo.classList.add("is-filled"); }, 3800);
-      later(function () { step(JOBS[1].steps[2]); tool("clean"); photo.classList.add("is-studio"); }, 4750);
-      later(function () { step(JOBS[1].steps[3]); tool("bright"); photo.classList.add("is-bright"); }, 5950);
-      later(function () { photoEnd(); finish(); }, 6800);
+      later(function () { photo.classList.add("is-cropped"); }, 1000);
+      later(function () { photo.classList.add("is-square"); photo.classList.remove("is-framing"); }, 1950);
+      later(function () { step(JOBS[1].steps[1]); tool("remove"); photo.classList.add("is-selecting"); }, 2250);
+      later(function () { photo.classList.add("is-filled"); }, 3650);
+      later(function () { step(JOBS[1].steps[2]); tool("bright"); photo.classList.add("is-bright"); }, 4550);
+      later(function () { photoEnd(); finish(); }, 5750);
     }
 
     function photoEnd() {
       photo.classList.remove("is-framing", "is-selecting");
-      photo.classList.add("is-cropped", "is-square", "is-filled", "is-studio", "is-bright");
+      photo.classList.add("is-cropped", "is-square", "is-filled", "is-bright");
       tools.forEach(function (t) { t.classList.remove("is-active"); t.classList.add("is-done"); });
       frame.setAttribute("aria-label", PHOTO_AFTER);
     }
@@ -1459,7 +1518,7 @@
       frame.setAttribute("aria-label", PHOTO_BEFORE);
     }
 
-    /* ── 2 · The lino day ───────────────────────────────────────────────────
+    /* ── 2 · Spot an opportunity ────────────────────────────────────────────
        Pip reads down the drum bookings, checks each name against the lino
        ones (Ben and Chloe have done both), and saves the four left as a view
        of the same table. */
@@ -1534,13 +1593,13 @@
 
     /* ── 4 · The collection ─────────────────────────────────────────────────
        The ideas regroup into fabrics, shapes and notes; then Pip reads the
-       scallop prices and fills the one that's missing, with his mark on it. */
+       scallop prices and pencils in the one that's missing, in place. */
 
     function cvPlay() {
       cv.classList.add("is-sorted");
       later(function () { step(JOBS[4].steps[1]); cvPrices.classList.add("is-lit"); }, 1900);
       later(function () { cvPrices.classList.remove("is-lit"); cvPrice.classList.add("is-lit"); }, 2800);
-      later(function () { swapText(cvPriceText, PRICE_AFTER); cvPrice.classList.add("is-pip"); }, 3250);
+      later(function () { swapText(cvPriceText, PRICE_AFTER); }, 3250);
       later(function () { cvPrice.classList.remove("is-lit"); finish(); }, 4300);
     }
 
@@ -1549,13 +1608,12 @@
       cvPrices.classList.remove("is-lit");
       cvPrice.classList.remove("is-lit");
       cvPriceText.textContent = PRICE_AFTER;
-      cvPrice.classList.add("is-pip");
     }
 
     function cvUndo() {
       cv.classList.remove("is-sorted");
       cvPrices.classList.remove("is-lit");
-      cvPrice.classList.remove("is-lit", "is-pip");
+      cvPrice.classList.remove("is-lit");
       cvPriceText.textContent = PRICE_BEFORE;
     }
 
@@ -1608,23 +1666,27 @@
 
     goBtn.addEventListener("click", function () {
       if (busy || done[cur]) return;
+      play();
+    });
+    // Replay: the before, back at once, then the job again on its own
+    replayBtn.addEventListener("click", function () {
+      if (busy) return;
+      instantly(UNDO[cur]);
+      done[cur] = false;
       busy = true;
       paint();
       setBusy(JOBS[cur].steps[0]);
-      if (reduced()) { END[cur](); finish(); return; }
-      PLAY[cur]();
-    });
-    resetBtn.addEventListener("click", function () {
-      if (busy) return;
-      UNDO[cur]();
-      done[cur] = false;
-      paint();
-      goBtn.focus({ preventScroll: true });
+      bringIntoView();
+      later(function () {
+        if (reduced()) { END[cur](); finish(); return; }
+        PLAY[cur]();
+      }, 520);
     });
     nextBtn.addEventListener("click", function () {
       if (busy) return;
       cur = (cur + 1) % JOBS.length;
       paint();
+      bringIntoView();
       if (!goBtn.hidden) goBtn.focus({ preventScroll: true });
     });
     jobBtns.forEach(function (b, i) {
@@ -1632,23 +1694,28 @@
         if (busy || i === cur) return;
         cur = i;
         paint();
+        bringIntoView();
       });
     });
 
     paint();
     fitBar();
     var lastW = win.getBoundingClientRect().width;
+    var queued = false;
+    function refit() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; fitBar(); });
+    }
     if ("ResizeObserver" in window) {
-      var queued = false;
       new ResizeObserver(function () {
         var w = win.getBoundingClientRect().width;
         if (w === lastW) return;
         lastW = w;
-        if (queued) return;
-        queued = true;
-        requestAnimationFrame(function () { queued = false; fitBar(); });
+        refit();
       }).observe(win);
     }
+    window.addEventListener("resize", refit);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBar);
   }
 

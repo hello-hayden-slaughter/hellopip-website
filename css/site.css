@@ -1346,9 +1346,24 @@ small { font-size: inherit; }
 
 /* ── Not just words: the six jobs ───────────────────────────────────────── */
 
-.win--jobs { max-width: 1320px; margin-inline: auto; }
+/* The window always fits the screen it's on: never taller than the view
+   below the sticky header (12px of air above and below), never shorter than
+   a floor. Inside, the stage takes what's left after the title bar, the rail
+   and Pip's bar, and it's a size container (`stage`), so every job lays
+   itself out in the height it's given (cqh). Its size depends on the screen
+   alone, so nothing moves between jobs or while one plays. Without script
+   the window is plain and every job's "before" is listed. */
+.win--jobs { container-name: jobs; max-width: 1320px; margin-inline: auto; }
+.win--jobs.is-ready {
+  display: flex;
+  flex-direction: column;
+  max-height: max(420px, calc(100vh - var(--header-h) - 24px));
+  max-height: max(420px, calc(100svh - var(--header-h) - 24px));
+}
+.win--jobs.is-ready .win-bar { flex: none; }
 .jobs-grid { display: grid; grid-template-columns: 268px minmax(0, 1fr); }
-.jobs-rail { display: flex; flex-direction: column; gap: 2px; padding: 14px 12px; background: var(--bg-secondary); }
+.win--jobs.is-ready .jobs-grid { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.jobs-rail { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 14px 12px; background: var(--bg-secondary); }
 .job {
   display: flex;
   align-items: center;
@@ -1385,10 +1400,7 @@ small { font-size: inherit; }
 .job.is-done .job-done { opacity: 1; }
 
 .jobs-main { display: flex; flex-direction: column; min-width: 0; }
-/* The stage is one fixed height at each width, so the window never changes
-   size: not between jobs, not while one plays. Each height holds the tallest
-   state at its width (measured); a note that runs longer scrolls under a soft
-   fade. Without script every job's "before" is listed instead. */
+.win--jobs.is-ready .jobs-main { min-height: 0; }
 .jobs-stage {
   --stage-h: 580px;
   flex: 1;
@@ -1396,7 +1408,13 @@ small { font-size: inherit; }
   grid-template-columns: minmax(0, 1fr);
   padding: clamp(20px, 3.4cqi, 40px);
 }
-.win--jobs.is-ready .jobs-stage { flex: none; height: var(--stage-h); grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+.win--jobs.is-ready .jobs-stage {
+  container: stage / size;
+  flex: 0 1 var(--stage-h);
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
 .surf { min-width: 0; min-height: 0; }
 .win--jobs:not(.is-ready) .surf + .surf { margin-top: 40px; padding-top: 40px; box-shadow: inset 0 1px 0 var(--border-light); }
 .win--jobs.is-ready .surf { grid-area: 1 / 1; }
@@ -1412,6 +1430,7 @@ small { font-size: inherit; }
   background: var(--bg-primary);
   box-shadow: inset 0 1px 0 var(--border-light);
 }
+.win--jobs .pipbar { position: relative; flex: none; }
 .pipbar-face { display: inline-flex; flex: none; align-self: flex-start; margin-top: 6px; }
 .pipbar-text { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .pipbar-label { font-size: 12px; font-weight: var(--weight-medium); color: var(--text-muted); }
@@ -1422,12 +1441,18 @@ small { font-size: inherit; }
 .pipbar-actions { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; min-height: var(--control-h); }
 .pipbar-actions .btn .i { margin-right: -2px; }
 
+/* Replay puts a job's before back at once, so nothing plays backwards */
+.win--jobs.is-instant .jobs-stage *,
+.win--jobs.is-instant .jobs-stage *::before,
+.win--jobs.is-instant .jobs-stage *::after { transition: none !important; animation: none !important; }
+
 /* A coral wash on the thing Pip is looking at (.is-lit): it holds while he does */
 .rough li.is-lit,
 .step-note .is-lit { background-color: var(--accent-soft); }
 
-/* Newsletter. Jo's ideas are a dumping ground; Pip reads them one by one,
-   then writes the draft above them, word by word. Her ideas stay. */
+/* Newsletter. Pip writes it under the title from Jo's rough ideas; each idea
+   washes while its paragraph writes, then folds away. Done, only the
+   newsletter is left. A note longer than the stage scrolls under a fade. */
 .surf--note { position: relative; max-width: 640px; }
 .win--jobs.is-ready .surf--note { overflow-y: auto; scrollbar-width: none; }
 /* Only a note longer than the stage fades out at the foot (script sets .is-long) */
@@ -1442,18 +1467,20 @@ small { font-size: inherit; }
           mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 40px), transparent);
 }
 .win--jobs.is-ready .surf--note::-webkit-scrollbar { display: none; }
-.nl-h { margin: 0 0 6px; font-size: 14px; font-weight: var(--weight-semibold); line-height: 1.4; color: var(--text-secondary); transition: color 320ms var(--ease-out); }
-.nl-draft { margin-bottom: 20px; }
+.nl-h { margin: 0 0 6px; font-size: 14px; font-weight: var(--weight-semibold); line-height: 1.4; color: var(--text-secondary); }
+.nl:not(:empty) { margin-bottom: 18px; }
 .nl p { font-size: 15px; line-height: 1.6; }
 .nl p + p { margin-top: 8px; }
 .nl .caret { opacity: 1; height: 1.1em; vertical-align: -0.18em; margin-left: 2px; }
+.nl-ideas { overflow: hidden; }
 .rough { list-style: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; font-size: 15px; line-height: 1.45; color: var(--text-secondary); }
 .rough li {
   position: relative;
   margin-inline: -8px;
   padding: 2px 10px 2px 24px;
   border-radius: var(--radius-xs);
-  transition: background-color 260ms var(--ease-out), color 320ms var(--ease-out);
+  overflow: hidden;
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
 }
 .rough li::before {
   content: "";
@@ -1466,18 +1493,16 @@ small { font-size: inherit; }
   background: var(--border);
 }
 .rough li.is-lit { color: var(--text-primary); }
-/* Done: the draft above, her notes kept underneath, a step quieter */
-.nl-ideas.is-kept .nl-h,
-.nl-ideas.is-kept .rough { color: var(--text-muted); }
 
-/* Product shot. One photo the whole way. .pv is the desk shot; .pv-sq is the
-   square inside it that Pip crops to (left 0, top 17.448%, 56.152% wide,
-   74.870% tall: measured from the original), and it carries every later
-   layer. Cropping widens the frame's grip on .pv by 1.33565, so the square
-   fills the frame exactly and the layers on it never jump. */
-.photo-job { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; height: 100%; }
+/* Product shot. One photo the whole way, and it starts as a dim, dull
+   snapshot. .pv is the desk shot; .pv-sq is the square inside it that Pip
+   crops to (left 0, top 17.448%, 56.152% wide, 74.870% tall: measured from
+   the original), and it carries the later layers. Cropping widens the
+   frame's grip on .pv by 1.33565, so the square fills the frame exactly.
+   The frame is sized by the stage: never taller than it leaves room for. */
+.photo-job { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; height: 100%; }
 .photo-frame {
-  --ph-h: min(clamp(210px, 40cqi, 340px), (100cqi - 32px) * 0.75);
+  --ph-h: min(340px, 100cqh - 56px, 75cqw);
   position: relative;
   flex: none;
   height: var(--ph-h);
@@ -1500,11 +1525,17 @@ small { font-size: inherit; }
   transition: transform 900ms var(--ease-out);
 }
 .pv-wide { display: block; width: 100%; height: 100%; object-fit: cover; }
-.pv-sq { position: absolute; left: 0; top: 17.448%; width: 56.152%; height: 74.870%; transition: filter 800ms var(--ease-out); }
-.pv-wide { transition: opacity 0s; }
+.pv-sq { position: absolute; left: 0; top: 17.448%; width: 56.152%; height: 74.870%; }
 /* The layers on the square run a pixel past it, so no sliver of the desk shot
    can show at the frame's edge once it's cropped (and it's hidden then too) */
-.pv-layer { position: absolute; left: 0; top: 0; display: block; width: calc(100% + 1px); height: calc(100% + 1px); opacity: 0; transition: opacity 800ms var(--ease-out); }
+.pv-layer { position: absolute; left: 0; top: 0; display: block; width: calc(100% + 1px); height: calc(100% + 1px); opacity: 0; }
+/* Dim and a little dull with a warm cast until Pip brightens it */
+.pv-wide,
+.pv-layer {
+  filter: brightness(0.7) saturate(0.85) sepia(0.12);
+  transition: opacity 800ms var(--ease-out), filter 1100ms var(--ease-out);
+}
+.pv-wide { transition: opacity 0s, filter 1100ms var(--ease-out); }
 /* The selection Pip paints over the notepad and the plant: a wash inside, a
    line round the edge (both in the mask), brushed in from the left */
 .pv-sel {
@@ -1547,13 +1578,13 @@ small { font-size: inherit; }
 .photo-job.is-framing .pv-crop { opacity: 1; }
 .photo-job.is-cropped .photo-frame { width: var(--ph-h); }
 .photo-job.is-cropped .pv { transform: scale(1.33565) translate(0, -17.448%); }
-.photo-job.is-square .pv-square { opacity: 1; transition-duration: 160ms; }
-.photo-job.is-square .pv-wide { opacity: 0; transition-delay: 160ms; }
+.photo-job.is-square .pv-square { opacity: 1; transition-duration: 160ms, 1100ms; }
+.photo-job.is-square .pv-wide { opacity: 0; transition-delay: 160ms, 0s; }
 .photo-job.is-selecting .pv-sel { opacity: 1; clip-path: inset(0 0 0 0); }
 .photo-job.is-filled .pv-clean { opacity: 1; }
 .photo-job.is-filled .pv-sel { opacity: 0; }
-.photo-job.is-studio .pv-studio { opacity: 1; transition-duration: 1100ms; }
-.photo-job.is-bright .pv-sq { filter: brightness(1.06) saturate(1.1); }
+.photo-job.is-bright .pv-wide,
+.photo-job.is-bright .pv-layer { filter: brightness(1.05) saturate(1.06) sepia(0); }
 .photo-tools {
   display: inline-flex;
   flex-wrap: wrap;
@@ -1581,8 +1612,17 @@ small { font-size: inherit; }
 .ptool.is-done { color: var(--text-primary); }
 
 /* Bookings. Pip reads the drum rows, checks each name against the lino rows,
-   and saves who's left as a view of the same table */
-.bk { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; max-width: 560px; }
+   and saves who's left as a view of the same table. Ten rows (the header and
+   nine bookings) share the stage's height, so the table always fits. */
+.bk {
+  --bk-top: 46px;
+  --row: clamp(17px, (100cqh - var(--bk-top) - 2px) / 10, 37px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 560px;
+}
 .bk-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--bg-secondary); }
 .bk-tab {
   display: inline-flex;
@@ -1606,7 +1646,9 @@ small { font-size: inherit; }
 .bk-view { opacity: 0; visibility: hidden; }
 .bk.is-view .bk-all { opacity: 0; visibility: hidden; }
 .bk.is-view .bk-view { opacity: 1; visibility: visible; transition-delay: 0s; }
-.tbl--bk { table-layout: fixed; }
+.tbl--bk { table-layout: fixed; font-size: clamp(11px, var(--row) * 0.4, 14px); line-height: 1.3; }
+.tbl--bk th, .tbl--bk td { height: var(--row); padding-block: 0; }
+.tbl--bk th { font-size: clamp(10.5px, var(--row) * 0.36, 12.5px); }
 .tbl--bk th:not(:last-child), .tbl--bk td:not(:last-child) { text-align: left; }
 .tbl--bk td { white-space: nowrap; }
 .bk-all th:nth-child(1) { width: 50%; }
@@ -1621,7 +1663,7 @@ small { font-size: inherit; }
   padding: 0 7px;
   border-radius: var(--radius-full);
   background: var(--bg-tertiary);
-  font-size: 11.5px;
+  font-size: 0.82em;
   font-weight: var(--weight-medium);
   line-height: 1.6;
   color: var(--text-secondary);
@@ -1631,14 +1673,16 @@ small { font-size: inherit; }
 
 /* Deck. On a laptop the note sits beside six ghost frames, and each step
    lights up as its slide is dealt. On a phone the note fills the stage, then
-   steps aside for the slides. */
+   steps aside for the slides. Two slide styles only, in turn: a photo beside
+   the words, or a photo edge to edge with the words on a white bar. The grid
+   is as wide as the stage's height lets every row show. */
 .deck-job { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 24px; align-items: start; }
 .step-note { padding: 16px 18px 18px; border-radius: 12px; background: var(--bg-secondary); }
 .step-note-title { margin: 2px -6px 8px; padding: 2px 6px; border-radius: var(--radius-xs); font-size: 15px; font-weight: var(--weight-semibold); transition: background-color 300ms var(--ease-out); }
 .step-note ol { list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; line-height: 1.4; }
 .step-note li { counter-increment: step; display: flex; gap: 10px; margin-inline: -6px; padding: 3px 6px; border-radius: var(--radius-xs); transition: background-color 300ms var(--ease-out); }
 .step-note li::before { content: counter(step); flex: none; width: 12px; font-weight: var(--weight-semibold); color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.slides { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.slides { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: calc(240cqh - 5px); }
 .slide {
   position: relative;
   aspect-ratio: 16 / 10;
@@ -1659,31 +1703,29 @@ small { font-size: inherit; }
 }
 .slide.is-dealt .slide-face { opacity: 1; }
 .slide-face b { display: block; font-size: 12px; font-weight: var(--weight-semibold); line-height: 1.25; }
-.slide-face small { display: block; margin-top: 2px; font-size: 10.5px; color: var(--text-secondary); }
+.slide-face small { display: block; margin-top: 3px; font-size: 10.5px; color: var(--text-secondary); }
 .s-n { display: block; margin-bottom: 2px; font-size: 10px; font-weight: var(--weight-semibold); color: var(--text-muted); }
 .slide-face .ph { border-radius: 0; box-shadow: none; padding: 0; }
 .s-cover .ph, .s-bleed .ph { position: absolute; inset: 0; height: 100%; }
+/* The words on a photo: a white bar that hugs them, bottom left */
 .s-cap, .s-bar {
   position: absolute;
   left: 7px;
-  right: 7px;
   bottom: 7px;
-  padding: 6px 8px;
+  max-width: calc(100% - 14px);
+  padding: 6px 9px;
   border-radius: 6px;
   background: var(--surface-pip);
   box-shadow: var(--shadow-sm);
 }
+.s-cap { right: 7px; }
+/* A photo beside the words: the same half and the same padding every time */
 .s-split { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); }
 .s-split .ph { height: 100%; }
-.s-txt { min-width: 0; padding: 9px; display: flex; flex-direction: column; justify-content: center; }
-.s-num { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; padding: 10px 12px; }
-.s-big { font-size: 46px; font-weight: var(--weight-semibold); line-height: 0.9; letter-spacing: -0.04em; color: var(--text-primary); }
-.s-num .s-txt { padding: 0; }
-.s-stack { display: grid; grid-template-rows: minmax(0, 1fr) auto; }
-.s-stack .s-txt { padding: 6px 9px 8px; }
+.s-txt { min-width: 0; padding: 9px 10px; display: flex; flex-direction: column; justify-content: center; }
 
 /* Canvas: scattered ideas, sorted into fabrics, shapes and notes; then the
-   one gap filled, in place, with Pip's mark on it */
+   one gap filled, in place */
 .cv {
   position: relative;
   height: clamp(320px, 50cqi, 420px);
@@ -1694,6 +1736,7 @@ small { font-size: inherit; }
   box-shadow: inset 0 0 0 1px var(--border-light);
   overflow: hidden;
 }
+.win--jobs.is-ready .cv { height: min(100%, 460px); }
 .cvh {
   position: absolute;
   left: var(--x);
@@ -1744,59 +1787,70 @@ small { font-size: inherit; }
   transition: opacity 320ms var(--ease-out);
 }
 .cvi--sticky.is-lit::after { opacity: 1; }
-.cv-pip {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  display: none;
-  padding: 3px;
-  border-radius: var(--radius-full);
-  background: var(--surface-pip);
-  box-shadow: var(--shadow-sm), var(--win-ring);
-}
-.cvi.is-pip .cv-pip { display: block; }
 
-/* Dashboard: the table becomes tiles and a chart */
-.dash { display: grid; }
-.dash-before, .dash-after { grid-area: 1 / 1; min-width: 0; transition: opacity 320ms var(--ease-out), visibility 0s linear 320ms; }
-.dash-after { opacity: 0; visibility: hidden; }
+/* Dashboard: the table becomes tiles and a chart, sized by the stage */
+.dash { --row: clamp(17px, (100cqh - 2px) / 10, 37px); display: grid; height: 100%; }
+.dash-before, .dash-after { grid-area: 1 / 1; min-width: 0; min-height: 0; transition: opacity 320ms var(--ease-out), visibility 0s linear 320ms; }
+.dash-after { display: flex; flex-direction: column; gap: 14px; opacity: 0; visibility: hidden; }
 .dash.is-shown .dash-before { opacity: 0; visibility: hidden; }
 .dash.is-shown .dash-after { opacity: 1; visibility: visible; transition-delay: 0s; }
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tbl--sales { font-size: clamp(11px, var(--row) * 0.4, 14px); line-height: 1.3; }
+.tbl--sales th, .tbl--sales td { height: var(--row); padding-block: 0; }
+.tbl--sales th { font-size: clamp(10.5px, var(--row) * 0.36, 12.5px); }
+.tiles { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .tile { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 12px; background: var(--bg-secondary); }
 .tile--find { background: var(--accent-soft); }
 .tile-k { font-size: 12.5px; font-weight: var(--weight-medium); color: var(--text-secondary); }
 .tile-v { font-size: 28px; font-weight: var(--weight-semibold); line-height: 1; letter-spacing: var(--tracking-tight); }
-.chart { margin-top: 14px; padding: 18px 18px 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--border-light); }
-.bars { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; height: 190px; }
-.bar-g { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.chart { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 18px 18px 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--border-light); }
+.bars { flex: 0 1 190px; min-height: 48px; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; height: 190px; }
+.bar-g { display: flex; flex-direction: column; gap: 6px; min-width: 0; min-height: 0; }
 .bar-g span { font-size: 11px; text-align: center; color: var(--text-secondary); }
-.pair { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; box-shadow: inset 0 -1px 0 var(--border); }
+.pair { flex: 1; min-height: 0; display: flex; align-items: flex-end; justify-content: center; gap: 3px; box-shadow: inset 0 -1px 0 var(--border); }
 .pair i { flex: 1; max-width: 16px; height: 0; border-radius: 3px 3px 0 0; transition: height 800ms var(--ease-out); transition-delay: calc(var(--n, 0) * 50ms); }
 .b1, .k1 { background: var(--chart-sage); }
 .b2, .k2 { background: var(--chart-coral); }
 .chart.is-grown .pair i { height: var(--h); }
-.key { display: flex; gap: 18px; margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
+.key { flex: none; display: flex; gap: 18px; margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
 .key i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
 
-/* A window too narrow for words and buttons side by side: the buttons go
-   under the words, lined up with them */
-@container (max-width: 1040px) {
+/* ── The jobs window at its widths (the window is the `jobs` container) ── */
+
+/* Too narrow for words and buttons side by side: the buttons go under the
+   words, lined up with them */
+@container jobs (max-width: 1040px) {
   .pipbar { flex-wrap: wrap; row-gap: 10px; }
   .pipbar-text { flex-basis: calc(100% - 42px); }
   .pipbar-actions { flex-basis: 100%; justify-content: flex-start; padding-left: 42px; }
-  .slides { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .slides { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: calc(106cqh - 14px); }
 }
-@container (max-width: 780px) {
+@container jobs (max-width: 780px) {
   .jobs-grid { grid-template-columns: minmax(0, 1fr); }
-  .jobs-rail { flex-direction: row; flex-wrap: wrap; gap: 6px; padding: 12px; }
-  .job { width: auto; gap: 8px; padding: 4px 12px 4px 4px; border-radius: var(--radius-full); }
+  .win--jobs.is-ready .jobs-grid { grid-template-rows: auto minmax(0, 1fr); }
+  /* The rail is one row that scrolls sideways, fading at the edge that has
+     more; the chosen job is scrolled into view */
+  .jobs-rail {
+    --fade-l: 0px;
+    --fade-r: 32px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 8px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+            mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+  }
+  .jobs-rail::-webkit-scrollbar { display: none; }
+  .jobs-rail.is-scrolled { --fade-l: 32px; }
+  .jobs-rail.is-at-end { --fade-r: 0px; }
+  .job { flex: none; width: auto; gap: 8px; padding: 4px 12px 4px 4px; border-radius: var(--radius-full); }
   .job-ic { width: 26px; height: 26px; border-radius: var(--radius-full); }
-  .job-name { font-size: 13px; font-weight: var(--weight-medium); }
+  .job-name { font-size: 13px; font-weight: var(--weight-medium); white-space: nowrap; }
   .job-kind { display: none; }
   .job-done { display: none; }
   .job.is-done .job-ic { box-shadow: inset 0 0 0 1px var(--border); }
-  .jobs-stage { --stage-h: 470px; padding: 20px 16px; }
+  .jobs-stage { --stage-h: 480px; padding: 18px 16px; }
   .pipbar { padding: 14px 16px; }
   .pipbar-actions { padding-left: 0; }
   /* The deck: the note first, full width; then the slides in its place */
@@ -1806,58 +1860,100 @@ small { font-size: inherit; }
   .step-note-title { font-size: 17px; margin-bottom: 10px; }
   .step-note ol { gap: 4px; font-size: 15px; line-height: 1.45; }
   .deck-job.is-dealing .step-note { opacity: 0; visibility: hidden; }
-  .slides { visibility: hidden; width: 100%; max-width: 440px; margin-inline: auto; gap: 10px; }
+  .slides { visibility: hidden; max-width: min(440px, calc(106cqh - 12px)); margin-inline: auto; gap: 10px; }
   .deck-job.is-dealing .slides { visibility: visible; }
   .slide { outline: none; }
   .tile { padding: 12px; }
   .tile-v { font-size: 20px; }
   .tile-k { font-size: 11.5px; }
-  .bars { gap: 4px; height: 150px; }
+  .bars { gap: 4px; }
   .pair { gap: 2px; }
   .cvi { width: 28%; }
   .cvi--sticky { padding: 6px 8px; font-size: 11px; }
   .cvh { font-size: 11.5px; }
-  .cv-pip { top: -9px; right: -7px; padding: 2px; }
-  .s-big { font-size: 36px; }
 }
-@container (max-width: 480px) {
-  .jobs-stage { --stage-h: 420px; }
-  .pipbar-msg { font-size: 14px; }
-  .slides { max-width: 390px; }
+/* A phone: Pip's face sits by "How Pip can help" and his words get the
+   bar's full width, so the bar stays short and the stage keeps its room */
+@container jobs (max-width: 480px) {
+  .win--jobs .pipbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 4px;
+    padding: 12px 16px 14px;
+  }
+  .win--jobs .pipbar-text { display: contents; }
+  .win--jobs .pipbar-face { grid-column: 1; grid-row: 1; margin: 0; }
+  .win--jobs .pipbar-face .pf { width: 22px; height: 22px; --mw: 31.82; }
+  .win--jobs .pipbar-label { grid-column: 2; grid-row: 1; }
+  .win--jobs .pipbar-msg { grid-column: 1 / -1; grid-row: 2; font-size: 14px; line-height: 1.4; }
+  .win--jobs .pipbar-actions { grid-column: 1 / -1; grid-row: 3; justify-content: flex-start; margin-top: 6px; }
   .slide-face { font-size: 10px; }
   .slide-face b { font-size: 11px; }
   .slide-face small { display: none; }
   .s-txt { padding: 7px; }
   .s-n { font-size: 9.5px; }
-  .s-cap, .s-bar { left: 5px; right: 5px; bottom: 5px; padding: 4px 6px; }
+  .s-cap, .s-bar { left: 5px; bottom: 5px; max-width: calc(100% - 10px); padding: 4px 6px; }
+  .s-cap { right: 5px; }
   .tiles { gap: 8px; }
   .tile { padding: 10px; }
   .tile-v { font-size: 17px; }
   .tile-k { font-size: 11px; }
   .chart { padding: 14px 12px 10px; }
-  .bars { height: 130px; gap: 3px; }
+  .bars { gap: 3px; }
   .bar-g span { font-size: 10px; }
-  .photo-tools { display: grid; grid-template-columns: auto auto; border-radius: 19px; }
-  .ptool { justify-content: center; padding: 0 10px; font-size: 12px; }
+  .ptool { padding: 0 11px; font-size: 12px; }
   .cv.is-sorted .cvi--prices { top: 39%; }
   .cv.is-sorted .cvi--gap { top: 71%; }
-  .tbl--bk { font-size: 13.5px; }
-  .tbl--bk th, .tbl--bk td { padding: 6px 10px; }
-  .bk { gap: 10px; }
-  .bk-tag { margin-left: 6px; padding: 0 6px; font-size: 11px; }
+  .tbl--bk th, .tbl--bk td { padding-inline: 10px; }
+  .bk { gap: 10px; --bk-top: 44px; }
+  .bk-tag { margin-left: 6px; padding: 0 6px; }
 }
-/* The smallest phones: the bookings tighten, and a "did lino" tag sits under
-   its name rather than pushing the row wider than the window */
-@container (max-width: 340px) {
-  .tbl--bk { font-size: 12.5px; }
-  .tbl--bk th { font-size: 11.5px; }
-  .tbl--bk th, .tbl--bk td { padding: 5px 7px; }
-  .tbl--bk td:first-child { white-space: normal; }
-  .tbl--bk tr.is-out .bk-tag { display: block; width: max-content; margin: 1px 0 0; }
-  .bk-all th:nth-child(1) { width: 46%; }
-  .bk-all th:nth-child(2) { width: 30%; }
+/* The smallest phones: the tools are icons only (the live line names each
+   step), the bookings tighten so a "did lino" tag still fits by its name */
+@container jobs (max-width: 340px) {
+  .ptool { gap: 0; padding: 0 10px; font-size: 0; }
+  .tbl--bk th, .tbl--bk td { padding-inline: 6px; }
+  .bk-all th:nth-child(1) { width: 54%; }
+  .bk-all th:nth-child(2) { width: 22%; }
   .bk-view th:nth-child(1) { width: 56%; }
+  .bk-tag { margin-left: 4px; padding: 0 5px; font-size: 0.78em; }
   .cvi--sticky { padding: 6px; font-size: 10.5px; }
+}
+
+/* ── The jobs window at its heights ──────────────────────────────────────
+   A short screen: slimmer chrome. A short stage: each job tightens. */
+@media (max-height: 760px) {
+  .win--jobs { --win-bar-h: 36px; }
+  .jobs-rail { padding-block: 10px; }
+  .job { padding-block: 7px; }
+  .win--jobs .jobs-stage { padding-block: 16px; }
+  .win--jobs .pipbar { padding-block: 11px; }
+}
+@media (max-height: 760px) and (max-width: 860px) {
+  .jobs-rail { padding-block: 6px; }
+  .job { padding-block: 3px; }
+  .win--jobs .jobs-stage { padding-block: 12px; }
+}
+@container stage (max-height: 360px) {
+  .photo-job { gap: 10px; }
+  .photo-frame { --ph-h: min(340px, 100cqh - 48px, 75cqw); }
+  .bk { gap: 8px; --bk-top: 38px; }
+  .bk-tabs { padding: 2px; }
+  .bk-tab { height: 26px; padding: 0 10px; font-size: 12px; }
+  .surf-title { font-size: 19px; margin-bottom: 10px; }
+  .step-note { padding: 12px 14px 14px; }
+  .step-note-title { font-size: 15px; margin-bottom: 6px; }
+  .step-note ol { gap: 1px; font-size: 13px; line-height: 1.35; }
+  .tiles { gap: 6px; }
+  .tile { gap: 3px; padding: 8px 10px; }
+  .tile-v { font-size: 16px; }
+  .dash-after { gap: 8px; }
+  .chart { padding: 10px 10px 8px; }
+  .key { margin-top: 6px; font-size: 11px; }
+  .cvh { top: 3%; }
+  .cvi--sticky { padding: 5px 7px; font-size: 10.5px; line-height: 1.25; }
 }
 
 /* ── Already briefed ────────────────────────────────────────────────────── */
@@ -2664,10 +2760,8 @@ small { font-size: inherit; }
 
   /* ── The six jobs ────────────────────────────────────────────────────── */
   .slide.is-dealt .slide-face { animation: slide-deal 480ms var(--ease-out) both; }
-  .nl-draft.is-new .nl-h { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
   .bk.is-saved .bk-tab--new { animation: pip-grow var(--dur-settle) var(--ease-out) both; }
   .tbl--bk tr.is-out .bk-tag { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
-  .cvi.is-pip .cv-pip { animation: pip-grow var(--dur-settle) var(--ease-out) both; }
 }
 
 
