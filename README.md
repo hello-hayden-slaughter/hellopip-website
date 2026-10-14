@@ -8,11 +8,11 @@ Static marketing site for hellopip.co.uk. No build step: GitHub Pages serves the
 - `js/site.js`: vanilla, deferred, one module per behaviour (header, mascots, reveal, scenes, demo, jobs, accordion, jumpList, download)
 - `assets/fonts/`: Nunito (variable, latin) and its OFL licence, self-hosted
 - `assets/pip/`: the canonical mascot SVGs from the design kit
-- `assets/img/`: real photos go here
+- `assets/img/`: the demo screenshot, and `lume/` for the Lume Lighting photos (JPEG, about twice their displayed size, under 200 KB each)
 - `assets/favicon*`, `assets/apple-touch-icon.png`, `assets/og-card.png`, `site.webmanifest`, `CNAME`
 
 ## Photo slots
-Every photo is a placeholder `<div class="ph" data-photo="…">` with its shot and ratio in its label. To swap one, replace that element with an `<img>` of the same ratio (keep `class="ph"` for the radius) and write its alt text.
+A slot is an element with `data-photo="…"`. Where there's a photo it is an `<img class="ph" width height alt loading="lazy" decoding="async">` from `assets/img/lume/` (the `ph` class keeps the slot's ratio and radius); where there isn't one yet (`hayden`) it is a placeholder `<div class="ph">` with its shot and ratio in its label. To swap a placeholder, replace that element with an `<img>` of the same ratio and write its alt text.
 
 ## Review markers
 Square-bracket notes in the copy (`[N]`, `[contact address]`, `[Check with Jo before this goes live]`) are `<span class="rm">`. Delete the span when the note is settled. On the download page, `[version]`, `[size]` and `[date]` are filled from the latest GitHub release when it answers.

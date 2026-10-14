@@ -732,8 +732,9 @@ small { font-size: inherit; }
   vertical-align: baseline;
 }
 
-/* ── Photo slots: a deliberate placeholder for a real photo ──────────────
-   Swap by replacing the element that carries data-photo with an <img>. */
+/* ── Photo slots: a real <img class="ph"> where there's a photo, a deliberate
+   placeholder <div class="ph"> where there isn't yet. Swap by replacing the
+   element that carries data-photo with an <img>. */
 .ph {
   position: relative;
   display: flex;
@@ -764,6 +765,15 @@ small { font-size: inherit; }
   clip: rect(0 0 0 0); white-space: nowrap;
 }
 .ph--round { border-radius: var(--radius-full); }
+/* A real photo in a slot keeps the slot's box, ratio and radius. :where() keeps
+   this at slot-class weight, so .ph--fill and the vignette rules still win. */
+:where(img).ph {
+  display: block;
+  height: auto;
+  padding: 0;
+  object-fit: cover;
+  box-shadow: none;
+}
 
 /* ── The hand note: the site's one playful flourish ─────────────────────── */
 .hand {
@@ -1643,7 +1653,9 @@ small { font-size: inherit; }
   background-size: 16px 16px;
   background-position: 0 0, 8px 8px;
 }
-.photo-cut .ph { width: auto; height: 84%; background: color-mix(in srgb, var(--bg-tertiary) 80%, transparent); transition: filter 500ms var(--ease-out); }
+/* The clean shot fills the frame (a 4:3 window onto its square, the lamp kept
+   in it); as the frame closes to square it shows whole */
+.photo-cut .ph { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; object-position: 50% 32%; transition: filter 500ms var(--ease-out); }
 .photo-orig { position: absolute; inset: 0; transition: opacity 700ms var(--ease-out); }
 .ph--fill { height: 100%; aspect-ratio: auto; border-radius: 0; }
 .photo-orig .ph { box-shadow: none; }
@@ -1720,7 +1732,7 @@ small { font-size: inherit; }
   background: var(--surface-pip);
   box-shadow: var(--shadow-sm);
 }
-.s-split { display: grid; grid-template-columns: 1fr 1fr; }
+.s-split { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); }
 .s-split .ph { height: 100%; }
 .s-txt { min-width: 0; padding: 9px; display: flex; flex-direction: column; justify-content: center; }
 .s-num { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; padding: 10px 12px; }

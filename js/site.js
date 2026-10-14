@@ -171,8 +171,8 @@
 
   /* ── dates ─────────────────────────────────────────────────────────────────
      Nothing on the site goes stale. Every date in the Lume examples is worked
-     out from today: the drum workshop is the next Saturday at least four days
-     away, the lino day three weeks after it, chats are so many days ago, and
+     out from today: the drum workshop is the next Sunday at least four days
+     away, the lino day the Saturday three weeks after it, chats are so many days ago, and
      the sales sheet is this year's (last year's until April). The HTML holds
      a sensible fallback in each [data-date] span for when this doesn't run. */
 
@@ -182,8 +182,8 @@
     var today = new Date(); today.setHours(12, 0, 0, 0);
     function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
     var drum = addDays(today, 4);
-    while (drum.getDay() !== 6) drum = addDays(drum, 1);
-    var lino = addDays(drum, 21);
+    while (drum.getDay() !== 0) drum = addDays(drum, 1);
+    var lino = addDays(drum, 20); // the Saturday that ends the third week after the drum Sunday
     var xmas = new Date(today.getFullYear(), 11, 18, 12);
     if (today > xmas) xmas = new Date(today.getFullYear() + 1, 11, 18, 12);
     var prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -710,7 +710,7 @@
     var RATES = [15, 20, 25];
     var JOBS = [
       { title: "Lume Lighting › Newsletter: " + D.month, intro: "You've got this month's news as rough notes. Want a first draft of the newsletter, in your words?", go: "Yes, draft it", done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
-      { title: "Lume Lighting › mustard-scallop.jpg", intro: "There's a mug and some scissors behind the shade. Want me to take the background out, brighten it and make it square for the shop?", go: "Yes, clean it up", done: "Background out, a little brighter, and square for the listing. Your original is still there if you want it back." },
+      { title: "Lume Lighting › sage-slim-lamp.jpg", intro: "There's a plant, a notepad and a laptop around the lamp. Want me to take the background out, brighten it and make it square for the shop?", go: "Yes, clean it up", done: "Background out, a little brighter, and square for the listing. Your original is still there if you want it back." },
       { title: "Lume Lighting › Costs: large scallop", intro: "I can add up what a large scallop costs you to make. I'll need one number from you first.", go: "Yes, add it up",
         ask: {
           q: "What's an hour of your time worth?",
@@ -720,9 +720,9 @@
             addRow(["Your time, 3 hours at £" + rate, "£" + (3 * rate) + ".00", ""]);
             later(function () { addRow(["To make and send", "£" + (50 + 3 * rate) + ".00", "is-total"]); }, 380);
           },
-          after: function (i) { return "£" + (50 + 3 * RATES[i]) + " to make and send. Your large shades sell for £280 to £320. Where you land in that range is your call."; }
+          after: function (i) { return "£" + (50 + 3 * RATES[i]) + " to make and send. Your large scallop sells for £350, so the margin's there. The price is your call."; }
         } },
-      { title: "Lume Lighting › Drum workshop steps", intro: "You've got the steps for Saturday. Want them as a deck?", go: "Yes, make the deck", done: "Six slides, one for each step. Drop your photos in and move anything you like." },
+      { title: "Lume Lighting › Drum workshop steps", intro: "You've got the steps for Sunday. Want them as a deck?", go: "Yes, make the deck", done: "Six slides, one for each step. Drop your photos in and move anything you like." },
       { title: "Lume Lighting › Spring collection · Canvas", intro: "Your ideas for spring are all over the place. Want me to group them?", go: "Yes, group them",
         ask: {
           q: "Which fabric leads the spring collection?",
@@ -730,14 +730,14 @@
           apply: function (i) {
             $$(".cvi--sw", win).forEach(function (s) { s.classList.toggle("is-chosen", +s.getAttribute("data-fabric") === i); });
           },
-          after: function (i) { return this.opts[i] + " leads, then. One gap to fill: the 50cm scallop has no price yet."; }
+          after: function (i) { return this.opts[i] + " leads, then. One gap to fill: the 60cm scallop has no price yet."; }
         } },
       { title: "Lume Lighting › Sales " + D.salesYear, intro: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?", go: "Yes, show me", done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year." }
     ];
     var NL = [
       "Hello, and thank you for such a lovely summer at the studio.",
       "The mustard scallop is finally in the shop. It's the linen I've been saving for months, and as always there's only one.",
-      "Two places left on the drum workshop on " + D.long(D.drum) + ". And the lino printing day is open for " + D.long(D.lino) + ": eight places, £110, and you take your printed shade home.",
+      "Two places left on the drum workshop on " + D.long(D.drum) + ", so bring a fabric you love. And the lino printing day is open for " + D.long(D.lino) + ": six places, £110, and you take your printed shade home.",
       "The last posting day for Christmas is " + D.dayMonth(D.xmas) + ".",
       "Speak soon."
     ];
