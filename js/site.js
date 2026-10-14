@@ -6,6 +6,7 @@
      util       helpers the modules share
      dates      every date in the examples, worked out from today
      header     the scrolled header and the phone menu sheet
+     stops      the hero's "Stop …" headline: what it stops turns underneath
      mascots    the live Pip: blink, and eyes that follow the cursor
      reveal     sections arriving on scroll
      scenes     the vignette moments: find, yours, briefed, switch
@@ -215,6 +216,141 @@
       else if (key.indexOf("ago:") === 0) text = D.ago(parseInt(key.slice(4), 10) || 0);
       if (text) node.textContent = text;
     });
+  }
+
+
+  /* ── stops ─────────────────────────────────────────────────────────────────
+     The hero reads "Stop …" and what it stops turns every 3.5s. "Stop" never
+     moves. Laptop: a reel on its right, the stops before and after faint above
+     and below. Phone: only the current stop, under "Stop", flipping to the
+     next. Both are sized by the longest stop and never change size, so nothing
+     on the page moves. It waits for the hero's entrance, pauses on hover, when
+     the hero is off screen and when the tab is hidden, and doesn't turn at all
+     under reduced motion (the first stop stays). */
+  var STOPS = [
+    "being intimidated by AI.",
+    "treating AI like Google.",
+    "losing work in AI chats.",
+    "copying and pasting from AI.",
+    "repeating yourself to AI.",
+    "sounding like a robot.",
+    "staring at a blank page.",
+    "making do with free AI.",
+    "feeding your data to AI."
+  ];
+  var STOPS_EVERY = 3500;
+
+  function stops() {
+    var reel = $("[data-stops]");
+    if (!reel) return;
+    var h1 = reel.closest("h1"), line = reel.closest(".stops-line");
+    var track = $(".stops-track", reel), flip = $(".stops-flip", reel);
+    var phoneQuery = window.matchMedia ? window.matchMedia("(max-width: 700px)") : null;
+    var n = STOPS.length, at = n, hover = false, onScreen = true, timer = null, phoneMode = null;
+
+    function phone() { return !!(phoneQuery && phoneQuery.matches); }
+    function probe() {
+      var p = document.createElement("span");
+      p.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;font:inherit;letter-spacing:inherit";
+      h1.appendChild(p);
+      return p;
+    }
+    function widthOf(p, text) { p.textContent = text; return p.getBoundingClientRect().width; }
+    function splitTwo(p, text) {
+      var words = text.split(" "), best = null;
+      for (var k = 1; k < words.length; k++) {
+        var worst = Math.max(widthOf(p, words.slice(0, k).join(" ")), widthOf(p, words.slice(k).join(" ")));
+        if (!best || worst < best.worst) best = { k: k, worst: worst };
+      }
+      return { l1: words.slice(0, best.k).join(" "), l2: words.slice(best.k).join(" "), w: best.worst };
+    }
+
+    // Laptop: the reel is as wide as the longest stop, and the headline steps
+    // down a size if "Stop" and the longest stop can't share the line.
+    function fitReel() {
+      h1.style.fontSize = "";
+      var p = probe(), em = parseFloat(getComputedStyle(h1).fontSize);
+      var longest = STOPS.reduce(function (w, s) { return Math.max(w, widthOf(p, s)); }, 0);
+      var stopW = widthOf(p, "Stop");
+      p.remove();
+      var reelEm = longest / em + 0.1;
+      reel.style.setProperty("--reel-w", reelEm.toFixed(3) + "em");
+      // the hero column's width, not the h1's (the h1 shrinks to its content)
+      var maxPx = h1.parentElement.getBoundingClientRect().width / (stopW / em + 0.28 + reelEm + 0.2);
+      if (em > maxPx) h1.style.fontSize = Math.floor(maxPx) + "px";
+    }
+    function buildReel() {
+      track.textContent = "";
+      for (var c = 0; c < 3; c++) STOPS.forEach(function (s) { track.appendChild(el("span", "stops-row", s)); });
+      at = n + (at % n);
+      placeReel(false);
+    }
+    function placeReel(turn) {
+      var row = track.firstChild ? track.firstChild.getBoundingClientRect().height : 0;
+      track.classList.toggle("is-turning", !!turn && !reduced());
+      track.style.transform = "translateY(" + (-(at - 1) * row) + "px)";
+      Array.prototype.forEach.call(track.children, function (r, k) { r.classList.toggle("is-now", k === at); });
+    }
+
+    // Phone: the largest size (34 down to 24px) at which every stop fits the
+    // width on one line, or else every stop on two balanced lines.
+    function fitFlip() {
+      h1.style.fontSize = "";
+      var width = h1.parentElement.getBoundingClientRect().width - 8, p = probe(), px = 34, lines = 1;
+      for (; px >= 24; px--) {
+        h1.style.setProperty("--stops-font", px + "px");
+        if (STOPS.every(function (s) { return widthOf(p, s) <= width; })) { lines = 1; break; }
+        if (STOPS.every(function (s) { return splitTwo(p, s).w <= width; })) { lines = 2; break; }
+      }
+      flip.textContent = "";
+      STOPS.forEach(function (s) {
+        var r = el("span", "flip-row");
+        if (lines === 2) { var sp = splitTwo(p, s); r.appendChild(document.createTextNode(sp.l1)); r.appendChild(document.createElement("br")); r.appendChild(document.createTextNode(sp.l2)); }
+        else r.textContent = s;
+        flip.appendChild(r);
+      });
+      p.remove();
+      reel.style.setProperty("--flip-h", Math.ceil(px * 1.15 * lines + 2) + "px");
+      placeFlip(false);
+    }
+    function placeFlip(turn) {
+      var now = at % n, prev = (now - 1 + n) % n;
+      flip.classList.toggle("is-still", !turn || reduced());
+      Array.prototype.forEach.call(flip.children, function (r, k) {
+        r.classList.toggle("is-now", k === now);
+        r.classList.toggle("is-gone", k === prev && !!turn);
+      });
+    }
+
+    function layout() {
+      phoneMode = phone();
+      if (phoneMode) fitFlip(); else { fitReel(); buildReel(); }
+    }
+    function turn() {
+      if (hover || !onScreen || document.hidden) return;
+      at += 1;
+      if (phoneMode) placeFlip(true);
+      else {
+        placeReel(true);
+        if (at >= n * 2) setTimeout(function () { at -= n; placeReel(false); }, 950);
+      }
+    }
+
+    layout();
+    if (reduced()) return;
+    line.addEventListener("mouseenter", function () { hover = true; });
+    line.addEventListener("mouseleave", function () { hover = false; });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (es) { onScreen = es[0].isIntersecting; }).observe(h1);
+    }
+    var resizeT = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(layout, 120);
+    });
+    // Start once the hero has arrived and the fonts are in.
+    var go = function () { setTimeout(function () { timer = setInterval(turn, STOPS_EVERY); }, 1600); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(); go(); }); else go();
   }
 
   /* ── header ────────────────────────────────────────────────────────────────
@@ -1171,7 +1307,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [dates, header, mascots, reveal, scenes, liveDemo, jobs, accordion, jumpList, download].forEach(function (init) {
+  [dates, stops, header, mascots, reveal, scenes, liveDemo, jobs, accordion, jumpList, download].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }

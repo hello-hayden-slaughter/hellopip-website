@@ -2589,3 +2589,41 @@ small { font-size: inherit; }
   text-align: center;
 }
 @media (min-width: 1024px) { .demo-shot-note { display: none; } }
+
+
+/* ── The "Stop …" headline ────────────────────────────────────────────────────
+   "Stop" never moves; what it's stopping turns underneath it. Laptop: "Stop"
+   on the left and a reel on its right, one sentence, the stops before and
+   after faint above and below. Phone: "Stop" on its own line and, under it,
+   only the current stop, which flips to the next. Both are a fixed size (the
+   longest stop sets it), so the page never moves. Search engines and screen
+   readers get one fixed headline from the .sr-only span. */
+.h1.stops { font-size: clamp(32px, 4.6vw, 64px); line-height: 1.1; letter-spacing: -0.03em; }
+.stops-line { display: inline-flex; align-items: center; gap: 0.28em; }
+.stops-word { flex: none; color: var(--text-primary); }
+.stops-reel { --row: 1.3em; position: relative; flex: none; display: block; height: calc(var(--row) * 3); width: var(--reel-w, 13em); text-align: left; }
+.stops-window { position: absolute; inset: 0; display: block; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 70%, transparent 100%); }
+.stops-track { position: absolute; left: 0; right: 0; top: 0; display: block; transform: translateY(var(--row)); will-change: transform; }
+.stops-track.is-turning { transition: transform 900ms var(--ease-out); }
+.stops-row { display: flex; align-items: center; height: var(--row); white-space: nowrap; color: var(--text-muted); opacity: 0.45; transition: color 500ms var(--ease-out), opacity 500ms var(--ease-out); }
+.stops-row.is-now { color: var(--text-accent); opacity: 1; }
+.stops-flip { display: none; }
+
+@media (max-width: 700px) {
+  .h1.stops { width: 100%; font-size: var(--stops-font, 34px); line-height: 1.15; }
+  .stops-line { display: block; }
+  .stops-word { display: block; }
+  .stops-reel { width: 100%; height: var(--flip-h, 2.3em); perspective: 700px; }
+  .stops-window { display: none; }
+  .stops-flip { display: block; position: absolute; inset: 0; transform-style: preserve-3d; }
+}
+.stops-flip .flip-row { position: absolute; left: 0; right: 0; top: 0; text-align: center; white-space: nowrap; line-height: 1.15;
+  color: var(--text-accent); transform-origin: 50% 50%; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transform: rotateX(-90deg); opacity: 0;
+  transition: transform 560ms var(--ease-out), opacity 380ms var(--ease-out); }
+.stops-flip .flip-row.is-now { transform: rotateX(0); opacity: 1; transition-delay: 140ms; }
+.stops-flip .flip-row.is-gone { transform: rotateX(90deg); opacity: 0; transition-duration: 380ms, 260ms; transition-timing-function: cubic-bezier(.4,0,1,1); }
+.stops-flip.is-still .flip-row { transition: none; }
+@media (prefers-reduced-motion: reduce) { .stops-track.is-turning, .stops-row, .stops-flip .flip-row { transition: none; } }
