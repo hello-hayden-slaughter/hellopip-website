@@ -1140,15 +1140,18 @@
   }
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
-     Six things you've made, and what each could become. Pick a job on the
-     left (on a phone, a row of pills); the window changes in place (old out
-     100ms, new in 150ms). The window always fits the screen and never changes
-     size: CSS sizes it from the view, and Pip's bar keeps room for its longest
-     message and widest buttons (fitBar). Pip offers; "Yes, …" plays the job in
-     named steps, his face thinking and one live line saying what he's doing
-     now; Replay puts the before back and plays it again. Picking a job, Next
-     job and Replay bring the whole window into view. Under reduced motion
-     every job lands on its end state at once. */
+     "Help with everything you make." A try-it demo: the visitor picks a job
+     (cards on the left, or one sideways row of buttons on a phone); Pip's
+     offer and its buttons sit at the top of the work area; the result is
+     below. "Yes, …" plays the job in named steps, Pip's face thinking and one
+     live line saying what's happening now. Undo puts the before back with
+     Pip's offer, ready to try again. The product shot offers three finishes,
+     and keeps the other two (and the original) to compare.
+     The window always fits the screen and never changes size: CSS sizes it
+     from the view, and Pip's line keeps room for its longest words and its
+     most buttons (fitBar). Picking a job, Next job, Undo and an option bring
+     the whole window into view. Under reduced motion every job lands on its
+     end state at once. */
 
   function jobs() {
     var win = $("#jobs-win");
@@ -1161,15 +1164,13 @@
         steps: ["Writing it in your words…"],
         done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
       { title: "Lume Lighting › sage-slim-lamp.jpg",
-        intro: "Your sage lamp's on a busy desk. Want me to make it a product shot for the shop?",
-        go: "Yes, make it a product shot",
-        steps: ["Cropping it square…", "Taking out the notepad…", "Brightening it…"],
-        done: "There's your product shot: square, bright and tidy, ready for the listing. Your original's still there if you want it back." },
-      { title: "Lume Lighting › Bookings",
-        intro: "Your lino day has six places. Want me to find who's likely to book?",
-        go: "Yes, find them",
-        steps: ["Looking through your bookings…", "Checking who's done lino…", "Saving them as a view…"],
-        done: "Four people have made a drum shade with you but haven't done lino yet. I've saved them as a view, so they're easy to invite." },
+        intro: "Your sage lamp's on a busy desk. What would you like for the shop?",
+        options: true },
+      { title: "Lume Lighting › Prices",
+        intro: "Your costs are spread across this sheet and a supplier invoice. Want me to pull them together and work out what each shade makes?",
+        go: "Yes, work it out",
+        steps: ["Reading the invoice…", "Putting your costs together…", "Working out your margins…"],
+        done: "The slim lamp makes the least, 33%, because its oak base now costs £28. Your scallops make 69%." },
       { title: "Lume Lighting › Drum workshop steps",
         intro: "You've got the steps for Sunday. Want them as a deck?",
         go: "Yes, make the deck",
@@ -1186,6 +1187,18 @@
         steps: ["Reading your sales sheet…", "Adding up the year…", "Drawing the chart…", "Looking for what stands out…"],
         done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year." }
     ];
+    // The product shot's three finishes
+    var OPTS = {
+      tidy: { steps: ["Cropping it square…", "Taking out the notepad…", "Brightening it…"],
+              done: "Square, bright and tidy, ready for the listing.",
+              label: "The same sage lamp, cropped square on the desk, tidied and brightened" },
+      cut:  { steps: ["Finding the edge of the lamp…", "Cutting it out…", "Brightening it…"],
+              done: "Cut out, so you can put it anywhere.",
+              label: "The sage lamp cut out on its own, on a transparent background" },
+      bg:   { steps: ["Finding the edge of the lamp…", "Cutting it out…", "Setting it on a studio backdrop…", "Brightening it…"],
+              done: "On a clean backdrop, like a studio shot.",
+              label: "The sage lamp on a plain sand backdrop with a soft shadow, like a studio shot" }
+    };
     var NL = [
       "Hello, and thank you for such a lovely summer at the studio.",
       "The mustard scallop is finally in the shop. It's the linen I've been saving for months, and as always there's only one.",
@@ -1201,12 +1214,13 @@
     var rail = $(".jobs-rail", win);
     var surfs = $$(".surf", win);
     var title = $("#jobs-title");
-    var bar = $(".pipbar", win);
     var msg = $("#jobs-msg");
     var faceHolder = $("#jobs-face");
     var actions = $("#jobs-actions");
+    var optsBox = $("#jobs-opts");
+    var optBtns = $$("[data-opt]", optsBox);
     var goBtn = $("#jobs-go");
-    var replayBtn = $("#jobs-replay");
+    var undoBtn = $("#jobs-undo");
     var nextBtn = $("#jobs-next");
     var nextLabel = $("span", nextBtn);
 
@@ -1219,11 +1233,14 @@
     var frame = $("#photo-frame");
     var tools = $$(".ptool", photo);
     var PHOTO_BEFORE = frame.getAttribute("aria-label");
-    var PHOTO_AFTER = "The same sage lamp, cropped square on the desk, tidied and brightened";
-    var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-bright"];
+    var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-tracing", "is-cut", "is-cut-done", "is-backdrop", "is-bright"];
+    var mode = null;          // the finish the product shot has, or is getting
 
-    var bk = $("#bk");
-    var bkRows = $$(".bk-all tbody tr", bk);
+    var costs = $("#costs");
+    var invLine = $("#inv-line");
+    var costRows = $$(".tbl--costs tbody tr", costs);
+    var lowRow = $("[data-low]", costs);
+    var matCell = $(".c-mat", costs);
 
     var deck = $("#deck-job");
     var slideEls = $$(".slide", deck);
@@ -1250,6 +1267,12 @@
     $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
     $$(".pair", chart).forEach(function (p, i) { $$("i", p).forEach(function (b) { b.style.setProperty("--n", i); }); });
 
+    // The first job asks to be picked until the visitor has clicked anything here
+    win.addEventListener("click", function tried() {
+      win.classList.add("is-tried");
+      win.removeEventListener("click", tried);
+    });
+
     function later(fn, ms) { setTimeout(fn, ms); }
     function lit(node, ms) {
       node.classList.add("is-lit");
@@ -1273,8 +1296,8 @@
       window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
     }
 
-    /* On a phone the rail is one sideways row: keep the chosen job in view and
-       fade the edge that has more */
+    /* On a phone the jobs are one sideways row: keep the chosen job in view
+       and fade the edge that has more */
     function railEdges() {
       var max = rail.scrollWidth - rail.clientWidth;
       rail.classList.toggle("is-scrolled", rail.scrollLeft > 2);
@@ -1317,8 +1340,8 @@
       };
     }
 
-    /* Pip's bar: an offer, then the dots and one live line per step, then
-       what he did */
+    /* Pip's line: an offer, then the dots and one live line per step, then
+       what was done */
     function setMessage(text) {
       msg.classList.remove("is-busy");
       lineNode = null;
@@ -1337,6 +1360,9 @@
 
     function step(text) { if (lineNode) swapText(lineNode, text); }
 
+    function stepsOf(i) { return JOBS[i].options ? OPTS[mode].steps : JOBS[i].steps; }
+    function doneOf(i) { return JOBS[i].options ? OPTS[mode].done : JOBS[i].done; }
+
     function paint() {
       var j = JOBS[cur];
       jobBtns.forEach(function (b, i) {
@@ -1348,10 +1374,13 @@
       showSurf(cur);
       if (cur === 0) later(function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, 120);
       swapText(title, j.title);
-      if (!busy) setMessage(done[cur] ? j.done : j.intro);
-      goBtn.textContent = j.go;
-      goBtn.hidden = busy || done[cur];
-      replayBtn.hidden = nextBtn.hidden = busy || !done[cur];
+      if (!busy) setMessage(done[cur] ? doneOf(cur) : j.intro);
+      optsBox.hidden = busy || !j.options;
+      optBtns.forEach(function (b) { b.setAttribute("aria-pressed", done[cur] && b.getAttribute("data-opt") === mode ? "true" : "false"); });
+      goBtn.textContent = j.go || "";
+      goBtn.hidden = busy || done[cur] || !!j.options;
+      undoBtn.textContent = j.options ? "View original" : "Undo";
+      undoBtn.hidden = nextBtn.hidden = busy || !done[cur];
       nextLabel.textContent = cur === JOBS.length - 1 ? "Back to the first job" : "Next job";
     }
 
@@ -1365,43 +1394,66 @@
     function play() {
       busy = true;
       paint();
-      setBusy(JOBS[cur].steps[0]);
+      setBusy(stepsOf(cur)[0]);
       if (reduced()) { END[cur](); finish(); return; }
       PLAY[cur]();
     }
 
-    /* The bar holds room for its widest buttons and its longest message at
-       this width, so nothing Pip says can make the window grow */
-    var MSGS = [];
-    JOBS.forEach(function (j) { MSGS.push(j.intro, j.done); MSGS.push.apply(MSGS, j.steps); });
+    // The button that moves things on, right now
+    function firstAction() {
+      return [goBtn, optBtns[0], nextBtn].filter(function (b) { return !b.hidden && !(b === optBtns[0] && optsBox.hidden); })[0];
+    }
+    function nudge(btn) {
+      if (!btn) return;
+      btn.classList.remove("is-nudged");
+      void btn.offsetWidth;
+      btn.classList.add("is-nudged");
+      later(function () { btn.classList.remove("is-nudged"); }, 2400);
+    }
+
+    /* Pip's line keeps room for its tallest moment at this width (the
+       longest words with the buttons that go with them), so nothing Pip says
+       or offers can make the window grow. The buttons sit right under the
+       words; any room left over is under the buttons. */
+    var pip = $(".jobs-pip", win);
+    var MOMENTS = [];
+    JOBS.forEach(function (j, i) {
+      if (j.options) {
+        MOMENTS.push([j.intro, "opts"]);
+        Object.keys(OPTS).forEach(function (k) {
+          MOMENTS.push([OPTS[k].done, "opts-done"]);
+          OPTS[k].steps.forEach(function (t) { MOMENTS.push([t, ""]); });
+        });
+        return;
+      }
+      MOMENTS.push([j.intro, "go", j.go]);
+      MOMENTS.push([j.done, i === JOBS.length - 1 ? "done-last" : "done"]);
+      j.steps.forEach(function (t) { MOMENTS.push([t, ""]); });
+    });
 
     function fitBar() {
-      actions.style.minWidth = "";
-      msg.style.minHeight = "";
-      if (getComputedStyle(bar).flexWrap === "nowrap" && getComputedStyle(bar).display === "flex") {
-        var keep = [goBtn.hidden, replayBtn.hidden, nextBtn.hidden, goBtn.textContent, nextLabel.textContent];
-        var w = 0;
-        goBtn.hidden = false;
-        replayBtn.hidden = nextBtn.hidden = true;
-        JOBS.forEach(function (j) { goBtn.textContent = j.go; w = Math.max(w, actions.getBoundingClientRect().width); });
-        goBtn.hidden = true;
-        replayBtn.hidden = nextBtn.hidden = false;
-        ["Next job", "Back to the first job"].forEach(function (t) { nextLabel.textContent = t; w = Math.max(w, actions.getBoundingClientRect().width); });
-        goBtn.hidden = keep[0];
-        replayBtn.hidden = keep[1];
-        nextBtn.hidden = keep[2];
-        goBtn.textContent = keep[3];
-        nextLabel.textContent = keep[4];
-        actions.style.minWidth = Math.ceil(w) + "px";
-      }
-      var probe = el("p", "pipbar-msg");
-      probe.setAttribute("aria-hidden", "true");
-      probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;min-height:0;width:" + msg.getBoundingClientRect().width + "px";
-      msg.parentNode.appendChild(probe);
+      pip.style.minHeight = "";
+      var kids = Array.prototype.slice.call(msg.childNodes);
+      var busyCls = msg.classList.contains("is-busy");
+      var keep = [optsBox.hidden, goBtn.hidden, undoBtn.hidden, nextBtn.hidden, goBtn.textContent, undoBtn.textContent, nextLabel.textContent];
       var h = 0;
-      MSGS.forEach(function (t) { probe.textContent = t; h = Math.max(h, probe.getBoundingClientRect().height); });
-      probe.remove();
-      msg.style.minHeight = Math.ceil(h) + "px";
+      msg.classList.remove("is-busy");
+      MOMENTS.forEach(function (m) {
+        msg.textContent = m[0];
+        optsBox.hidden = m[1].indexOf("opts") !== 0;
+        goBtn.hidden = m[1] !== "go";
+        if (m[2]) goBtn.textContent = m[2];
+        undoBtn.hidden = nextBtn.hidden = !(m[1] === "opts-done" || m[1].indexOf("done") === 0);
+        undoBtn.textContent = m[1] === "opts-done" ? "View original" : "Undo";
+        nextLabel.textContent = m[1] === "done-last" ? "Back to the first job" : "Next job";
+        h = Math.max(h, pip.getBoundingClientRect().height);
+      });
+      msg.textContent = "";
+      kids.forEach(function (k) { msg.appendChild(k); });
+      msg.classList.toggle("is-busy", busyCls);
+      optsBox.hidden = keep[0]; goBtn.hidden = keep[1]; undoBtn.hidden = keep[2]; nextBtn.hidden = keep[3];
+      goBtn.textContent = keep[4]; undoBtn.textContent = keep[5]; nextLabel.textContent = keep[6];
+      pip.style.minHeight = Math.ceil(h) + "px";
       measureNote();
       railTo(jobBtns[cur], false);
     }
@@ -1521,9 +1573,14 @@
     }
 
     /* ── 1 · The product shot ───────────────────────────────────────────────
-       One dim snapshot, three tools: crop it square (the notepad still in),
-       paint a selection over what goes and fill it in, then brighten it, still
-       on Jo's desk. Each tool lights as it works. */
+       One dim snapshot of the lamp on Jo's desk, and three ways to finish it.
+       Tidy it up: crop it square (the notepad still in), paint a selection
+       over what goes and fill it in, then brighten it, still on the desk.
+       Cut it out: trace the lamp's edge and lift it off its background onto
+       transparency. New background: the same, then onto a sand backdrop with
+       a soft shadow. Each tool lights as it works. */
+
+    var TOOLS = { tidy: ["crop", "remove", "bright"], cut: ["cut", "bright"], bg: ["cut", "backdrop", "bright"] };
 
     function tool(name) {
       tools.forEach(function (t) {
@@ -1533,21 +1590,41 @@
     }
 
     function photoPlay() {
-      tool("crop");
-      photo.classList.add("is-framing");
-      later(function () { photo.classList.add("is-cropped"); }, 1000);
-      later(function () { photo.classList.add("is-square"); photo.classList.remove("is-framing"); }, 1950);
-      later(function () { step(JOBS[1].steps[1]); tool("remove"); photo.classList.add("is-selecting"); }, 2250);
-      later(function () { photo.classList.add("is-filled"); }, 3650);
-      later(function () { step(JOBS[1].steps[2]); tool("bright"); photo.classList.add("is-bright"); }, 4550);
-      later(function () { photoEnd(); finish(); }, 5750);
+      var s = OPTS[mode].steps;
+      var add = function (c) { photo.classList.add.apply(photo.classList, c.split(" ")); };
+      if (mode === "tidy") {
+        tool("crop");
+        add("is-framing");
+        later(function () { add("is-cropped"); }, 1000);
+        later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 1950);
+        later(function () { step(s[1]); tool("remove"); add("is-selecting"); }, 2250);
+        later(function () { add("is-filled"); }, 3650);
+        later(function () { step(s[2]); tool("bright"); add("is-bright"); }, 4550);
+        later(function () { photoEnd(); finish(); }, 5750);
+        return;
+      }
+      tool("cut");
+      add("is-tracing");
+      later(function () { step(s[1]); add("is-cut is-cropped"); }, 1500);
+      later(function () { add("is-cut-done"); }, 2450);
+      if (mode === "cut") {
+        later(function () { step(s[2]); tool("bright"); add("is-bright"); }, 2750);
+        later(function () { photoEnd(); finish(); }, 3950);
+        return;
+      }
+      later(function () { step(s[2]); tool("backdrop"); add("is-backdrop"); }, 2850);
+      later(function () { step(s[3]); tool("bright"); add("is-bright"); }, 4050);
+      later(function () { photoEnd(); finish(); }, 5200);
     }
 
     function photoEnd() {
-      photo.classList.remove("is-framing", "is-selecting");
-      photo.classList.add("is-cropped", "is-square", "is-filled", "is-bright");
-      tools.forEach(function (t) { t.classList.remove("is-active"); t.classList.add("is-done"); });
-      frame.setAttribute("aria-label", PHOTO_AFTER);
+      var on = { tidy: "is-cropped is-square is-filled is-bright", cut: "is-cropped is-cut is-cut-done is-bright", bg: "is-cropped is-cut is-cut-done is-backdrop is-bright" }[mode].split(" ");
+      PHOTO_STATES.forEach(function (c) { photo.classList.toggle(c, on.indexOf(c) > -1); });
+      tools.forEach(function (t) {
+        t.classList.remove("is-active");
+        t.classList.toggle("is-done", TOOLS[mode].indexOf(t.getAttribute("data-tool")) > -1);
+      });
+      frame.setAttribute("aria-label", OPTS[mode].label);
     }
 
     function photoUndo() {
@@ -1556,49 +1633,39 @@
       frame.setAttribute("aria-label", PHOTO_BEFORE);
     }
 
-    /* ── 2 · Spot an opportunity ────────────────────────────────────────────
-       Pip reads down the drum bookings, checks each name against the lino
-       ones (Ben and Chloe have done both), and saves the four left as a view
-       of the same table. */
+    /* ── 2 · The costs ──────────────────────────────────────────────────────
+       Pip reads the supplier's invoice (the oak base, now £28), puts every
+       cost from Jo's sheet into one clean table, then works out the margin
+       each makes. The lowest, the slim lamp, keeps the wash. */
 
-    function bkRow(who, kind) {
-      return bkRows.filter(function (r) { return r.getAttribute("data-who") === who && r.getAttribute("data-w") === kind; })[0];
-    }
-
-    function bkPlay() {
-      var drums = bkRows.filter(function (r) { return r.getAttribute("data-w") === "drum"; });
-      drums.forEach(function (r, i) { later(function () { r.classList.add("is-lit"); }, 250 + i * 340); });
-      var t = 250 + drums.length * 340 + 260;
-      later(function () { step(JOBS[2].steps[1]); }, t);
-      ["ben", "chloe"].forEach(function (who, i) {
-        var lino = bkRow(who, "lino");
-        var drum = bkRow(who, "drum");
-        later(function () { lino.classList.add("is-lit"); }, t + 250 + i * 950);
+    function costsPlay() {
+      later(function () { invLine.classList.add("is-lit"); }, 300);
+      later(function () { step(JOBS[2].steps[1]); invLine.classList.remove("is-lit"); costs.classList.add("is-built"); }, 1800);
+      costRows.forEach(function (r, i) {
         later(function () {
-          lino.classList.remove("is-lit");
-          drum.classList.remove("is-lit");
-          drum.classList.add("is-out");
-        }, t + 850 + i * 950);
+          r.classList.add("is-in");
+          if (r === lowRow) lit(matCell, 1100);
+        }, 2150 + i * 380);
       });
-      t += 2150;
-      later(function () { step(JOBS[2].steps[2]); bk.classList.add("is-saved"); }, t);
-      later(function () { bk.classList.add("is-view"); }, t + 520);
-      later(finish, t + 1300);
+      later(function () { step(JOBS[2].steps[2]); }, 3950);
+      costRows.forEach(function (r, i) { later(function () { r.classList.add("is-m"); }, 4200 + i * 320); });
+      later(function () { lowRow.classList.add("is-low"); }, 4200 + costRows.length * 320 + 250);
+      later(finish, 6000);
     }
 
-    function bkEnd() {
-      bkRows.forEach(function (r) {
-        var drum = r.getAttribute("data-w") === "drum";
-        var out = drum && !!r.getAttribute("data-who");
-        r.classList.toggle("is-lit", drum && !out);
-        r.classList.toggle("is-out", out);
-      });
-      bk.classList.add("is-saved", "is-view");
+    function costsEnd() {
+      invLine.classList.remove("is-lit");
+      matCell.classList.remove("is-lit");
+      costs.classList.add("is-built");
+      costRows.forEach(function (r) { r.classList.add("is-in", "is-m"); });
+      lowRow.classList.add("is-low");
     }
 
-    function bkUndo() {
-      bkRows.forEach(function (r) { r.classList.remove("is-lit", "is-out"); });
-      bk.classList.remove("is-saved", "is-view");
+    function costsUndo() {
+      invLine.classList.remove("is-lit");
+      matCell.classList.remove("is-lit");
+      costs.classList.remove("is-built");
+      costRows.forEach(function (r) { r.classList.remove("is-in", "is-m", "is-low"); });
     }
 
     /* ── 3 · The deck ───────────────────────────────────────────────────────
@@ -1698,38 +1765,49 @@
       setTiles(false);
     }
 
-    var PLAY = [nlPlay, photoPlay, bkPlay, deckPlay, cvPlay, dashPlay];
-    var END = [nlEnd, photoEnd, bkEnd, deckEnd, cvEnd, dashEnd];
-    var UNDO = [nlUndo, photoUndo, bkUndo, deckUndo, cvUndo, dashUndo];
+    var PLAY = [nlPlay, photoPlay, costsPlay, deckPlay, cvPlay, dashPlay];
+    var END = [nlEnd, photoEnd, costsEnd, deckEnd, cvEnd, dashEnd];
+    var UNDO = [nlUndo, photoUndo, costsUndo, deckUndo, cvUndo, dashUndo];
 
     goBtn.addEventListener("click", function () {
       if (busy || done[cur]) return;
       play();
     });
-    // Replay: the before, back at once, then the job again on its own
-    replayBtn.addEventListener("click", function () {
+    // A finish for the product shot: from the original each time, so the
+    // three can be compared
+    optBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        var next = b.getAttribute("data-opt");
+        if (busy || (done[cur] && next === mode)) return;
+        if (done[cur]) instantly(photoUndo);
+        done[cur] = false;
+        mode = next;
+        bringIntoView();
+        play();
+      });
+    });
+    // Undo (or View original): the before, with Pip's offer, ready again
+    undoBtn.addEventListener("click", function () {
       if (busy) return;
       instantly(UNDO[cur]);
       done[cur] = false;
-      busy = true;
       paint();
-      setBusy(JOBS[cur].steps[0]);
       bringIntoView();
-      later(function () {
-        if (reduced()) { END[cur](); finish(); return; }
-        PLAY[cur]();
-      }, 520);
+      var first = firstAction();
+      if (first) first.focus({ preventScroll: true });
     });
     nextBtn.addEventListener("click", function () {
       if (busy) return;
       cur = (cur + 1) % JOBS.length;
       paint();
       bringIntoView();
-      if (!goBtn.hidden) goBtn.focus({ preventScroll: true });
+      var first = firstAction();
+      if (first) first.focus({ preventScroll: true });
     });
     jobBtns.forEach(function (b, i) {
       b.addEventListener("click", function () {
-        if (busy || i === cur) return;
+        if (busy) return;
+        if (i === cur) { bringIntoView(); nudge(firstAction()); return; }
         cur = i;
         paint();
         bringIntoView();
