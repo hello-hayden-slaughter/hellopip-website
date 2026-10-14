@@ -9,7 +9,7 @@
      stops      the hero's "Stop …" headline: what it stops turns underneath
      mascots    the live Pip: blink, and eyes that follow the cursor
      reveal     sections arriving on scroll
-     scenes     the vignette moments: yours, briefed, switch
+     scenes     the try-it demos: find, help, like, and the briefed and switch moments
      takeover   "Go on, have a play": the real Pip, full screen, on request
      jobs       the six one-click jobs
      accordion  questions that open with height and fade
@@ -429,8 +429,8 @@
 
   /* ── mascots ───────────────────────────────────────────────────────────────
      The live Pip (hero and close) blinks every few seconds and, on a desktop
-     with a mouse, his pupils drift toward the cursor. The idle gaze is kept:
-     the offset is added to his resting pupils, never centred. Off under
+     with a mouse, the pupils drift toward the cursor. The idle gaze is kept:
+     the offset is added to the resting pupils, never centred. Off under
      reduced motion. */
 
   function mascots() {
@@ -550,138 +550,204 @@
      what shows. start() sets the opening frame, play() runs the moment,
      end() puts the end state back exactly. */
 
-  /* It's your page: Pip's bar sits under the note the whole time, the way it
-     does in the jobs window. It offers; "Yes, tighten it" selects paragraph
-     two, clears it and writes the new words in its place; then the button
-     becomes Undo. Undo puts her words back, and Pip offers again. The note
-     never changes height: it's held at the taller of its two versions. */
-  function sceneYours() {
-    var root = $('[data-scene="yours"]');
-    if (!root) return;
-    var body = $("[data-note-body]", root);
-    var typed = $("[data-typed]", root);
-    var rest = $("[data-rest]", root);
-    var label = $("[data-edit-label]", root);
-    var labelText = $("span", label);
-    var dot = $(".nlab-dot", label);
-    var msg = $("[data-yours-msg]", root);
-    var faceHolder = $("[data-yours-face]", root);
-    var goBtn = $("[data-yours-go]", root);
-    var undoBtn = $("[data-yours-undo]", root);
-    var NEW = typed.textContent;
-    var STATES = ["is-before", "is-washed", "is-clearing", "is-typing-in", "is-edited"];
-    var COPY = {
-      offer: "That second paragraph runs on a bit. Want me to tighten it?",
-      again: "Back to your words. Want me to reword that paragraph?",
-      busy: "Tightening that paragraph…",
-      done: "Changed that paragraph. The rest is yours, untouched."
-    };
+  /* Type text into a node a few letters at a time; resolves when done */
+  function typeInto(node, text, sleep, fast) {
+    var i = 0;
+    function next() {
+      if (i >= text.length) return Promise.resolve();
+      i += fast ? 2 : 1;
+      node.textContent = text.slice(0, i);
+      var ch = text.charAt(i - 1);
+      var ms = fast ? 14 : (ch === " " ? 34 : ch === "." || ch === "," ? 110 : 18 + Math.random() * 12);
+      return sleep(ms).then(next);
+    }
+    return next();
+  }
+
+  /* A run of steps that a newer click cancels */
+  function runner() {
     var run = 0;
+    return {
+      start: function () {
+        var id = ++run;
+        return function (ms) {
+          return new Promise(function (resolve, reject) {
+            setTimeout(function () { if (id === run) resolve(); else reject(CANCELLED); }, reduced() ? 0 : ms);
+          });
+        };
+      },
+      cancel: function () { run++; }
+    };
+  }
+  function quietly(err) { if (err !== CANCELLED) throw err; }
 
-    function setWords(n) {
-      typed.textContent = NEW.slice(0, n);
-      rest.textContent = NEW.slice(n);
+  /* Never lose your work again: three searches. A button types its words into
+     the search box; the results come in; the first one's folder opens in the
+     file list and the file lights up. Search is the app's, not Pip's. */
+  function findDemo() {
+    var root = $("[data-find]");
+    if (!root) return;
+    var q = $("[data-find-q]", root);
+    var count = $("[data-find-count]", root);
+    var list = $("[data-find-results]", root);
+    var tree = $$("[data-node]", root);
+    var btns = $$("[data-q]", root);
+    var R = runner();
+    var SEARCHES = [
+      { q: D.month.toLowerCase() + " newsletter", count: "2 results, in Newsletters", node: "Newsletters/October", results: [
+        ["file-text", "Newsletter: " + D.month, "Newsletters · edited yesterday", "Hello, and thank you for such a lovely summer at the studio.", [D.month, "Newsletter"]],
+        ["shapes", "Newsletter ideas", "Newsletters · canvas", D.month + ": the mustard scallop, the drum workshop, the lino day.", [D.month, "Newsletter"]]
+      ] },
+      { q: "drum workshop", count: "4 results: a note, slides, a table and a photo", node: "Workshops/Drum workshop steps", results: [
+        ["file-text", "Drum workshop steps", "Workshops · note", "Cut the panel to size, stick the fabric on, roll it round the rings.", ["Drum workshop"]],
+        ["presentation", "Drum workshop", "Workshops · slides", "Make a drum lampshade. Six slides, one for each step.", ["drum lampshade", "Drum workshop"]],
+        ["table", "Bookings", "Workshops · table", "Drum workshop, " + D.long(D.drum) + ": 2 places left.", ["Drum workshop"]],
+        ["image", "drum-step-2.jpg", "Products › Photos", "Jo wrapping fabric round a drum, in the workshop.", ["drum"]]
+      ] },
+      { q: "sales", count: "3 results, in Sales and Products", node: "Sales", results: [
+        ["table", "Sales " + D.salesYear, "Sales · table", "September: shades £2,400, workshops £2,160.", ["Sales"]],
+        ["dashboard", "Sales dashboard", "Sales · dashboard", "Workshops made 43% of sales this year.", ["sales", "Sales"]],
+        ["table", "Shades sold", "Products · table", "Medium scallop, Natural and mustard, £300. Sold in two days.", ["Sold", "sold"]]
+      ] }
+    ];
+
+    function marked(text, words) {
+      var frag = document.createDocumentFragment();
+      var re = new RegExp("(" + words.map(function (w) { return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")", "i");
+      text.split(re).forEach(function (part, k) {
+        if (!part) return;
+        if (k % 2 === 1) frag.appendChild(el("mark", "", part)); else frag.appendChild(document.createTextNode(part));
+      });
+      return frag;
     }
-    function setState(cls) {
-      STATES.forEach(function (c) { root.classList.remove(c); });
-      if (cls) cls.split(" ").forEach(function (c) { root.classList.add(c); });
+    function light(nodeName) {
+      var folder = nodeName ? nodeName.split("/")[0] : "";
+      tree.forEach(function (row) {
+        var name = row.getAttribute("data-node");
+        row.classList.toggle("is-selected", name === nodeName);
+        row.classList.toggle("is-near", !!folder && (row.getAttribute("data-in") === folder || name === folder));
+      });
     }
-    function setLabel(pip) {
-      labelText.textContent = pip ? "Pip's edit" : "your words";
-      dot.hidden = !pip;
-    }
-    function say(text) {
-      msg.classList.remove("is-busy");
-      setThinking(faceHolder, false);
-      swapText(msg, text);
-    }
-    function before(text) {
-      run++;
-      setState("is-before");
-      setLabel(false);
-      setWords(0);
-      say(text);
-      goBtn.textContent = text === COPY.offer ? "Yes, tighten it" : "Yes, reword it";
-      goBtn.hidden = false;
-      undoBtn.hidden = true;
-    }
-    function edited() {
-      setState("is-edited");
-      setLabel(true);
-      setWords(NEW.length);
-      say(COPY.done);
-      goBtn.hidden = true;
-      undoBtn.hidden = false;
+    function show(k, animate) {
+      var S = SEARCHES[k];
+      list.textContent = "";
+      count.textContent = S.count;
+      S.results.forEach(function (r, i) {
+        var li = el("li", "fres" + (i === 0 ? " is-top" : ""));
+        li.appendChild(icon(r[0], 16));
+        var t = el("span", "fres-t");
+        var b = el("b"); b.appendChild(marked(r[1], r[4])); t.appendChild(b);
+        t.appendChild(el("span", "", r[2]));
+        var line = el("span", "fres-line"); line.appendChild(marked(r[3], r[4])); t.appendChild(line);
+        li.appendChild(t);
+        if (animate) li.style.setProperty("--n", i);
+        li.classList.toggle("is-new", !!animate);
+        list.appendChild(li);
+      });
+      light(S.node);
     }
 
-    // Hold the note at the taller of its two versions, so nothing ever moves
-    function measure() {
-      body.style.minHeight = "";
-      var was = root.className;
-      setState("is-edited");
-      setWords(NEW.length);
-      var h = body.getBoundingClientRect().height;
-      setState("is-before");
-      h = Math.max(h, body.getBoundingClientRect().height);
-      root.className = was;
-      if (!root.classList.contains("is-edited")) setWords(root.classList.contains("is-typing-in") ? typed.textContent.length : 0);
-      body.style.minHeight = Math.ceil(h) + "px";
-      // and Pip's line at its longest message, so the bar never changes height
-      msg.style.minHeight = "";
-      var probe = el("p", "pipbar-msg");
-      probe.style.cssText = "position:absolute;visibility:hidden;left:0;right:0;top:0";
-      msg.parentNode.appendChild(probe);
-      var most = 0;
-      [COPY.offer, COPY.again, COPY.done].forEach(function (t) { probe.textContent = t; most = Math.max(most, probe.getBoundingClientRect().height); });
-      probe.remove();
-      msg.style.minHeight = Math.ceil(most) + "px";
-    }
+    btns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        root.classList.add("is-tried");
+        var k = +btn.getAttribute("data-q");
+        btns.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+        var sleep = R.start();
+        if (reduced()) { q.textContent = SEARCHES[k].q; show(k, false); return; }
+        q.textContent = "";
+        root.classList.add("is-typing");
+        list.classList.add("is-dim");
+        typeInto(q, SEARCHES[k].q, sleep)
+          .then(function () { root.classList.remove("is-typing"); return sleep(260); })
+          .then(function () { list.classList.remove("is-dim"); show(k, true); })
+          .catch(quietly);
+      });
+    });
+  }
 
-    function tighten() {
-      var id = ++run;
-      goBtn.hidden = true;
-      undoBtn.hidden = true;
-      if (reduced()) { edited(); undoBtn.focus(); return; }
+  /* Help with the bit you're stuck on: four ways to rewrite the highlighted
+     part. Each replaces it in place (never crossed out), typed in, while the
+     rest of the note stays as it was. "Back to my version" puts it back. The
+     note holds the height of its longest version. */
+  function helpDemo() {
+    var root = $("[data-help]");
+    if (!root) return;
+    var text = $("[data-help-text]", root);
+    var tag = $("[data-help-tag]", root);
+    var msg = $("[data-help-msg]", root);
+    var faceHolder = $("[data-help-face]", root);
+    var back = $("[data-help-back]", root);
+    var body = $("[data-help-body]", root);
+    var btns = $$("[data-edit]", root);
+    var R = runner();
+    var ORIGINAL = text.textContent;
+    var START = msg.textContent;
+    var EDITS = [
+      ["Our new sage linen lamp is in the shop: a linen shade on an oak base that looks lovely on a desk. £105, made to order in about two weeks.", "Tidied up. Same facts, easier to read.", "Tidying it up…"],
+      ["New in: a sage linen lamp on an oak base. £105, made to order.", "Down to 13 words.", "Cutting it down…"],
+      ["Our new sage linen lamp is in the shop. The shade is hand made in my studio in Hove and sits on a solid oak base, so it looks lovely on a desk or a bedside table. It's £105, made to order in about two weeks, with free UK delivery.", "Added what your notes say about it: made in Hove, free UK delivery.", "Adding more from your notes…"],
+      ["The sage lamp has landed in the shop. Linen shade, oak base, and it looks lovely on a desk (tidier desks than mine, anyway). £105, made to order in about two weeks.", "In your voice: short, warm, with a little joke.", "Writing it like you…"]
+    ];
+
+    function say(t) { msg.classList.remove("is-busy"); setThinking(faceHolder, false); swapText(msg, t); }
+    function busy(t) {
       setThinking(faceHolder, true);
       msg.textContent = "";
       msg.classList.add("is-busy");
-      msg.appendChild(dots());
-      msg.appendChild(el("span", "", COPY.busy));
-      var sleep = function (ms) {
-        return new Promise(function (resolve, reject) {
-          setTimeout(function () { if (id === run) resolve(); else reject(CANCELLED); }, ms);
-        });
-      };
-      var i = 0;
-      function type() {
-        if (i >= NEW.length) return Promise.resolve();
-        i += 1;
-        setWords(i);
-        var ch = NEW.charAt(i - 1);
-        return sleep(ch === " " ? 42 : ch === "." || ch === "," ? 140 : 26 + Math.random() * 12).then(type);
-      }
-      sleep(240)
-        .then(function () { root.classList.add("is-washed"); return sleep(760); })
-        .then(function () { root.classList.add("is-clearing"); return sleep(280); })
-        .then(function () { root.classList.add("is-typing-in"); return type(); })
-        .then(function () { return sleep(320); })
-        .then(function () { edited(); undoBtn.focus({ preventScroll: true }); })
-        .catch(function (err) { if (err !== CANCELLED) throw err; });
+      var w = el("span", "is-busy"); w.appendChild(dots()); w.appendChild(el("span", "", t));
+      msg.appendChild(w);
+    }
+    function measure() {
+      body.style.minHeight = "";
+      var was = text.textContent, h = 0;
+      [ORIGINAL].concat(EDITS.map(function (e) { return e[0]; })).forEach(function (t) {
+        text.textContent = t; h = Math.max(h, body.getBoundingClientRect().height);
+      });
+      text.textContent = was;
+      body.style.minHeight = Math.ceil(h) + "px";
+      // and Pip's line at its longest message, so nothing below it moves
+      msg.style.minHeight = "";
+      var probe = el("p", "");
+      probe.style.cssText = "position:absolute;visibility:hidden;top:0;left:" + msg.offsetLeft + "px;width:" + msg.getBoundingClientRect().width + "px";
+      msg.parentNode.appendChild(probe);
+      var most = 0;
+      [START].concat(EDITS.map(function (e) { return e[1]; })).forEach(function (t) { probe.textContent = t; most = Math.max(most, probe.getBoundingClientRect().height); });
+      probe.remove();
+      msg.style.minHeight = Math.ceil(most) + "px";
+    }
+    function reset() {
+      R.cancel();
+      root.classList.remove("is-edited", "is-typing", "is-clearing");
+      text.textContent = ORIGINAL;
+      tag.textContent = "selected";
+      btns.forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+      back.hidden = true;
+      say(START);
     }
 
-    goBtn.addEventListener("click", tighten);
-    undoBtn.addEventListener("click", function () {
-      before(COPY.again);
-      goBtn.focus({ preventScroll: true });
+    btns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        root.classList.add("is-tried");
+        var e = EDITS[+btn.getAttribute("data-edit")];
+        btns.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+        var sleep = R.start();
+        if (reduced()) {
+          text.textContent = e[0]; root.classList.add("is-edited"); tag.textContent = "Pip's edit"; say(e[1]); back.hidden = false; return;
+        }
+        busy(e[2]);
+        root.classList.remove("is-edited");
+        root.classList.add("is-clearing");
+        sleep(380)
+          .then(function () { text.textContent = ""; root.classList.remove("is-clearing"); root.classList.add("is-typing", "is-edited"); tag.textContent = "Pip's edit"; return typeInto(text, e[0], sleep); })
+          .then(function () { root.classList.remove("is-typing"); say(e[1]); back.hidden = false; })
+          .catch(quietly);
+      });
     });
+    back.addEventListener("click", function () { reset(); btns[0].focus({ preventScroll: true }); });
 
-    before(COPY.offer);
     measure();
-    var resizeT = null;
-    window.addEventListener("resize", function () {
-      clearTimeout(resizeT);
-      resizeT = setTimeout(measure, 150);
-    });
+    var t = null;
+    window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(measure, 150); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
   }
 
@@ -720,7 +786,7 @@
   }
 
   /* Already briefed: Pip's own chat. A question types into the box and is
-     sent; Pip says where he's looking, then answers with the note or table it
+     sent; Pip says where it's looking, then answers with the note or table it
      came from. Twice, back and forth. */
   function sceneBriefed() {
     var root = $('[data-scene="briefed"]');
@@ -828,83 +894,55 @@
     });
   }
 
-  /* See what Pip knows: one thing he's learned (how Jo signs off), where he
-     learned it, and what you can do about it. "Change it" selects the words
-     and types new ones; "That's right" keeps them; "Put it back" undoes. The
-     card holds one height whatever it's saying. */
-  function knows() {
-    var root = $("[data-knows]");
+  /* See how Pip works like you: one request, written without and with what
+     Pip knows from Jo's notes. The reply types into the email; with what Pip
+     knows, the facts it used show underneath. */
+  function likeDemo() {
+    var root = $("[data-like]");
     if (!root) return;
-    var value = $("[data-knows-value]", root);
-    var done = $("[data-knows-done]", root);
-    var foot = $(".kcard-foot", root);
-    var change = $("[data-knows-change]", root);
-    var keep = $("[data-knows-keep]", root);
-    var back = $("[data-knows-back]", root);
-    var OLD = value.textContent, NEW = "Love, Jo x";
-    var SAID = {
-      changed: "Updated. Everything Pip writes for you now signs off “" + NEW + "”.",
-      kept: "Good. Pip will keep signing off “" + OLD + "” for you."
-    };
-    var run = 0;
-
-    function show(state) {
-      change.hidden = state === "changed" || state === "busy";
-      keep.hidden = state !== "start";
-      back.hidden = state !== "changed";
-      done.textContent = SAID[state] || "";
-    }
+    var text = $("[data-like-text]", root);
+    var used = $("[data-like-used]", root);
+    var mail = $("[data-like-mail]", root);
+    var btns = $$("[data-like-mode]", root);
+    var R = runner();
+    var REPLIES = [
+      "Dear Sarah, Thank you for your enquiry. Delivery times vary depending on the product. Please allow 3 to 5 business days. Kind regards",
+      "Hi Sarah, thanks so much for your order. Each shade is made to order, so it takes up to 14 working days, and delivery is free anywhere in the UK. I'll let you know the moment it's on its way. Speak soon, Jo"
+    ];
     function measure() {
-      foot.style.minHeight = "";
-      var h = 0;
-      ["start", "changed", "kept"].forEach(function (st) { show(st); h = Math.max(h, foot.getBoundingClientRect().height); });
-      show(value.textContent === NEW ? "changed" : "start");
-      foot.style.minHeight = Math.ceil(h) + "px";
+      mail.style.minHeight = "";
+      var was = text.innerHTML, h = 0;
+      REPLIES.forEach(function (r) { text.textContent = r; h = Math.max(h, mail.getBoundingClientRect().height); });
+      text.innerHTML = was;
+      mail.style.minHeight = Math.ceil(h) + "px";
     }
-
-    change.addEventListener("click", function () {
-      var id = ++run;
-      show("busy");
-      if (reduced()) { value.textContent = NEW; show("changed"); back.focus(); return; }
-      var sleep = function (ms) {
-        return new Promise(function (resolve, reject) {
-          setTimeout(function () { if (id === run) resolve(); else reject(CANCELLED); }, ms);
-        });
-      };
-      var i = 0;
-      function type() {
-        if (i >= NEW.length) return Promise.resolve();
-        i += 1;
-        value.textContent = NEW.slice(0, i);
-        return sleep(NEW.charAt(i - 1) === " " ? 70 : 55 + Math.random() * 40).then(type);
-      }
-      root.classList.add("is-selected");
-      sleep(520)
-        .then(function () { value.textContent = ""; root.classList.remove("is-selected"); root.classList.add("is-editing"); return sleep(220); })
-        .then(type)
-        .then(function () { return sleep(380); })
-        .then(function () { root.classList.remove("is-editing"); show("changed"); back.focus({ preventScroll: true }); })
-        .catch(function (err) { if (err !== CANCELLED) throw err; });
+    btns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        root.classList.add("is-tried");
+        var k = +btn.getAttribute("data-like-mode");
+        btns.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+        root.classList.toggle("is-with", k === 1);
+        root.classList.toggle("is-without", k === 0);
+        used.classList.remove("is-shown");
+        var sleep = R.start();
+        if (reduced()) { text.textContent = REPLIES[k]; used.classList.toggle("is-shown", k === 1); return; }
+        text.textContent = "";
+        root.classList.add("is-typing");
+        typeInto(text, REPLIES[k], sleep, true)
+          .then(function () { root.classList.remove("is-typing"); if (k === 1) used.classList.add("is-shown"); })
+          .catch(quietly);
+      });
     });
-    keep.addEventListener("click", function () { run++; show("kept"); change.focus({ preventScroll: true }); });
-    back.addEventListener("click", function () {
-      run++;
-      root.classList.remove("is-selected", "is-editing");
-      value.textContent = OLD;
-      show("start");
-      change.focus({ preventScroll: true });
-    });
-
-    show("start");
     measure();
-    var resizeT = null;
-    window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(measure, 150); });
+    var t = null;
+    window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(measure, 150); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
   }
 
   function scenes() {
-    knows();
-    sceneYours();
+    findDemo();
+    helpDemo();
+    likeDemo();
     sceneBriefed();
     sceneSwitch();
   }
