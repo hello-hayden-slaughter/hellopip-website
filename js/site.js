@@ -950,8 +950,9 @@
     var play = $("#play");
     if (!play) return;
     var src = play.getAttribute("data-live-demo");
-    if (!src || !window.matchMedia || !window.matchMedia("(min-width: 1024px)").matches) return;
+    if (!src || !window.matchMedia) return;
     if (navigator.connection && navigator.connection.saveData) return;
+    var wide = window.matchMedia("(min-width: 1024px)");
     var origin;
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
 
@@ -980,7 +981,15 @@
         play.classList.add("is-live");
       });
     }
-    var go = function () { (window.requestIdleCallback || function (f) { return setTimeout(f, 600); })(start); };
+    var started = false;
+    function go() {
+      if (started || !wide.matches) return;
+      started = true;
+      (window.requestIdleCallback || function (f) { return setTimeout(f, 600); })(start);
+    }
+    // A window that grows to laptop width later (a resized window, a pane that
+    // opens narrow) still gets the real demo.
+    if (wide.addEventListener) wide.addEventListener("change", go); else if (wide.addListener) wide.addListener(go);
     if (document.readyState === "complete") go(); else window.addEventListener("load", go, { once: true });
   }
 
