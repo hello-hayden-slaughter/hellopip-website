@@ -9,8 +9,8 @@
      stops      the hero's "Stop …" headline: what it stops turns underneath
      mascots    the live Pip: blink, and eyes that follow the cursor
      reveal     sections arriving on scroll
-     scenes     the vignette moments: find, yours, briefed, switch
-     liveDemo   on a laptop, the real Pip in a frame once it's ready
+     scenes     the vignette moments: yours, briefed, switch
+     takeover   "Go on, have a play": the real Pip, full screen, on request
      jobs       the six one-click jobs
      accordion  questions that open with height and fade
      jumpList   the questions page's group list
@@ -119,11 +119,12 @@
   }
 
   /* A scripted vignette moment. It plays once when it comes into view, rests at
-     its end state, and offers Replay. Under reduced motion it only ever shows
-     the end state. scene = { start(), play(sleep), end() } */
+     its end state, and offers Reset (a quiet button under the window, named by
+     data-replay-for). Under reduced motion it only ever shows the end state.
+     scene = { start(), play(sleep), end() } */
   function createScene(root, scene) {
     var run = 0;
-    var replay = $("[data-replay]", root);
+    var replay = $('[data-replay-for="' + root.getAttribute("data-scene") + '"]');
 
     function sleeper(id) {
       return function (ms) {
@@ -188,6 +189,7 @@
     var xmas = new Date(today.getFullYear(), 11, 18, 12);
     if (today > xmas) xmas = new Date(today.getFullYear() + 1, 11, 18, 12);
     var prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    var prevMonth2 = new Date(today.getFullYear(), today.getMonth() - 2, 1);
     function long(d) { return DAYS[d.getDay()] + " " + d.getDate() + " " + MONTHS[d.getMonth()]; }
     function lower(d) { return (DAYS[d.getDay()].slice(0, 3) + " " + d.getDate() + " " + MONTHS[d.getMonth()].slice(0, 3)).toLowerCase(); }
     function short(d) { return d.getDate() + " " + MONTHS[d.getMonth()].slice(0, 3); }
@@ -196,6 +198,7 @@
       drum: drum, lino: lino, xmas: xmas, long: long, lower: lower, short: short, dayMonth: dayMonth,
       month: MONTHS[today.getMonth()],
       monthPrev: MONTHS[prevMonth.getMonth()],
+      monthPrev2: MONTHS[prevMonth2.getMonth()],
       year: String(today.getFullYear()),
       salesYear: String(today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1),
       ago: function (n) { return short(addDays(today, -n)); }
@@ -211,6 +214,7 @@
       else if (key === "xmas") text = fmt === "lower" ? D.dayMonth(D.xmas).toLowerCase().replace(/ (\w{3})\w*$/, " $1") : D.dayMonth(D.xmas);
       else if (key === "month") text = D.month;
       else if (key === "month-prev") text = D.monthPrev;
+      else if (key === "month-prev2") text = D.monthPrev2;
       else if (key === "year") text = D.year;
       else if (key === "sales-year") text = D.salesYear;
       else if (key.indexOf("ago:") === 0) text = D.ago(parseInt(key.slice(4), 10) || 0);
@@ -546,147 +550,176 @@
      what shows. start() sets the opening frame, play() runs the moment,
      end() puts the end state back exactly. */
 
-  /* Find it again: the chat search keeps piling up "caption" chats while
-     Pip's folders settle and the one note is simply there. */
-  function sceneFind() {
-    var root = $('[data-scene="find"]');
-    if (!root) return;
-    var list = $("[data-chats]", root);
-    var count = $("[data-count]", root);
-    var query = $("[data-query]", root);
-    var pick = $("[data-pick]", root);
-    var rows = $$(".chat-row", list).map(function (r) { return r.cloneNode(true); });
-    var treeRows = $$(".tree--find .tree-row", root);
-    var QUERY = query.textContent;
-    var TOTAL = +count.textContent;
-    treeRows.forEach(function (r, i) { r.style.setProperty("--n", i); });
-
-    function fill(fromIndex) {
-      list.textContent = "";
-      rows.slice(fromIndex).forEach(function (r) { list.appendChild(r.cloneNode(true)); });
-      count.textContent = String(TOTAL - fromIndex);
-    }
-
-    createScene(root, {
-      start: function () {
-        root.classList.add("is-pre");
-        root.classList.remove("is-settling", "is-typing", "is-counted");
-        fill(rows.length);
-        query.textContent = "";
-        pick.classList.remove("is-selected");
-      },
-      play: function (sleep) {
-        var k = rows.length;
-        var first = true;
-        root.classList.add("is-settling", "is-typing");
-        function type(i) {
-          if (i > QUERY.length) return Promise.resolve();
-          query.textContent = QUERY.slice(0, i);
-          return sleep(70).then(function () { return type(i + 1); });
-        }
-        function pile() {
-          if (k <= 0) return Promise.resolve();
-          var wait = first ? 240 : 900;
-          first = false;
-          return sleep(wait).then(function () {
-            k -= 1;
-            var row = rows[k].cloneNode(true);
-            row.classList.add("is-new");
-            list.insertBefore(row, list.firstChild);
-            count.textContent = String(TOTAL - k);
-            return pile();
-          });
-        }
-        sleep(treeRows.length * 40 + 260).then(function () { pick.classList.add("is-selected"); }, function () {});
-        return type(1)
-          .then(function () { root.classList.remove("is-typing"); root.classList.add("is-counted"); return pile(); })
-          .then(function () { return sleep(400); });
-      },
-      end: function () {
-        root.classList.remove("is-pre", "is-settling", "is-typing", "is-counted");
-        fill(0);
-        query.textContent = QUERY;
-        pick.classList.add("is-selected");
-      }
-    });
-  }
-
-  /* It's your page: a selection wash sweeps paragraph two, the old words strike
-     through, the new sentence types in, then Pip says so. Paragraphs one and
-     three never move: the new words hold their space from the start. */
+  /* It's your page: Pip's bar sits under the note the whole time, the way it
+     does in the jobs window. It offers; "Yes, tighten it" sweeps a wash over
+     paragraph two, strikes the old words through and types the new ones in;
+     then the button becomes Undo. Undo puts her words back, and Pip offers
+     again. The note never changes height: it's measured at its edited size. */
   function sceneYours() {
     var root = $('[data-scene="yours"]');
     if (!root) return;
+    var body = $("[data-note-body]", root);
     var typed = $("[data-typed]", root);
     var rest = $("[data-rest]", root);
     var label = $("[data-edit-label]", root);
     var labelText = $("span", label);
     var dot = $(".nlab-dot", label);
-    var undo = $("[data-undo]", root);
+    var msg = $("[data-yours-msg]", root);
+    var faceHolder = $("[data-yours-face]", root);
+    var goBtn = $("[data-yours-go]", root);
+    var undoBtn = $("[data-yours-undo]", root);
     var NEW = typed.textContent;
-    var STEPS = ["is-pre", "is-washed", "is-struck", "is-typing-in", "is-labelled", "is-told", "is-undone"];
+    var STATES = ["is-before", "is-washed", "is-struck", "is-typing-in", "is-edited"];
+    var COPY = {
+      offer: "That second paragraph runs on a bit. Want me to tighten it?",
+      again: "Back to your words. Want me to reword that paragraph?",
+      busy: "Tightening that paragraph…",
+      done: "Changed that paragraph. The rest is yours, untouched."
+    };
+    var run = 0;
 
     function setWords(n) {
       typed.textContent = NEW.slice(0, n);
       rest.textContent = NEW.slice(n);
     }
-
-    var scene = createScene(root, {
-      start: function () {
-        STEPS.forEach(function (c) { root.classList.remove(c); });
-        root.classList.add("is-pre");
-        labelText.textContent = "Pip's edit";
-        dot.hidden = false;
-        setWords(0);
-      },
-      play: function (sleep) {
-        var i = 0;
-        function type() {
-          if (i >= NEW.length) return Promise.resolve();
-          i += 1;
-          setWords(i);
-          var ch = NEW.charAt(i - 1);
-          var pause = ch === " " ? 40 : ch === "." ? 120 : 24 + Math.random() * 10;
-          return sleep(pause).then(type);
-        }
-        return sleep(160)
-          .then(function () { root.classList.add("is-washed"); return sleep(640); })
-          .then(function () { root.classList.add("is-struck"); return sleep(520); })
-          .then(function () { root.classList.add("is-typing-in"); return type(); })
-          .then(function () { return sleep(260); })
-          .then(function () { root.classList.remove("is-typing-in"); root.classList.add("is-labelled"); return sleep(320); })
-          .then(function () { root.classList.add("is-told"); return sleep(400); });
-      },
-      end: function () {
-        STEPS.forEach(function (c) { root.classList.remove(c); });
-        labelText.textContent = "Pip's edit";
-        dot.hidden = false;
-        setWords(NEW.length);
-      }
-    });
-
-    // Undo really undoes: the paragraph goes back to your words
-    undo.addEventListener("click", function () {
-      scene.cancel();
-      STEPS.forEach(function (c) { root.classList.remove(c); });
-      root.classList.add("is-pre", "is-undone", "is-labelled");
-      labelText.textContent = "your words";
-      dot.hidden = true;
+    function setState(cls) {
+      STATES.forEach(function (c) { root.classList.remove(c); });
+      if (cls) cls.split(" ").forEach(function (c) { root.classList.add(c); });
+    }
+    function setLabel(pip) {
+      labelText.textContent = pip ? "Pip's edit" : "your words";
+      dot.hidden = !pip;
+    }
+    function say(text) {
+      msg.classList.remove("is-busy");
+      setThinking(faceHolder, false);
+      swapText(msg, text);
+    }
+    function before(text) {
+      run++;
+      setState("is-before");
+      setLabel(false);
       setWords(0);
-      scene.showReplay();
-      if (scene.replay) scene.replay.focus();
+      say(text);
+      goBtn.textContent = text === COPY.offer ? "Yes, tighten it" : "Yes, reword it";
+      goBtn.hidden = false;
+      undoBtn.hidden = true;
+    }
+    function edited() {
+      setState("is-edited");
+      setLabel(true);
+      setWords(NEW.length);
+      say(COPY.done);
+      goBtn.hidden = true;
+      undoBtn.hidden = false;
+    }
+
+    // Hold the note at its edited height, so nothing below it ever moves
+    function measure() {
+      body.style.minHeight = "";
+      var was = root.className;
+      setState("is-edited");
+      setWords(NEW.length);
+      var h = body.getBoundingClientRect().height;
+      root.className = was;
+      if (!root.classList.contains("is-edited")) setWords(root.classList.contains("is-typing-in") ? typed.textContent.length : 0);
+      body.style.minHeight = Math.ceil(h) + "px";
+    }
+
+    function tighten() {
+      var id = ++run;
+      goBtn.hidden = true;
+      undoBtn.hidden = true;
+      if (reduced()) { edited(); undoBtn.focus(); return; }
+      setThinking(faceHolder, true);
+      msg.textContent = "";
+      msg.classList.add("is-busy");
+      msg.appendChild(dots());
+      msg.appendChild(el("span", "", COPY.busy));
+      var sleep = function (ms) {
+        return new Promise(function (resolve, reject) {
+          setTimeout(function () { if (id === run) resolve(); else reject(CANCELLED); }, ms);
+        });
+      };
+      var i = 0;
+      function type() {
+        if (i >= NEW.length) return Promise.resolve();
+        i += 1;
+        setWords(i);
+        var ch = NEW.charAt(i - 1);
+        return sleep(ch === " " ? 42 : ch === "." || ch === "," ? 140 : 26 + Math.random() * 12).then(type);
+      }
+      sleep(240)
+        .then(function () { root.classList.add("is-washed"); return sleep(700); })
+        .then(function () { root.classList.add("is-struck"); return sleep(560); })
+        .then(function () { root.classList.add("is-typing-in"); return type(); })
+        .then(function () { return sleep(320); })
+        .then(function () { edited(); undoBtn.focus({ preventScroll: true }); })
+        .catch(function (err) { if (err !== CANCELLED) throw err; });
+    }
+
+    goBtn.addEventListener("click", tighten);
+    undoBtn.addEventListener("click", function () {
+      before(COPY.again);
+      goBtn.focus({ preventScroll: true });
     });
+
+    before(COPY.offer);
+    measure();
+    var resizeT = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(measure, 150);
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
   }
 
-  /* Already briefed: two questions, answered like a chat. The question, then
-     Pip's activity line with three dots for 700ms, then the answer. */
+  /* The chat box at the foot of a Pip chat window: a question types into it,
+     the send button lights, and sending clears it. */
+  function composer(root) {
+    var box = $("[data-composer]", root);
+    var ph = $("[data-ph]", box);
+    var typed = $("[data-typing]", box);
+    return {
+      box: box,
+      reset: function () {
+        typed.textContent = "";
+        ph.hidden = false;
+        box.classList.remove("is-typing", "is-ready");
+      },
+      type: function (text, sleep) {
+        ph.hidden = true;
+        box.classList.add("is-typing");
+        var i = 0;
+        function next() {
+          if (i >= text.length) { box.classList.add("is-ready"); return Promise.resolve(); }
+          i += 1;
+          typed.textContent = text.slice(0, i);
+          var ch = text.charAt(i - 1);
+          return sleep(ch === " " ? 70 : ch === "?" || ch === "," ? 120 : 38 + Math.random() * 34).then(next);
+        }
+        return next();
+      },
+      send: function () {
+        typed.textContent = "";
+        ph.hidden = false;
+        box.classList.remove("is-typing", "is-ready");
+      }
+    };
+  }
+
+  /* Already briefed: Pip's own chat. A question types into the box and is
+     sent; Pip says where he's looking, then answers with the note or table it
+     came from. Twice, back and forth. */
   function sceneBriefed() {
     var root = $('[data-scene="briefed"]');
     if (!root) return;
     var steps = $$("[data-step]", root);
+    var box = composer(root);
 
     function clear() {
       steps.forEach(function (s) { s.classList.remove("is-shown", "is-thinking", "is-answered"); });
+      box.reset();
     }
 
     createScene(root, {
@@ -696,61 +729,61 @@
           if (i >= steps.length) return Promise.resolve();
           var q = steps[i];
           var a = steps[i + 1];
-          q.classList.add("is-shown");
-          return sleep(700)
-            .then(function () { a.classList.add("is-shown", "is-thinking"); return sleep(700); })
+          return box.type(q.textContent, sleep)
+            .then(function () { return sleep(420); })
+            .then(function () { box.send(); q.classList.add("is-shown"); return sleep(520); })
+            .then(function () { a.classList.add("is-shown", "is-thinking"); return sleep(1300); })
             .then(function () {
               a.classList.remove("is-thinking");
               a.classList.add("is-answered");
-              return i + 2 < steps.length ? sleep(1200).then(function () { return pair(i + 2); }) : sleep(300);
+              return i + 2 < steps.length ? sleep(1800).then(function () { return pair(i + 2); }) : sleep(300);
             });
         }
-        return sleep(200).then(function () { return pair(0); });
+        return sleep(400).then(function () { return pair(0); });
       },
       end: function () { clear(); root.classList.remove("is-pre"); }
     });
   }
 
-  /* Switch AI: the model menu opens from its chip, and the choice moves from
-     Claude Sonnet to Claude Opus to GLM Flash and back. The chat behind it
-     does not move at all. */
+  /* Switch AI: Pip's chat with a conversation already going. The settings
+     button opens Chat settings over the chat, the tick moves from Claude
+     Sonnet to Claude Opus, it closes, and the chat carries on with a follow-up
+     on the new model. Nothing in the conversation is lost. */
   function sceneSwitch() {
     var root = $('[data-scene="switch"]');
     if (!root) return;
-    var label = $("[data-chip-label]", root);
-    var opts = $$(".mm-opt", root);
-    var sel = $("[data-sel]", root);
-    var ORDER = [1, 3, 0]; // Claude Opus, GLM Flash, back to Claude Sonnet
+    var steps = $$("[data-step]", root);
+    var opts = $$("[data-sheet-models] .copt", root);
+    var tune = $("[data-tune]", root);
+    var box = composer(root);
+    var DEFAULT = 0, PICK = 3; // Pip default (Claude Sonnet 5) → Claude Opus 5.5
 
-    function choose(i, animate) {
-      opts.forEach(function (o, k) { o.classList.toggle("is-on", k === i); });
-      $(".mm-name", opts[i]).insertBefore(sel, $(".mm-name", opts[i]).firstChild);
-      var name = opts[i].getAttribute("data-model");
-      if (animate) swapText(label, name); else label.textContent = name;
+    function choose(i) { opts.forEach(function (o, k) { o.classList.toggle("is-on", k === i); }); }
+    function clear() {
+      steps.forEach(function (s) { s.classList.remove("is-shown", "is-thinking", "is-answered"); });
+      root.classList.remove("is-open");
+      tune.classList.remove("is-on");
+      box.reset();
     }
 
     createScene(root, {
-      start: function () {
-        root.classList.add("is-pre");
-        root.classList.remove("is-open");
-        choose(0, false);
-      },
+      start: function () { clear(); choose(DEFAULT); root.classList.add("is-pre"); },
       play: function (sleep) {
-        var n = 0;
-        function next() {
-          if (n >= ORDER.length) return Promise.resolve();
-          choose(ORDER[n], true);
-          n += 1;
-          return sleep(1400).then(next);
-        }
-        return sleep(300)
-          .then(function () { root.classList.add("is-open"); return sleep(1400); })
-          .then(next);
+        var line = steps[0], q = steps[1], a = steps[2];
+        return sleep(600)
+          .then(function () { tune.classList.add("is-on"); return sleep(260); })
+          .then(function () { root.classList.add("is-open"); return sleep(1500); })
+          .then(function () { opts[PICK].classList.add("is-hover"); return sleep(520); })
+          .then(function () { opts[PICK].classList.remove("is-hover"); choose(PICK); return sleep(900); })
+          .then(function () { root.classList.remove("is-open"); tune.classList.remove("is-on"); return sleep(420); })
+          .then(function () { line.classList.add("is-shown"); return sleep(900); })
+          .then(function () { return box.type(q.textContent, sleep); })
+          .then(function () { return sleep(400); })
+          .then(function () { box.send(); q.classList.add("is-shown"); return sleep(500); })
+          .then(function () { a.classList.add("is-shown", "is-thinking"); return sleep(1300); })
+          .then(function () { a.classList.remove("is-thinking"); a.classList.add("is-answered"); return sleep(300); });
       },
-      end: function () {
-        root.classList.remove("is-pre", "is-open");
-        choose(0, false);
-      }
+      end: function () { clear(); choose(PICK); root.classList.remove("is-pre"); }
     });
   }
 
@@ -771,66 +804,160 @@
 
   function scenes() {
     knows();
-    sceneFind();
     sceneYours();
     sceneBriefed();
     sceneSwitch();
   }
 
 
-  /* ── live demo ─────────────────────────────────────────────────────────────
-     On a laptop, load the real Pip web demo in a frame behind the scripted
-     window, and swap only when the demo posts pip-demo:ready from its own
-     origin. A frame the host refuses (or a slow network) never swaps, so the
-     scripted window is always the floor. Phones and Save-Data keep the stand-in. */
-  function liveDemo() {
+  /* ── takeover ──────────────────────────────────────────────────────────────
+     The demo on the page is a still screenshot, so the page scrolls like a
+     page. "Go on, have a play" is a real decision: the real Pip (the web demo)
+     grows out of the screenshot to fill the screen, and Close or Esc puts it
+     back. The frame loads on intent (hover, focus, or the section sitting in
+     view), so it's usually ready by the click; until it says pip-demo:ready
+     from its own origin, the screenshot stands in. On a large screen the app
+     draws at its natural size; on a smaller one it draws at a laptop size and
+     is scaled down to fit, so it never reflows into a layout the Mac app can't
+     reach. Phones keep the screenshot and a line saying to use a laptop. */
+  function takeover() {
     var play = $("#play");
-    if (!play) return;
+    var dlg = $("#takeover");
+    if (!play || !dlg) return;
     var src = play.getAttribute("data-live-demo");
-    if (!src || !window.matchMedia) return;
-    if (navigator.connection && navigator.connection.saveData) return;
-    var wide = window.matchMedia("(min-width: 1024px)");
+    var go = $("[data-play-go]", play);
+    var shot = $(".demo-shot img", play);
+    var panel = $("[data-takeover-panel]", dlg);
+    var stage = $("[data-takeover-stage]", dlg);
+    var waitText = $("[data-takeover-wait-text]", dlg);
+    var closeBtn = $("[data-takeover-close]", dlg);
+    if (!src || !go || !window.matchMedia) return;
     var origin;
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
+    var big = window.matchMedia("(min-width: 768px)");
+    var frame = null, ready = false, isOpen = false, slowTimer = null, lastFocus = null, anim = null;
 
-    function start() {
-      // The app exactly as it is: no bar, title or chrome of the site's own
-      // around it. The frame only rounds its corners and casts the shadow.
-      var win = el("div", "win win--live");
-      win.setAttribute("aria-hidden", "true");
-      var frame = document.createElement("iframe");
+    // The dialog belongs to the page, not to the section, so the rest can go
+    // inert. Closed, it's laid out but unseen (see the CSS).
+    document.body.appendChild(dlg);
+    dlg.hidden = false;
+    dlg.setAttribute("aria-hidden", "true");
+
+    function sync() {
+      go.hidden = !big.matches;
+      play.classList.toggle("is-playable", big.matches);
+    }
+    sync();
+    if (big.addEventListener) big.addEventListener("change", sync); else if (big.addListener) big.addListener(sync);
+
+    function load() {
+      if (frame || !big.matches) return;
+      if (navigator.connection && navigator.connection.saveData && !isOpen) return;
+      frame = document.createElement("iframe");
+      frame.className = "takeover-frame";
       frame.src = src;
-      frame.title = "Pip, with a sample workspace you can play with";
+      frame.title = "Pip, with a sample business to play with";
       frame.setAttribute("referrerpolicy", "no-referrer");
-      frame.tabIndex = -1;
-      win.appendChild(frame);
-      play.appendChild(win);
-      // Scale the 1280 x 800 app to the frame's width.
-      var fit = function () { win.style.setProperty("--live-scale", String(Math.min(1, win.clientWidth / 1280))); };
+      stage.appendChild(frame);
       fit();
-      if (window.ResizeObserver) new ResizeObserver(fit).observe(win); else window.addEventListener("resize", fit);
-      var note = el("p", "live-note", "A sample workspace to play with. The replies are set, and nothing you do is saved.");
-      note.hidden = true;
-      play.appendChild(note);
-      window.addEventListener("message", function onReady(e) {
-        if (e.origin !== origin || !e.data || e.data.type !== "pip-demo:ready") return;
-        window.removeEventListener("message", onReady);
-        win.removeAttribute("aria-hidden");
-        frame.tabIndex = 0;
-        note.hidden = false;
-        play.classList.add("is-live");
+    }
+
+    window.addEventListener("message", function (e) {
+      if (e.origin !== origin || !e.data || e.data.type !== "pip-demo:ready") return;
+      ready = true;
+      clearTimeout(slowTimer);
+      dlg.classList.add("is-ready");
+    });
+
+    function fit() {
+      if (!frame) return;
+      var w = stage.clientWidth, h = stage.clientHeight;
+      if (!w || !h) return;
+      var k = Math.min(1, w / 1280, h / 800);
+      frame.style.width = Math.round(w / k) + "px";
+      frame.style.height = Math.round(h / k) + "px";
+      frame.style.transform = k < 1 ? "scale(" + k + ")" : "";
+    }
+    window.addEventListener("resize", fit);
+
+    function setInert(on) {
+      Array.prototype.forEach.call(document.body.children, function (node) {
+        if (node === dlg || node.tagName === "SCRIPT") return;
+        if (on) node.setAttribute("inert", ""); else node.removeAttribute("inert");
       });
     }
-    var started = false;
-    function go() {
-      if (started || !wide.matches) return;
-      started = true;
-      (window.requestIdleCallback || function (f) { return setTimeout(f, 600); })(start);
+
+    // The panel starts exactly over the screenshot and grows to the screen
+    function fromShot() {
+      var r = shot.getBoundingClientRect();
+      var k = r.width / window.innerWidth;
+      return "translate(" + r.left + "px, " + r.top + "px) scale(" + k + ")";
     }
-    // A window that grows to laptop width later (a resized window, a pane that
-    // opens narrow) still gets the real demo.
-    if (wide.addEventListener) wide.addEventListener("change", go); else if (wide.addListener) wide.addListener(go);
-    if (document.readyState === "complete") go(); else window.addEventListener("load", go, { once: true });
+
+    function open() {
+      if (isOpen || !big.matches) return;
+      isOpen = true;
+      lastFocus = document.activeElement;
+      load();
+      dlg.classList.add("is-open");
+      dlg.removeAttribute("aria-hidden");
+      document.documentElement.classList.add("has-takeover");
+      setInert(true);
+      fit();
+      if (!ready) {
+        waitText.textContent = "Opening Pip…";
+        clearTimeout(slowTimer);
+        slowTimer = setTimeout(function () { if (!ready) waitText.textContent = "Still opening. Pip needs a moment on a slow connection."; }, 9000);
+      }
+      if (anim) anim.cancel();
+      if (!reduced() && panel.animate) {
+        anim = panel.animate(
+          [{ transform: fromShot(), borderRadius: "24px", opacity: 0.6 }, { transform: "none", borderRadius: "0px", opacity: 1 }],
+          { duration: 560, easing: EASE_OUT }
+        );
+        dlg.animate([{ backgroundColor: "rgba(0,0,0,0)" }, { backgroundColor: "rgba(0, 0, 0, 0.32)" }], { duration: 560, easing: EASE_OUT });
+      }
+      closeBtn.focus({ preventScroll: true });
+      document.addEventListener("keydown", onKey);
+    }
+
+    function close() {
+      if (!isOpen) return;
+      isOpen = false;
+      document.removeEventListener("keydown", onKey);
+      clearTimeout(slowTimer);
+      function done() {
+        dlg.classList.remove("is-open");
+        dlg.setAttribute("aria-hidden", "true");
+        document.documentElement.classList.remove("has-takeover");
+        setInert(false);
+        if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); else go.focus({ preventScroll: true });
+      }
+      if (anim) anim.cancel();
+      if (reduced() || !panel.animate) { done(); return; }
+      anim = panel.animate(
+        [{ transform: "none", borderRadius: "0px", opacity: 1 }, { transform: fromShot(), borderRadius: "24px", opacity: 0 }],
+        { duration: 380, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" }
+      );
+      anim.onfinish = function () { anim.cancel(); anim = null; done(); };
+    }
+
+    function onKey(e) { if (e.key === "Escape") { e.preventDefault(); close(); } }
+
+    go.addEventListener("click", open);
+    closeBtn.addEventListener("click", close);
+
+    // Load on intent, so the click usually finds Pip ready
+    play.addEventListener("pointerenter", load);
+    go.addEventListener("focus", load);
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        io.disconnect();
+        (window.requestIdleCallback || function (f) { return setTimeout(f, 1200); })(load);
+      }, { threshold: 0.5 });
+      io.observe(play);
+    }
   }
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
@@ -1307,7 +1434,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [dates, stops, header, mascots, reveal, scenes, liveDemo, jobs, accordion, jumpList, download].forEach(function (init) {
+  [dates, stops, header, mascots, reveal, scenes, takeover, jobs, accordion, jumpList, download].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }
