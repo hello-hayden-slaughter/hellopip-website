@@ -1842,13 +1842,13 @@
     var LINES = [
       "Jot your ideas down any old way. Then ask me to turn them into a plan.",
       "Just ask, in your own words. I'll read your note first.",
-      "Next, I'll write the captions in your voice and pick photos from your folders.",
-      "Done. Twelve posts for " + month + ", in your voice. Change anything you like."
+      "Twelve captions, written in your voice. Next, I'll pick a photo for each one from your folders.",
+      "Done. Twelve posts for " + month + ", with captions and photos. Change anything you like."
     ];
-    var WORKING = "Writing captions and picking photos…";
+    // What Pip's doing while steps 3 and 4 play
+    var WORKING = ["Writing the captions in your voice…", "Picking photos from your folders…"];
 
     var stepBtns = $$("[data-flow-to]", root);
-    var stepsRow = $("[data-flow-steps]", root);
     var nextBtn = $("[data-flow-next]", root);
     var againBtn = $("[data-flow-again]", root);
     var pip = $("[data-flow-pip]", root);
@@ -1863,6 +1863,7 @@
     var chat = $("[data-flow-chat]", root);
     var said = $$("[data-step]", chat); // the question, then Pip's answer
     var box = composer(chat);
+    var openDoc = $("[data-flow-open]", chat);
     var grid = $(".flow-grid", panelB);
     var table = $("[data-flow-table]", panelB);
     var head = $(".flow-th", panelB);
@@ -1905,25 +1906,6 @@
       window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
     }
 
-    /* On a narrow demo the steps are one sideways row: keep the current one in
-       view and fade the edge that has more */
-    function stepsEdges() {
-      var max = stepsRow.scrollWidth - stepsRow.clientWidth;
-      stepsRow.classList.toggle("is-scrolled", stepsRow.scrollLeft > 2);
-      stepsRow.classList.toggle("is-at-end", stepsRow.scrollLeft >= max - 2);
-    }
-    function stepsTo(btn, smooth) {
-      var max = stepsRow.scrollWidth - stepsRow.clientWidth;
-      if (max > 0) {
-        var r = stepsRow.getBoundingClientRect(), b = btn.getBoundingClientRect();
-        var left = Math.max(0, Math.min(max, stepsRow.scrollLeft + b.left - r.left - (r.width - b.width) / 2));
-        if (smooth && !reduced() && stepsRow.scrollTo) stepsRow.scrollTo({ left: left, behavior: "smooth" });
-        else stepsRow.scrollLeft = left;
-      }
-      stepsEdges();
-    }
-    stepsRow.addEventListener("scroll", stepsEdges, { passive: true });
-
     /* The note: the first n ideas written, the next one started and empty
        (its caret waiting), the rest not yet there */
     function jotTo(n) {
@@ -1943,12 +1925,13 @@
       ideas.forEach(function (li) { li.classList.remove("is-lit"); });
     }
 
-    /* The table: its gaps (step 3), or filled in (step 4) */
-    function tableTo(filled) {
+    /* The table: its gaps, then the captions written (step 3), then the
+       photos picked (step 4) */
+    function tableTo(captioned, pictured) {
       rows.forEach(function (r, i) {
         r.classList.remove("is-filling");
-        caps[i].textContent = filled ? CAPS[i] : "";
-        photos[i].classList.toggle("is-empty", !filled);
+        caps[i].textContent = captioned ? CAPS[i] : "";
+        photos[i].classList.toggle("is-empty", !pictured);
       });
       panelB.classList.remove("is-arriving");
     }
@@ -2019,7 +2002,7 @@
         return probe.getBoundingClientRect().height;
       }
       pipH[0] = Math.ceil(Math.max(h(LINES[0]), h(LINES[1])));
-      pipH[1] = Math.ceil(Math.max(h(LINES[2]), h(WORKING, true), h(LINES[3])));
+      pipH[1] = Math.ceil(Math.max(h(LINES[2]), h(WORKING[0], true), h(WORKING[1], true), h(LINES[3])));
       probe.remove();
       pip.style.minHeight = pipH[at < 2 ? 0 : 1] + "px";
     }
@@ -2034,7 +2017,6 @@
       nextBtn.hidden = last;
       againBtn.hidden = !last;
       if (hadFocus) (last ? againBtn : nextBtn).focus({ preventScroll: true });
-      stepsTo(stepBtns[n], true);
     }
 
     /* Straight to a step, as it ends */
@@ -2046,7 +2028,7 @@
       instantly(function () {
         jotTo(ideas.length);
         chatTo(n >= 1);
-        tableTo(n === 3);
+        tableTo(n >= 2, n === 3);
       });
       showPanel(n, true);
       if (n < 2 && was < 2 && was !== n && oneAtATime()) fadeIn(n === 0 ? note : chat);
@@ -2065,7 +2047,7 @@
     function playJot(sleep) {
       var was = at;
       paint(0);
-      instantly(function () { jotTo(0); chatTo(false); tableTo(false); });
+      instantly(function () { jotTo(0); chatTo(false); tableTo(false, false); });
       showPanel(0, true);
       if (was === 1 && oneAtATime()) fadeIn(note);
       setPip(0);
@@ -2096,7 +2078,7 @@
     function playAsk(sleep) {
       var q = said[0], a = said[1];
       paint(1);
-      instantly(function () { jotTo(ideas.length); chatTo(false); tableTo(false); });
+      instantly(function () { jotTo(ideas.length); chatTo(false); tableTo(false, false); });
       showPanel(1, true);
       if (oneAtATime()) fadeIn(chat);
       setPip(1);
@@ -2120,34 +2102,29 @@
         });
     }
 
-    /* 2 → 3: the plan arrives as a table, row by row, then the wash lands on
-       the columns Pip added */
-    function playPlan(sleep) {
+    /* The rows to fill one by one: those in view, then the faded one under
+       them last of all, so nothing out at the edge catches the eye first.
+       Rows out of sight are filled at the end. */
+    function inOrder(each) {
+      var upto = Math.min(rows.length, shown + 1);
+      function go(i) {
+        if (i < upto) return each(i).then(function () { return go(i + 1); });
+        return Promise.resolve();
+      }
+      return go(0);
+    }
+
+    /* 2 → 3: the plan opens, row by row, and each caption is written into
+       its row in turn */
+    function playCaptions(sleep) {
       paint(2);
-      instantly(function () { tableTo(false); });
+      instantly(function () { tableTo(false, false); });
       void panelB.offsetWidth;
       panelB.classList.add("is-arriving");
       showPanel(2, true);
-      setPip(2);
-      return sleep(1400).then(function () { panelB.classList.remove("is-arriving"); });
-    }
-
-    /* 3 → 4: each caption written into its row, then its photo, row by row.
-       The faded row and those out of sight are filled at once. */
-    function playFill(sleep) {
-      paint(3);
-      instantly(function () { tableTo(false); });
-      showPanel(3, false);
-      setBusy(WORKING);
+      setBusy(WORKING[0]);
       pip.style.minHeight = pipH[1] + "px";
-      var upto = Math.min(rows.length, shown);
-      rows.forEach(function (r, i) {
-        if (i < upto) return;
-        caps[i].textContent = CAPS[i];
-        photos[i].classList.remove("is-empty");
-      });
-      function fillRow(i) {
-        if (i >= upto) return sleep(260);
+      function write(i) {
         var words = CAPS[i].split(" "), k = 0;
         function word() {
           if (k >= words.length) return Promise.resolve();
@@ -2156,14 +2133,39 @@
           return sleep(34).then(word);
         }
         rows[i].classList.add("is-filling");
-        return sleep(110)
+        return sleep(90)
           .then(word)
-          .then(function () { return sleep(110); })
-          .then(function () { photos[i].classList.remove("is-empty"); return sleep(240); })
-          .then(function () { rows[i].classList.remove("is-filling"); return fillRow(i + 1); });
+          .then(function () { return sleep(150); })
+          .then(function () { rows[i].classList.remove("is-filling"); });
+      }
+      return sleep(900)
+        .then(function () { panelB.classList.remove("is-arriving"); return inOrder(write); })
+        .then(function () {
+          rows.forEach(function (r, i) { caps[i].textContent = CAPS[i]; });
+          return sleep(260);
+        })
+        .then(function () { setPip(2); });
+    }
+
+    /* 3 → 4: a photo from the folders drops into each row in turn */
+    function playPhotos(sleep) {
+      paint(3);
+      instantly(function () { tableTo(true, false); });
+      showPanel(3, false);
+      setBusy(WORKING[1]);
+      pip.style.minHeight = pipH[1] + "px";
+      function pick(i) {
+        rows[i].classList.add("is-filling");
+        return sleep(160)
+          .then(function () { photos[i].classList.remove("is-empty"); return sleep(220); })
+          .then(function () { rows[i].classList.remove("is-filling"); });
       }
       return sleep(420)
-        .then(function () { return fillRow(0); })
+        .then(function () { return inOrder(pick); })
+        .then(function () {
+          photos.forEach(function (ph) { ph.classList.remove("is-empty"); });
+          return sleep(260);
+        })
         .then(function () { setPip(3); });
     }
 
@@ -2172,7 +2174,7 @@
       var id = ++run;
       var sleep = sleeper(id);
       busy = true;
-      var moves = [playJot, playAsk, playPlan, playFill];
+      var moves = [playJot, playAsk, playCaptions, playPhotos];
       moves[n](sleep)
         .then(function () { if (id === run) busy = false; })
         .catch(function (err) { if (err !== CANCELLED) throw err; });
@@ -2187,14 +2189,17 @@
         intoView();
       });
     });
-    nextBtn.addEventListener("click", function () {
+    function next() {
       tried();
       var n = at;
       if (n >= 3) return;
       if (busy) jump(n); // finish this step at once, then move on
       play(n + 1);
       intoView();
-    });
+    }
+    nextBtn.addEventListener("click", next);
+    // Opening the plan Pip made is the next step
+    openDoc.addEventListener("click", function () { if (at === 1) next(); });
     againBtn.addEventListener("click", function () {
       tried();
       play(0);
@@ -2208,7 +2213,7 @@
 
     panelB.hidden = true;
     paint(0);
-    instantly(function () { jotTo(reduced() ? ideas.length : 0); chatTo(false); tableTo(false); });
+    instantly(function () { jotTo(reduced() ? ideas.length : 0); chatTo(false); tableTo(false, false); });
     setPip(0);
     fitPip();
     // The first time the demo comes into view, the ideas are jotted down
@@ -2226,7 +2231,6 @@
         queued = false;
         fitPip();
         fitRows();
-        stepsTo(stepBtns[at], false);
       });
     }
     window.addEventListener("resize", refit);

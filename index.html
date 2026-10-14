@@ -297,9 +297,8 @@
             <button type="button" class="try-btn" data-edit="2">Say more</button>
             <button type="button" class="try-btn" data-edit="3">Make it a list</button>
           </div>
-          <span class="demo-try-end"><button type="button" class="try-back" data-help-back hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg><span>View original</span></button></span>
         </div>
-        <div class="demo-pip"><span class="demo-pip-face" data-help-face><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span><p data-help-msg aria-live="polite">Pick what you'd like me to do with the highlighted part.</p></div>
+        <div class="demo-pip demo-pip--act"><span class="demo-pip-face" data-help-face><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span><p data-help-msg aria-live="polite">Pick what you'd like me to do with the highlighted part.</p><div class="demo-pip-act demo-pip-act--keep"><button type="button" class="try-back" data-help-back hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg><span>View original</span></button></div></div>
         <div class="demo-body help-body" data-help-body>
           <p class="doc-meta">Note · Products</p>
           <h3 class="help-title">New in the shop</h3>
@@ -522,17 +521,17 @@
           <div class="demo-try-actions flow-steps" role="group" aria-label="Steps" data-flow-steps>
             <button type="button" class="try-btn flow-step-btn" data-flow-to="0" aria-pressed="true"><span class="flow-n" aria-hidden="true">1</span><span><span class="sr-only">Step 1: </span>Jot down ideas</span></button>
             <button type="button" class="try-btn flow-step-btn" data-flow-to="1" aria-pressed="false"><span class="flow-n" aria-hidden="true">2</span><span><span class="sr-only">Step 2: </span>Ask Pip to plan it</span></button>
-            <button type="button" class="try-btn flow-step-btn" data-flow-to="2" aria-pressed="false"><span class="flow-n" aria-hidden="true">3</span><span><span class="sr-only">Step 3: </span>Fill in the gaps</span></button>
-            <button type="button" class="try-btn flow-step-btn" data-flow-to="3" aria-pressed="false"><span class="flow-n" aria-hidden="true">4</span><span><span class="sr-only">Step 4: </span>Ready to post</span></button>
+            <button type="button" class="try-btn flow-step-btn" data-flow-to="2" aria-pressed="false"><span class="flow-n" aria-hidden="true">3</span><span><span class="sr-only">Step 3: </span>Write the captions</span></button>
+            <button type="button" class="try-btn flow-step-btn" data-flow-to="3" aria-pressed="false"><span class="flow-n" aria-hidden="true">4</span><span><span class="sr-only">Step 4: </span>Pick the photos</span></button>
           </div>
-          <div class="demo-try-end">
+        </div>
+        <div class="demo-pip demo-pip--act flow-pip" data-flow-pip>
+          <span class="flow-face" data-flow-face><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
+          <p class="flow-msg" data-flow-msg aria-live="polite">Jot your ideas down any old way. Then ask me to turn them into a plan.</p>
+          <div class="demo-pip-act">
             <button type="button" class="try-go flow-next" data-flow-next><span>Next step</span><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button>
             <button type="button" class="try-back flow-again" data-flow-again hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg><span>Start again</span></button>
           </div>
-        </div>
-        <div class="demo-pip flow-pip" data-flow-pip>
-          <span class="flow-face" data-flow-face><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
-          <p class="flow-msg" data-flow-msg aria-live="polite">Jot your ideas down any old way. Then ask me to turn them into a plan.</p>
         </div>
         <div class="demo-body flow-body">
 
@@ -563,7 +562,7 @@
               <div class="pchat flow-pchat">
                 <div class="pchat-log flow-log">
                   <div class="pmsg pmsg--user" data-step>Can you turn these into a plan for <span data-flow-month>November</span>?</div>
-                  <div class="pmsg pmsg--pip" data-step><p class="pwork"><svg class="i i-12 pwork-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span class="pwork-done">Read Social ideas</span><span class="pwork-now">Reading Social ideas</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p><p class="pans">Here's a plan for <span data-flow-month>November</span>: three posts a week. I've made it a table, with where each post goes, a caption and a photo.</p></div>
+                  <div class="pmsg pmsg--pip" data-step><p class="pwork"><svg class="i i-12 pwork-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span class="pwork-done">Read Social ideas</span><span class="pwork-now">Reading Social ideas</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p><p class="pans">Here's your plan for <span data-flow-month>November</span>: three posts a week. I've left room for a caption and a photo on each.</p><button type="button" class="pdoc" data-flow-open><span class="pdoc-icon"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg></span><span class="pdoc-txt"><b><span data-flow-month>November</span> posts</b><small>Table · 12 posts · just made</small></span><span class="pdoc-open">Open<svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></span></button></div>
                 </div>
                 <div class="pcomposer" data-composer>
                   <span class="pc-field"><span class="pc-ph" data-ph>Ask Pip anything…</span><span class="pc-typed" data-typing></span><i class="caret" aria-hidden="true"></i></span>
@@ -578,28 +577,27 @@
           <div class="flow-panel flow-b" data-flow-panel="b">
             <div class="flow-head flow-head--3">
               <p class="flow-head-n">Step 3</p>
-              <h3 class="flow-head-h">Fill in the gaps</h3>
-              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Next, I'll write the captions in your voice and pick photos from your folders.</span></p>
+              <h3 class="flow-head-h">Write the captions</h3>
+              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Twelve captions, written in your voice. Next, I'll pick a photo for each one from your folders.</span></p>
             </div>
             <div class="flow-head flow-head--4">
               <p class="flow-head-n">Step 4</p>
-              <h3 class="flow-head-h">Ready to post</h3>
-              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Done. Twelve posts for <span data-flow-month>November</span>, in your voice. Change anything you like.</span></p>
+              <h3 class="flow-head-h">Pick the photos</h3>
+              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Done. Twelve posts for <span data-flow-month>November</span>, with captions and photos. Change anything you like.</span></p>
             </div>
             <div class="flow-sheet">
               <div class="flow-sheet-top">
                 <p class="flow-sheet-title"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span><span data-flow-month>November</span> posts</span></p>
-                <span class="flow-added">Pip added these</span>
               </div>
               <div class="flow-grid">
                 <div class="flow-tblbox">
                   <div class="flow-tbl" role="table" aria-label="November posts" data-flow-table>
                     <div class="flow-tr flow-th" role="row">
                       <span class="c-day" role="columnheader">Day</span>
-                      <span class="c-where is-pip" role="columnheader">Where</span>
+                      <span class="c-where" role="columnheader">Where</span>
                       <span class="c-post" role="columnheader">Post</span>
-                      <span class="c-cap is-pip" role="columnheader">Caption</span>
-                      <span class="c-ph is-pip" role="columnheader">Photo</span>
+                      <span class="c-cap" role="columnheader">Caption</span>
+                      <span class="c-ph" role="columnheader">Photo</span>
                     </div>
                     <div class="flow-tr" role="row">
                       <span class="c-day" role="cell" data-flow-day="0">Mon 2</span>
