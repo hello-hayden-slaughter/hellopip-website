@@ -328,204 +328,179 @@
   <div class="container container--wide stack-gap" data-reveal-visual>
     <div class="demo win--jobs" id="jobs-win" role="group" aria-label="Six jobs Pip can help with">
       <div class="demo-try jobs-try">
-        <span class="demo-try-label">Have a play: pick a job</span>
-      </div>
-      <div class="jobs-grid">
-        <div class="jobs-rail" role="group" aria-label="Jobs">
-          <button type="button" class="job try-btn is-on" data-job="0" aria-pressed="true" data-first><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg></span><span class="job-t"><span class="job-name">Write the newsletter</span><span class="job-kind">Note</span></span><span class="job-go" aria-hidden="true">Try<svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
-          <button type="button" class="job try-btn" data-job="1" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg></span><span class="job-t"><span class="job-name">Make a product shot</span><span class="job-kind">Photo</span></span><span class="job-go" aria-hidden="true">Try<svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
-          <button type="button" class="job try-btn" data-job="2" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg></span><span class="job-t"><span class="job-name">Work out your costs</span><span class="job-kind">Table</span></span><span class="job-go" aria-hidden="true">Try<svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
-          <button type="button" class="job try-btn" data-job="3" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg></span><span class="job-t"><span class="job-name">Make slides for a workshop</span><span class="job-kind">Deck</span></span><span class="job-go" aria-hidden="true">Try<svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
-          <button type="button" class="job try-btn" data-job="4" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg></span><span class="job-t"><span class="job-name">Plan a new collection</span><span class="job-kind">Canvas</span></span><span class="job-go" aria-hidden="true">Try<svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
-          <button type="button" class="job try-btn" data-job="5" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg></span><span class="job-t"><span class="job-name">See how the year is going</span><span class="job-kind">Dashboard</span></span><span class="job-go" aria-hidden="true">Try<svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+        <span class="demo-try-label">Try it: pick a job</span>
+        <div class="demo-try-actions jobs-rail" role="group" aria-label="Jobs">
+            <button type="button" class="try-btn job is-on" data-job="0" aria-pressed="true"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Write the newsletter</span></button>
+            <button type="button" class="try-btn job" data-job="1" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Make a product shot</span></button>
+            <button type="button" class="try-btn job" data-job="2" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Work out your costs</span></button>
+            <button type="button" class="try-btn job" data-job="3" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg><span>Make slides for a workshop</span></button>
+            <button type="button" class="try-btn job" data-job="4" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg><span>Plan a new collection</span></button>
+            <button type="button" class="try-btn job" data-job="5" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg><span>See how the year is going</span></button>
         </div>
-        <div class="jobs-main">
-          <div class="demo-pip jobs-pip">
-            <span class="jobs-face" id="jobs-face"><svg class="pf pf-28" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
-            <div class="jobs-say">
-              <p class="jobs-msg" id="jobs-msg" aria-live="polite">You've jotted down this month's news. Want me to turn it into a first draft, in your words?</p>
-              <div class="jobs-actions" id="jobs-actions">
-                <span class="jobs-opts" id="jobs-opts" hidden>
-                  <button type="button" class="try-btn" data-opt="tidy" aria-pressed="false">Tidy it up</button>
-                  <button type="button" class="try-btn" data-opt="cut" aria-pressed="false">Cut it out</button>
-                  <button type="button" class="try-btn" data-opt="bg" aria-pressed="false">New background</button>
-                </span>
-                <button type="button" class="btn btn--primary btn--xs" id="jobs-go">Yes, draft it</button>
-                <button type="button" class="btn btn--secondary btn--xs" id="jobs-undo" hidden>Undo</button>
-                <button type="button" class="btn btn--primary btn--xs" id="jobs-next" hidden><span>Next job</span><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button>
+        <div class="demo-try-end jobs-end">
+          <button type="button" class="try-go" id="jobs-go">Yes, draft it</button>
+          <button type="button" class="try-back" id="jobs-back" hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg>View original</button>
+        </div>
+      </div>
+      <div class="demo-pip jobs-pip">
+        <span class="jobs-face" id="jobs-face"><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
+        <p class="jobs-msg" id="jobs-msg" aria-live="polite">You've jotted down this month's news. Want me to turn it into a first draft, in your words?</p>
+      </div>
+      <div class="demo-body jobs-body">
+        <p class="jobs-crumb" id="jobs-title">Lume Lighting › Newsletter: <span data-date="month">October</span></p>
+        <div class="jobs-stage" id="jobs-stage">
+
+          <div class="surf surf--note" data-surf="0" id="nl">
+            <p class="doc-meta">Note · edited yesterday</p>
+            <h3 class="surf-title">Newsletter: <span data-date="month">October</span></h3>
+            <div class="nl" id="nl-text"></div>
+            <div class="nl-ideas" id="nl-ideas">
+              <h4 class="nl-h">Some ideas</h4>
+              <ul class="rough">
+                <li>mustard scallop finally in the shop, only one</li>
+                <li>drum workshop <span data-date="drum" data-fmt="lower">sun 18 oct</span>, 2 places left</li>
+                <li>lino printing day <span data-date="lino" data-fmt="lower">sat 7 nov</span>, 6 places, £110, you take your shade home</li>
+                <li>last christmas post <span data-date="xmas" data-fmt="lower">18 dec</span></li>
+                <li>say thanks for the summer!!</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="surf surf--photo" data-surf="1">
+            <div class="photo-job" id="photo-job">
+              <div class="photo-frame" id="photo-frame" role="img" aria-label="A sage green linen slim lamp on a desk, with a plant, a notepad, a laptop and scissors around it">
+                <div class="pv">
+                  <img class="pv-wide" data-photo="job-photo" src="assets/img/lume/job-photo.jpg" width="800" height="600" alt="" loading="lazy" decoding="async">
+                  <div class="pv-sq">
+                    <span class="pv-checker"></span>
+                    <img class="pv-layer pv-square" src="assets/img/lume/job-shot-square.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
+                    <span class="pv-sel"></span>
+                    <img class="pv-layer pv-clean" src="assets/img/lume/job-shot-clean.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
+                    <img class="pv-layer pv-cut" src="assets/img/lume/job-shot-cut.webp" width="800" height="800" alt="" loading="lazy" decoding="async">
+                    <img class="pv-layer pv-backdrop" src="assets/img/lume/job-shot-backdrop.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
+                    <span class="pv-trace"></span>
+                    <span class="pv-crop"><i></i><i></i><i></i><i></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="photo-tools" aria-hidden="true">
+                <span class="ptool" data-tool="crop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-crop"/></svg><span>Crop</span></span>
+                <span class="ptool" data-tool="remove"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-eraser"/></svg><span>Remove</span></span>
+                <span class="ptool" data-tool="bright"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><span>Brighten</span></span>
+                <span class="ptool" data-tool="cut"><svg class="i i-14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg><span>Cut out</span></span>
+                <span class="ptool" data-tool="backdrop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Backdrop</span></span>
+                                </div>
+            </div>
+          </div>
+
+          <div class="surf surf--costs" data-surf="2">
+            <div class="costs" id="costs">
+              <div class="costs-top">
+                <p class="file-tag"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-table"/></svg>Costs</p>
+                <p class="cf-rule" aria-hidden="true"><i></i>Highlighted: Margin under 50%</p>
+              </div>
+              <div class="tbl-wrap costs-wrap"><table class="tbl tbl--costs" aria-label="Costs">
+                <thead><tr>
+                  <th scope="col" class="c-name">Product</th>
+                  <th scope="col" class="c-price">Price</th>
+                  <th scope="col" class="c-mats">Materials</th>
+                  <th scope="col" class="c-time">Your time</th>
+                  <th scope="col" class="c-post">Postage</th>
+                  <th scope="col" class="c-cost">Cost to make<small class="fx">= Materials + Time + Postage</small></th>
+                  <th scope="col" class="c-marg">Margin<small class="fx">= (Price − Cost) ÷ Price</small></th>
+                </tr></thead>
+                <tbody>
+                  <tr><td class="c-name">Large scallop</td><td class="c-price">£350</td><td class="c-mats">£38</td><td class="c-time">£60</td><td class="c-post">£12</td><td class="c-cost">£110</td><td class="c-marg">69%</td></tr>
+                  <tr><td class="c-name">Medium scallop</td><td class="c-price">£300</td><td class="c-mats">£30</td><td class="c-time">£50</td><td class="c-post">£12</td><td class="c-cost">£92</td><td class="c-marg">69%</td></tr>
+                  <tr><td class="c-name">Gathered drum, 35cm</td><td class="c-price">£220</td><td class="c-mats">£22</td><td class="c-time">£40</td><td class="c-post">£10</td><td class="c-cost">£72</td><td class="c-marg">67%</td></tr>
+                  <tr data-low><td class="c-name">Sage slim lamp</td><td class="c-price">£105</td><td class="c-mats">£42<small>£14 + £28 base</small></td><td class="c-time">£20</td><td class="c-post">£8</td><td class="c-cost">£70</td><td class="c-marg">33%</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+
+          <div class="surf surf--deck" data-surf="3">
+            <div class="deck-job" id="deck-job">
+              <div class="step-note">
+                <p class="doc-meta">Note</p>
+                <p class="step-note-title" data-step-line>Drum workshop steps</p>
+                <ol>
+                  <li data-step-line>Cut the panel to size</li>
+                  <li data-step-line>Stick the fabric on</li>
+                  <li data-step-line>Roll it round the rings</li>
+                  <li data-step-line>Tuck in the edges</li>
+                  <li data-step-line>Trim and finish</li>
+                </ol>
+              </div>
+              <div class="slides" id="slides">
+                <div class="slide"><div class="slide-face s-cover"><img class="ph ph--fill" data-photo="slide-cover" src="assets/img/lume/slide-cover.jpg" width="480" height="300" alt="A finished drum lampshade in a turquoise geometric print, on a wooden lamp base" style="--ar: 16 / 10" loading="lazy" decoding="async"><div class="s-cap"><b>Make a drum lampshade</b><small>Sunday workshop</small></div></div></div>
+                <div class="slide"><div class="slide-face s-split"><img class="ph ph--fill" data-photo="step-1" src="assets/img/lume/step-1.jpg" width="280" height="350" alt="Everything for the workshop laid out: printed fabric, a tape measure, scissors, tape, a pencil and the lampshade rings" style="--ar: 4 / 5" loading="lazy" decoding="async"><div class="s-txt"><span class="s-n">Step 1</span><b>Cut the panel to size</b><small>Measure twice. The panel sets the size.</small></div></div></div>
+                <div class="slide"><div class="slide-face s-bleed"><img class="ph ph--fill" data-photo="step-2" src="assets/img/lume/step-2.jpg" width="480" height="300" alt="Hands holding a drum lampshade frame over a cutting mat in the studio" style="--ar: 16 / 10" loading="lazy" decoding="async"><div class="s-bar"><span class="s-n">Step 2</span><b>Stick the fabric on</b></div></div></div>
+                <div class="slide"><div class="slide-face s-split"><img class="ph ph--fill" data-photo="step-3" src="assets/img/lume/step-3.jpg" width="320" height="400" alt="Hands holding two lampshade rings over the workshop table, ready to roll the fabric round them" style="--ar: 4 / 5" loading="lazy" decoding="async"><div class="s-txt"><span class="s-n">Step 3</span><b>Roll it round the rings</b><small>Keep it tight and even.</small></div></div></div>
+                <div class="slide"><div class="slide-face s-bleed"><img class="ph ph--fill" data-photo="step-4" src="assets/img/lume/step-4.jpg" width="560" height="350" alt="Hands tucking the printed fabric edge over the ring of a drum shade, with scissors, tape and a tape measure beside it" style="--ar: 16 / 10" loading="lazy" decoding="async"><div class="s-bar"><span class="s-n">Step 4</span><b>Tuck in the edges</b></div></div></div>
+                <div class="slide"><div class="slide-face s-split s-rev"><div class="s-txt"><span class="s-n">Step 5</span><b>Trim and finish</b><small>Then take it home.</small></div><img class="ph ph--fill" data-photo="step-5" src="assets/img/lume/step-5.jpg" width="280" height="350" alt="The finished turquoise drum shade on a wooden lamp base, against a navy wall" style="--ar: 4 / 5" loading="lazy" decoding="async"></div></div>
               </div>
             </div>
           </div>
-          <p class="jobs-crumb" id="jobs-title">Lume Lighting › Newsletter: <span data-date="month">October</span></p>
-          <div class="jobs-stage" id="jobs-stage">
 
-            <div class="surf surf--note" data-surf="0" id="nl">
-              <p class="doc-meta">Note · edited yesterday</p>
-              <h3 class="surf-title">Newsletter: <span data-date="month">October</span></h3>
-              <div class="nl" id="nl-text"></div>
-              <div class="nl-ideas" id="nl-ideas">
-                <h4 class="nl-h">Some ideas</h4>
-                <ul class="rough">
-                  <li>mustard scallop finally in the shop, only one</li>
-                  <li>drum workshop <span data-date="drum" data-fmt="lower">sun 18 oct</span>, 2 places left</li>
-                  <li>lino printing day <span data-date="lino" data-fmt="lower">sat 7 nov</span>, 6 places, £110, you take your shade home</li>
-                  <li>last christmas post <span data-date="xmas" data-fmt="lower">18 dec</span></li>
-                  <li>say thanks for the summer!!</li>
-                </ul>
-              </div>
+          <div class="surf surf--canvas" data-surf="4">
+            <div class="cv" id="cv">
+              <span class="cvh" style="--x: 4%">Fabrics</span>
+              <span class="cvh" style="--x: 37%">Shapes</span>
+              <span class="cvh" style="--x: 70%">Notes</span>
+              <div class="cvi cvi--sw" style="--x0: 5%; --y0: 9%; --r0: -6deg; --x1: 4%; --y1: 15%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Green leaf linen"><rect width="60" height="40" fill="url(#pt-leaf)"/></svg></div>
+              <div class="cvi cvi--sw" style="--x0: 52%; --y0: 60%; --r0: 5deg; --x1: 4%; --y1: 42%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Dotted cotton"><rect width="60" height="40" fill="url(#pt-dots)"/></svg></div>
+              <div class="cvi cvi--sw" style="--x0: 27%; --y0: 68%; --r0: -3deg; --x1: 4%; --y1: 69%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Striped linen"><rect width="60" height="40" fill="url(#pt-stripe)"/></svg></div>
+              <div class="cvi cvi--shape" style="--x0: 71%; --y0: 7%; --r0: 4deg; --x1: 37%; --y1: 15%"><svg viewBox="0 0 120 80" role="img" aria-label="Scallop shape"><path d="M60 3v11"/><path d="M46 14h28l20 46q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-8 0z"/></svg></div>
+              <div class="cvi cvi--shape" style="--x0: 35%; --y0: 5%; --r0: -4deg; --x1: 37%; --y1: 52%"><svg viewBox="0 0 120 80" role="img" aria-label="Drum shape"><path d="M60 3v11"/><ellipse cx="60" cy="20" rx="28" ry="6"/><path d="M32 20v38a28 6 0 0 0 56 0V20"/></svg></div>
+              <div class="cvi cvi--sticky" style="--x0: 7%; --y0: 50%; --r0: 3deg; --x1: 70%; --y1: 15%">Mustard sold out in two days</div>
+              <div class="cvi cvi--sticky cvi--prices" id="cv-prices" style="--x0: 69%; --y0: 50%; --r0: -4deg; --x1: 70%; --y1: 37%">Scallops<br>30cm £250<br>40cm £300<br>50cm £350</div>
+              <div class="cvi cvi--sticky cvi--gap" id="cv-price" style="--x0: 56%; --y0: 27%; --r0: 2deg; --x1: 70%; --y1: 70%"><span class="cv-t">Scallop, 60cm: £?</span></div>
             </div>
-
-            <div class="surf surf--photo" data-surf="1">
-              <div class="photo-job" id="photo-job">
-                <div class="photo-frame" id="photo-frame" role="img" aria-label="A sage green linen slim lamp on a desk, with a plant, a notepad, a laptop and scissors around it">
-                  <div class="pv">
-                    <img class="pv-wide" data-photo="job-photo" src="assets/img/lume/job-photo.jpg" width="800" height="600" alt="" loading="lazy" decoding="async">
-                    <div class="pv-sq">
-                      <span class="pv-checker"></span>
-                      <img class="pv-layer pv-square" src="assets/img/lume/job-shot-square.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
-                      <span class="pv-sel"></span>
-                      <img class="pv-layer pv-clean" src="assets/img/lume/job-shot-clean.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
-                      <img class="pv-layer pv-cut" src="assets/img/lume/job-shot-cut.webp" width="800" height="800" alt="" loading="lazy" decoding="async">
-                      <img class="pv-layer pv-backdrop" src="assets/img/lume/job-shot-backdrop.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
-                      <span class="pv-trace"></span>
-                      <span class="pv-crop"><i></i><i></i><i></i><i></i></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="photo-tools" aria-hidden="true">
-                  <span class="ptool" data-tool="crop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-crop"/></svg><span>Crop</span></span>
-                  <span class="ptool" data-tool="remove"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-eraser"/></svg><span>Remove</span></span>
-                  <span class="ptool" data-tool="cut"><svg class="i i-14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg><span>Cut out</span></span>
-                  <span class="ptool" data-tool="backdrop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Backdrop</span></span>
-                  <span class="ptool" data-tool="bright"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><span>Brighten</span></span>
-                </div>
-              </div>
-            </div>
-
-            <div class="surf surf--costs" data-surf="2">
-              <div class="costs" id="costs">
-                <div class="costs-before">
-                  <div class="cost-sheet">
-                    <p class="file-tag"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-table"/></svg>Prices</p>
-                    <div class="cs-grid"><table class="cs-tbl" aria-label="Prices, Jo's own sheet">
-                      <thead><tr><th scope="col"></th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th></tr></thead>
-                      <tbody>
-                        <tr><th scope="row">1</th><td>Product</td><td>Price</td><td>notes</td></tr>
-                        <tr><th scope="row">2</th><td>large scallop</td><td class="is-num">350</td><td>linen + rings £38, 3hrs, post 12</td></tr>
-                        <tr><th scope="row">3</th><td>med scallop - £300</td><td></td><td>£30 stuff. 2.5 hrs?? post £12</td></tr>
-                        <tr><th scope="row">4</th><td>sage lamp</td><td>£105 (w/ base)</td><td class="is-flag">shade bits £14 + base, 1hr, post £8</td></tr>
-                        <tr><th scope="row">5</th><td>gathered drum 35 = 220</td><td></td><td>22 mats / 2 hrs / £10 post</td></tr>
-                        <tr><th scope="row">6</th><td></td><td></td><td>my time = £20/hr</td></tr>
-                      </tbody>
-                    </table></div>
-                  </div>
-                  <div class="inv">
-                    <p class="file-tag"><span class="inv-pdf">PDF</span>Oak &amp; Co · Invoice</p>
-                    <div class="inv-page">
-                      <p class="inv-co">Oak &amp; Co</p>
-                      <p class="inv-meta">Invoice 2214 · <span data-date="ago:9">5 Oct</span></p>
-                      <p class="inv-line" id="inv-line"><span>Oak lamp base × 10</span><span>£28.00</span><span>£280.00</span></p>
-                      <p class="inv-total"><span>Total</span><span>£280.00</span></p>
-                    </div>
-                  </div>
-                </div>
-                <div class="costs-after">
-                  <div class="tbl-wrap"><table class="tbl tbl--costs" aria-label="Costs and margins">
-                    <thead><tr><th scope="col" class="c-name">Product</th><th scope="col" class="c-price">Price</th><th scope="col" class="c-mats">Materials</th><th scope="col" class="c-time">Your time</th><th scope="col" class="c-post">Postage</th><th scope="col" class="c-cost">Cost to make</th><th scope="col" class="c-m">Margin</th></tr></thead>
-                    <tbody>
-                      <tr><td>Large scallop</td><td>£350</td><td>£38</td><td class="c-time">£60</td><td class="c-post">£12</td><td>£110</td><td class="c-m" style="--m: 69%"><span class="m-bar"><i></i></span><span class="m-v">69%</span></td></tr>
-                      <tr><td>Medium scallop</td><td>£300</td><td>£30</td><td class="c-time">£50</td><td class="c-post">£12</td><td>£92</td><td class="c-m" style="--m: 69%"><span class="m-bar"><i></i></span><span class="m-v">69%</span></td></tr>
-                      <tr><td>Gathered drum, 35cm</td><td>£220</td><td>£22</td><td class="c-time">£40</td><td class="c-post">£10</td><td>£72</td><td class="c-m" style="--m: 67%"><span class="m-bar"><i></i></span><span class="m-v">67%</span></td></tr>
-                      <tr data-low><td>Sage slim lamp</td><td>£105</td><td class="c-mat">£42<small>£14 + £28 base</small></td><td class="c-time">£20</td><td class="c-post">£8</td><td>£70</td><td class="c-m" style="--m: 33%"><span class="m-bar"><i></i></span><span class="m-v">33%</span></td></tr>
-                    </tbody>
-                  </table></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="surf surf--deck" data-surf="3">
-              <div class="deck-job" id="deck-job">
-                <div class="step-note">
-                  <p class="doc-meta">Note</p>
-                  <p class="step-note-title" data-step-line>Drum workshop steps</p>
-                  <ol>
-                    <li data-step-line>Cut the panel to size</li>
-                    <li data-step-line>Stick the fabric on</li>
-                    <li data-step-line>Roll it round the rings</li>
-                    <li data-step-line>Tuck in the edges</li>
-                    <li data-step-line>Trim and finish</li>
-                  </ol>
-                </div>
-                <div class="slides" id="slides">
-                  <div class="slide"><div class="slide-face s-cover"><img class="ph ph--fill" data-photo="slide-cover" src="assets/img/lume/slide-cover.jpg" width="480" height="300" alt="A finished drum lampshade in a turquoise geometric print, on a wooden lamp base" style="--ar: 16 / 10" loading="lazy" decoding="async"><div class="s-cap"><b>Make a drum lampshade</b><small>Sunday workshop</small></div></div></div>
-                  <div class="slide"><div class="slide-face s-split"><img class="ph ph--fill" data-photo="step-1" src="assets/img/lume/step-1.jpg" width="280" height="350" alt="Everything for the workshop laid out: printed fabric, a tape measure, scissors, tape, a pencil and the lampshade rings" style="--ar: 4 / 5" loading="lazy" decoding="async"><div class="s-txt"><span class="s-n">Step 1</span><b>Cut the panel to size</b><small>Measure twice. The panel sets the size.</small></div></div></div>
-                  <div class="slide"><div class="slide-face s-bleed"><img class="ph ph--fill" data-photo="step-2" src="assets/img/lume/step-2.jpg" width="480" height="300" alt="Jo holding a drum lampshade frame over her cutting mat in the Lume studio" style="--ar: 16 / 10" loading="lazy" decoding="async"><div class="s-bar"><span class="s-n">Step 2</span><b>Stick the fabric on</b></div></div></div>
-                  <div class="slide"><div class="slide-face s-split"><img class="ph ph--fill" data-photo="step-3" src="assets/img/lume/step-3.jpg" width="320" height="400" alt="Hands holding two lampshade rings over the workshop table, ready to roll the fabric round them" style="--ar: 4 / 5" loading="lazy" decoding="async"><div class="s-txt"><span class="s-n">Step 3</span><b>Roll it round the rings</b><small>Keep it tight and even.</small></div></div></div>
-                  <div class="slide"><div class="slide-face s-bleed"><img class="ph ph--fill" data-photo="step-4" src="assets/img/lume/step-4.jpg" width="560" height="350" alt="Hands tucking the printed fabric edge over the ring of a drum shade, with scissors, tape and a tape measure beside it" style="--ar: 16 / 10" loading="lazy" decoding="async"><div class="s-bar"><span class="s-n">Step 4</span><b>Tuck in the edges</b></div></div></div>
-                  <div class="slide"><div class="slide-face s-split s-rev"><div class="s-txt"><span class="s-n">Step 5</span><b>Trim and finish</b><small>Then take it home.</small></div><img class="ph ph--fill" data-photo="step-5" src="assets/img/lume/step-5.jpg" width="280" height="350" alt="The finished turquoise drum shade on a wooden lamp base, against a navy wall" style="--ar: 4 / 5" loading="lazy" decoding="async"></div></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="surf surf--canvas" data-surf="4">
-              <div class="cv" id="cv">
-                <span class="cvh" style="--x: 4%">Fabrics</span>
-                <span class="cvh" style="--x: 37%">Shapes</span>
-                <span class="cvh" style="--x: 70%">Notes</span>
-                <div class="cvi cvi--sw" style="--x0: 5%; --y0: 9%; --r0: -6deg; --x1: 4%; --y1: 15%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Green leaf linen"><rect width="60" height="40" fill="url(#pt-leaf)"/></svg></div>
-                <div class="cvi cvi--sw" style="--x0: 52%; --y0: 60%; --r0: 5deg; --x1: 4%; --y1: 42%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Dotted cotton"><rect width="60" height="40" fill="url(#pt-dots)"/></svg></div>
-                <div class="cvi cvi--sw" style="--x0: 27%; --y0: 68%; --r0: -3deg; --x1: 4%; --y1: 69%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Striped linen"><rect width="60" height="40" fill="url(#pt-stripe)"/></svg></div>
-                <div class="cvi cvi--shape" style="--x0: 71%; --y0: 7%; --r0: 4deg; --x1: 37%; --y1: 15%"><svg viewBox="0 0 120 80" role="img" aria-label="Scallop shape"><path d="M60 3v11"/><path d="M46 14h28l20 46q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-8 0z"/></svg></div>
-                <div class="cvi cvi--shape" style="--x0: 35%; --y0: 5%; --r0: -4deg; --x1: 37%; --y1: 52%"><svg viewBox="0 0 120 80" role="img" aria-label="Drum shape"><path d="M60 3v11"/><ellipse cx="60" cy="20" rx="28" ry="6"/><path d="M32 20v38a28 6 0 0 0 56 0V20"/></svg></div>
-                <div class="cvi cvi--sticky" style="--x0: 7%; --y0: 50%; --r0: 3deg; --x1: 70%; --y1: 15%">Mustard sold out in two days</div>
-                <div class="cvi cvi--sticky cvi--prices" id="cv-prices" style="--x0: 69%; --y0: 50%; --r0: -4deg; --x1: 70%; --y1: 37%">Scallops<br>30cm £250<br>40cm £300<br>50cm £350</div>
-                <div class="cvi cvi--sticky cvi--gap" id="cv-price" style="--x0: 56%; --y0: 27%; --r0: 2deg; --x1: 70%; --y1: 70%"><span class="cv-t">Scallop, 60cm: £?</span></div>
-              </div>
-            </div>
-
-            <div class="surf surf--dash" data-surf="5">
-              <div class="dash" id="dash">
-                <div class="dash-before">
-                  <div class="tbl-wrap"><table class="tbl tbl--sales" aria-label="Sales this year">
-                    <thead><tr><th scope="col">Month</th><th scope="col">Shades</th><th scope="col">Workshops</th></tr></thead>
-                    <tbody>
-                      <tr><td>Jan</td><td>£1,320</td><td>£540</td></tr>
-                      <tr><td>Feb</td><td>£1,440</td><td>£660</td></tr>
-                      <tr><td>Mar</td><td>£1,620</td><td>£960</td></tr>
-                      <tr><td>Apr</td><td>£1,500</td><td>£960</td></tr>
-                      <tr><td>May</td><td>£1,920</td><td>£1,620</td></tr>
-                      <tr><td>Jun</td><td>£1,620</td><td>£1,380</td></tr>
-                      <tr><td>Jul</td><td>£1,740</td><td>£1,620</td></tr>
-                      <tr><td>Aug</td><td>£2,040</td><td>£1,860</td></tr>
-                      <tr><td>Sep</td><td>£2,400</td><td>£2,160</td></tr>
-                    </tbody>
-                  </table></div>
-                </div>
-                <div class="dash-after">
-                  <div class="tiles">
-                    <div class="tile"><span class="tile-k">Shades</span><b class="tile-v tnum" data-to="15600" data-pre="£">0</b></div>
-                    <div class="tile"><span class="tile-k">Workshops</span><b class="tile-v tnum" data-to="11760" data-pre="£">0</b></div>
-                    <div class="tile tile--find"><span class="tile-k">Workshops' share</span><b class="tile-v tnum" data-to="43" data-suf="%">0</b></div>
-                  </div>
-                  <div class="chart">
-                    <div class="bars">
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 49.5%"></i><i class="b2" style="--h: 20.25%"></i></div><span>Jan</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 54%"></i><i class="b2" style="--h: 24.75%"></i></div><span>Feb</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 60.75%"></i><i class="b2" style="--h: 36%"></i></div><span>Mar</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 56.25%"></i><i class="b2" style="--h: 36%"></i></div><span>Apr</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 72%"></i><i class="b2" style="--h: 60.75%"></i></div><span>May</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 60.75%"></i><i class="b2" style="--h: 51.75%"></i></div><span>Jun</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 65.25%"></i><i class="b2" style="--h: 60.75%"></i></div><span>Jul</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 76.5%"></i><i class="b2" style="--h: 69.75%"></i></div><span>Aug</span></div>
-                      <div class="bar-g"><div class="pair"><i class="b1" style="--h: 90%"></i><i class="b2" style="--h: 81%"></i></div><span>Sep</span></div>
-                    </div>
-                    <div class="key"><span><i class="k1"></i>Shades</span><span><i class="k2"></i>Workshops</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
+
+          <div class="surf surf--dash" data-surf="5">
+            <div class="dash" id="dash">
+              <div class="dash-before">
+                <div class="tbl-wrap"><table class="tbl tbl--sales" aria-label="Sales this year">
+                  <thead><tr><th scope="col">Month</th><th scope="col">Shades</th><th scope="col">Workshops</th></tr></thead>
+                  <tbody>
+                    <tr><td>Jan</td><td>£1,320</td><td>£540</td></tr>
+                    <tr><td>Feb</td><td>£1,440</td><td>£660</td></tr>
+                    <tr><td>Mar</td><td>£1,620</td><td>£960</td></tr>
+                    <tr><td>Apr</td><td>£1,500</td><td>£960</td></tr>
+                    <tr><td>May</td><td>£1,920</td><td>£1,620</td></tr>
+                    <tr><td>Jun</td><td>£1,620</td><td>£1,380</td></tr>
+                    <tr><td>Jul</td><td>£1,740</td><td>£1,620</td></tr>
+                    <tr><td>Aug</td><td>£2,040</td><td>£1,860</td></tr>
+                    <tr><td>Sep</td><td>£2,400</td><td>£2,160</td></tr>
+                  </tbody>
+                </table></div>
+              </div>
+              <div class="dash-after">
+                <div class="tiles">
+                  <div class="tile"><span class="tile-k">Shades</span><b class="tile-v tnum" data-to="15600" data-pre="£">0</b></div>
+                  <div class="tile"><span class="tile-k">Workshops</span><b class="tile-v tnum" data-to="11760" data-pre="£">0</b></div>
+                  <div class="tile tile--find"><span class="tile-k">Workshops' share</span><b class="tile-v tnum" data-to="43" data-suf="%">0</b></div>
+                </div>
+                <div class="chart">
+                  <div class="bars">
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 49.5%"></i><i class="b2" style="--h: 20.25%"></i></div><span>Jan</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 54%"></i><i class="b2" style="--h: 24.75%"></i></div><span>Feb</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 60.75%"></i><i class="b2" style="--h: 36%"></i></div><span>Mar</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 56.25%"></i><i class="b2" style="--h: 36%"></i></div><span>Apr</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 72%"></i><i class="b2" style="--h: 60.75%"></i></div><span>May</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 60.75%"></i><i class="b2" style="--h: 51.75%"></i></div><span>Jun</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 65.25%"></i><i class="b2" style="--h: 60.75%"></i></div><span>Jul</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 76.5%"></i><i class="b2" style="--h: 69.75%"></i></div><span>Aug</span></div>
+                    <div class="bar-g"><div class="pair"><i class="b1" style="--h: 90%"></i><i class="b2" style="--h: 81%"></i></div><span>Sep</span></div>
+                  </div>
+                  <div class="key"><span><i class="k1"></i>Shades</span><span><i class="k2"></i>Workshops</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

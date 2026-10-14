@@ -1144,65 +1144,25 @@
   }
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
-     "Help with everything you make." A try-it demo: the visitor picks a job
-     (cards on the left, or one sideways row of buttons on a phone); Pip's
-     offer and its buttons sit at the top of the work area; the result is
-     below. "Yes, …" plays the job in named steps, Pip's face thinking and one
-     live line saying what's happening now. Undo puts the before back with
-     Pip's offer, ready to try again. The product shot offers three finishes,
-     and keeps the other two (and the original) to compare.
+     "Help with everything you make." A try-it demo with the site's one shape:
+     the strip on top holds every control (the six jobs as pills; at its end
+     the one button that does the next step, or View original), Pip's line
+     under it tells the story, and the result is below.
+     Each job is a short chain of steps. Most have one; the product shot has
+     three (tidy it up, cut it out, add a backdrop), each starting from where
+     the last one ended. A step plays with Pip's face thinking and one live
+     line saying what's happening now. View original puts the before back
+     with Pip's first offer. Picking another job mid-step switches at once:
+     the running step stops and that job goes back to its before.
      The window always fits the screen and never changes size: CSS sizes it
-     from the view, and Pip's line keeps room for its longest words and its
-     most buttons (fitBar). Picking a job, Next job, Undo and an option bring
-     the whole window into view. Under reduced motion every job lands on its
-     end state at once. */
+     from the view, and Pip's line keeps room for its tallest message
+     (fitBar). Picking a job, a step and View original bring the whole window
+     into view. Under reduced motion every step lands on its end at once. */
 
   function jobs() {
     var win = $("#jobs-win");
     if (!win) return;
 
-    var JOBS = [
-      { title: "Lume Lighting › Newsletter: " + D.month,
-        intro: "You've jotted down this month's news. Want me to turn it into a first draft, in your words?",
-        go: "Yes, draft it",
-        steps: ["Writing it in your words…"],
-        done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
-      { title: "Lume Lighting › sage-slim-lamp.jpg",
-        intro: "Your sage lamp's on a busy desk. What would you like for the shop?",
-        options: true },
-      { title: "Lume Lighting › Prices",
-        intro: "Your costs are spread across this sheet and a supplier invoice. Want me to pull them together and work out what each shade makes?",
-        go: "Yes, work it out",
-        steps: ["Reading the invoice…", "Putting your costs together…", "Working out your margins…"],
-        done: "The slim lamp makes the least, 33%, because its oak base now costs £28. Your scallops make 69%." },
-      { title: "Lume Lighting › Drum workshop steps",
-        intro: "You've got the steps for Sunday. Want them as a deck?",
-        go: "Yes, make the deck",
-        steps: ["Making a slide for each step…"],
-        done: "Six slides, one for each step, with your step photos in. Move anything you like." },
-      { title: "Lume Lighting › Spring collection · Canvas",
-        intro: "Your spring ideas are all over the place. Want me to sort them and fill in what's missing?",
-        go: "Yes, sort them",
-        steps: ["Sorting your ideas…", "Pricing the 60cm scallop…"],
-        done: "Sorted into fabrics, shapes and notes. Your 60cm scallop had no price, so I've pencilled in £400, following your sizes. Change it if you like." },
-      { title: "Lume Lighting › Sales " + D.salesYear,
-        intro: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?",
-        go: "Yes, show me",
-        steps: ["Reading your sales sheet…", "Adding up the year…", "Drawing the chart…", "Looking for what stands out…"],
-        done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year." }
-    ];
-    // The product shot's three finishes
-    var OPTS = {
-      tidy: { steps: ["Cropping it square…", "Taking out the notepad…", "Brightening it…"],
-              done: "Square, bright and tidy, ready for the listing.",
-              label: "The same sage lamp, cropped square on the desk, tidied and brightened" },
-      cut:  { steps: ["Finding the edge of the lamp…", "Cutting it out…", "Brightening it…"],
-              done: "Cut out, so you can put it anywhere.",
-              label: "The sage lamp cut out on its own, on a transparent background" },
-      bg:   { steps: ["Finding the edge of the lamp…", "Cutting it out…", "Setting it on a studio backdrop…", "Brightening it…"],
-              done: "On a clean backdrop, like a studio shot.",
-              label: "The sage lamp on a plain sand backdrop with a soft shadow, like a studio shot" }
-    };
     var NL = [
       "Hello, and thank you for such a lovely summer at the studio.",
       "The mustard scallop is finally in the shop. It's the linen I've been saving for months, and as always there's only one.",
@@ -1210,7 +1170,7 @@
       "The last posting day for Christmas is " + D.dayMonth(D.xmas) + ".",
       "Speak soon."
     ];
-    // The idea(s) each paragraph is written from. "Speak soon." is how Jo signs off.
+    // The idea(s) each paragraph is written from ("Speak soon." is the sign-off)
     var NL_FROM = [[4], [0], [1, 2], [3], []];
     var WORD_MS = 34, PARA_MS = 140;
 
@@ -1218,15 +1178,11 @@
     var rail = $(".jobs-rail", win);
     var surfs = $$(".surf", win);
     var title = $("#jobs-title");
+    var pip = $(".jobs-pip", win);
     var msg = $("#jobs-msg");
     var faceHolder = $("#jobs-face");
-    var actions = $("#jobs-actions");
-    var optsBox = $("#jobs-opts");
-    var optBtns = $$("[data-opt]", optsBox);
     var goBtn = $("#jobs-go");
-    var undoBtn = $("#jobs-undo");
-    var nextBtn = $("#jobs-next");
-    var nextLabel = $("span", nextBtn);
+    var backBtn = $("#jobs-back");
 
     var note = $("#nl");
     var nlText = $("#nl-text");
@@ -1237,14 +1193,11 @@
     var frame = $("#photo-frame");
     var tools = $$(".ptool", photo);
     var PHOTO_BEFORE = frame.getAttribute("aria-label");
-    var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-tracing", "is-cut", "is-cut-done", "is-backdrop", "is-bright"];
-    var mode = null;          // the finish the product shot has, or is getting
+    var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-bright", "is-tracing", "is-cut", "is-backdrop"];
 
     var costs = $("#costs");
-    var invLine = $("#inv-line");
     var costRows = $$(".tbl--costs tbody tr", costs);
     var lowRow = $("[data-low]", costs);
-    var matCell = $(".c-mat", costs);
 
     var deck = $("#deck-job");
     var slideEls = $$(".slide", deck);
@@ -1261,8 +1214,57 @@
     var chart = $(".chart", dash);
     var tiles = $$(".tile-v", dash);
 
-    var cur = 0, shown = 0, busy = false;
-    var done = [false, false, false, false, false, false];
+    /* ── the steps ──────────────────────────────────────────────────────────
+       Each job: a title, its steps (what Pip offers, the button, the live
+       lines, play and end), and what Pip says when the last step is done. */
+
+    var JOBS = [
+      { title: "Lume Lighting › Newsletter: " + D.month,
+        steps: [{ offer: "You've jotted down this month's news. Want me to turn it into a first draft, in your words?",
+                  go: "Yes, draft it", lines: ["Writing it in your words…"], play: nlPlay, end: nlEnd }],
+        done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check.",
+        undo: nlUndo },
+      { title: "Lume Lighting › sage-slim-lamp.jpg",
+        steps: [
+          { offer: "Your sage lamp's on a busy desk. Want me to make it a product shot?",
+            go: "Tidy it up", lines: ["Cropping it square…", "Taking out the notepad…", "Brightening it…"], play: tidyPlay, end: tidyEnd,
+            label: "The same sage lamp, cropped square on the desk, tidied and brightened" },
+          { offer: "Tidied. Want me to cut the lamp out too?",
+            go: "Cut it out", lines: ["Finding the edge of the lamp…", "Cutting it out…"], play: cutPlay, end: cutEnd,
+            label: "The sage lamp cut out on its own, on a transparent background" },
+          { offer: "Cut out. Want it on a clean backdrop?",
+            go: "Add a backdrop", lines: ["Setting it on a clean backdrop…"], play: backdropPlay, end: backdropEnd,
+            label: "The sage lamp on a plain sand backdrop with a soft shadow, like a studio shot" }
+        ],
+        done: "There's your product shot: clean, bright and ready for the shop.",
+        undo: photoUndo },
+      { title: "Lume Lighting › Costs",
+        steps: [{ offer: "Want me to work out what each shade costs to make, and how much you keep?",
+                  go: "Yes, work it out", lines: ["Adding a Cost to make column…", "Working out your margins…", "Highlighting anything under 50%…"], play: costsPlay, end: costsEnd }],
+        done: "The slim lamp makes the least, 33%. Its oak base is £28 of the £70 it costs to make.",
+        undo: costsUndo },
+      { title: "Lume Lighting › Drum workshop steps",
+        steps: [{ offer: "You've got the steps for Sunday. Want them as a deck?",
+                  go: "Yes, make the deck", lines: ["Making a slide for each step…"], play: deckPlay, end: deckEnd }],
+        done: "Six slides, one for each step, with your step photos in. Move anything you like.",
+        undo: deckUndo },
+      { title: "Lume Lighting › Spring collection · Canvas",
+        steps: [{ offer: "Your spring ideas are all over the place. Want me to sort them and fill in what's missing?",
+                  go: "Yes, sort them", lines: ["Sorting your ideas…", "Pricing the 60cm scallop…"], play: cvPlay, end: cvEnd }],
+        done: "Sorted into fabrics, shapes and notes. Your 60cm scallop had no price, so I've pencilled in £400, following your sizes. Change it if you like.",
+        undo: cvUndo },
+      { title: "Lume Lighting › Sales " + D.salesYear,
+        steps: [{ offer: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?",
+                  go: "Yes, show me", lines: ["Reading your sales sheet…", "Adding up the year…", "Drawing the chart…", "Looking for what stands out…"], play: dashPlay, end: dashEnd }],
+        done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year.",
+        undo: dashUndo }
+    ];
+
+    var cur = 0, shown = 0;
+    var at = [0, 0, 0, 0, 0, 0];   // how many of each job's steps are done
+    var busy = false;
+    var timers = [];
+    var run = 0;                   // bumps when a step stops, so late callbacks know
     var swapping = null;
     var lineNode = null;
 
@@ -1271,13 +1273,23 @@
     $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
     $$(".pair", chart).forEach(function (p, i) { $$("i", p).forEach(function (b) { b.style.setProperty("--n", i); }); });
 
-    // The first job asks to be picked until the visitor has clicked anything here
+    // The do-it button asks to be pressed until the visitor has clicked anything here
     win.addEventListener("click", function tried() {
       win.classList.add("is-tried");
       win.removeEventListener("click", tried);
     });
 
-    function later(fn, ms) { setTimeout(fn, ms); }
+    function later(fn, ms) {
+      var id = run;
+      timers.push(setTimeout(function () { if (id === run) fn(); }, ms));
+    }
+    // Stop whatever is playing: every pending step and every moving thing
+    function stopAll() {
+      run++;
+      timers.forEach(clearTimeout);
+      timers = [];
+      busy = false;
+    }
     function lit(node, ms) {
       node.classList.add("is-lit");
       later(function () { node.classList.remove("is-lit"); }, ms);
@@ -1300,8 +1312,8 @@
       window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
     }
 
-    /* On a phone the jobs are one sideways row: keep the chosen job in view
-       and fade the edge that has more */
+    /* The jobs row scrolls sideways when it's too wide: keep the chosen job
+       in view and fade the edge that has more */
     function railEdges() {
       var max = rail.scrollWidth - rail.clientWidth;
       rail.classList.toggle("is-scrolled", rail.scrollLeft > 2);
@@ -1344,8 +1356,8 @@
       };
     }
 
-    /* Pip's line: an offer, then the dots and one live line per step, then
-       what was done */
+    /* Pip's line: an offer, then the dots and one live line per moment of
+       the step, then what was done */
     function setMessage(text) {
       msg.classList.remove("is-busy");
       lineNode = null;
@@ -1362,101 +1374,67 @@
       msg.appendChild(lineNode);
     }
 
-    function step(text) { if (lineNode) swapText(lineNode, text); }
-
-    function stepsOf(i) { return JOBS[i].options ? OPTS[mode].steps : JOBS[i].steps; }
-    function doneOf(i) { return JOBS[i].options ? OPTS[mode].done : JOBS[i].done; }
+    function line(text) { if (lineNode) swapText(lineNode, text); }
+    function lines() { var j = JOBS[cur]; return j.steps[Math.min(at[cur], j.steps.length - 1)].lines; }
 
     function paint() {
       var j = JOBS[cur];
+      var n = at[cur], last = n >= j.steps.length;
       jobBtns.forEach(function (b, i) {
         b.classList.toggle("is-on", i === cur);
         b.setAttribute("aria-pressed", i === cur ? "true" : "false");
-        b.classList.toggle("is-done", done[i]);
       });
       railTo(jobBtns[cur], true);
       showSurf(cur);
       if (cur === 0) later(function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, 120);
       swapText(title, j.title);
-      if (!busy) setMessage(done[cur] ? doneOf(cur) : j.intro);
-      optsBox.hidden = busy || !j.options;
-      optBtns.forEach(function (b) { b.setAttribute("aria-pressed", done[cur] && b.getAttribute("data-opt") === mode ? "true" : "false"); });
-      goBtn.textContent = j.go || "";
-      goBtn.hidden = busy || done[cur] || !!j.options;
-      undoBtn.textContent = j.options ? "View original" : "Undo";
-      undoBtn.hidden = nextBtn.hidden = busy || !done[cur];
-      nextLabel.textContent = cur === JOBS.length - 1 ? "Back to the first job" : "Next job";
+      if (!busy) setMessage(last ? j.done : j.steps[n].offer);
+      goBtn.hidden = busy || last;
+      if (!last) goBtn.textContent = j.steps[n].go;
+      backBtn.hidden = busy || n === 0;
     }
 
-    function finish() {
+    function stepDone() {
       busy = false;
-      done[cur] = true;
+      at[cur]++;
       paint();
-      if (!nextBtn.hidden) nextBtn.focus({ preventScroll: true });
+      var next = !goBtn.hidden ? goBtn : backBtn;
+      if (!next.hidden) next.focus({ preventScroll: true });
     }
 
     function play() {
+      var s = JOBS[cur].steps[at[cur]];
       busy = true;
       paint();
-      setBusy(stepsOf(cur)[0]);
-      if (reduced()) { END[cur](); finish(); return; }
-      PLAY[cur]();
+      setBusy(s.lines[0]);
+      if (reduced()) { s.end(); stepDone(); return; }
+      s.play();
     }
 
-    // The button that moves things on, right now
-    function firstAction() {
-      return [goBtn, optBtns[0], nextBtn].filter(function (b) { return !b.hidden && !(b === optBtns[0] && optsBox.hidden); })[0];
-    }
-    function nudge(btn) {
-      if (!btn) return;
-      btn.classList.remove("is-nudged");
-      void btn.offsetWidth;
-      btn.classList.add("is-nudged");
-      later(function () { btn.classList.remove("is-nudged"); }, 2400);
+    // Back to a job's before, at once, with Pip's first offer
+    function revert(i) {
+      instantly(JOBS[i].undo);
+      at[i] = 0;
     }
 
-    /* Pip's line keeps room for its tallest moment at this width (the
-       longest words with the buttons that go with them), so nothing Pip says
-       or offers can make the window grow. The buttons sit right under the
-       words; any room left over is under the buttons. */
-    var pip = $(".jobs-pip", win);
-    var MOMENTS = [];
-    JOBS.forEach(function (j, i) {
-      if (j.options) {
-        MOMENTS.push([j.intro, "opts"]);
-        Object.keys(OPTS).forEach(function (k) {
-          MOMENTS.push([OPTS[k].done, "opts-done"]);
-          OPTS[k].steps.forEach(function (t) { MOMENTS.push([t, ""]); });
-        });
-        return;
-      }
-      MOMENTS.push([j.intro, "go", j.go]);
-      MOMENTS.push([j.done, i === JOBS.length - 1 ? "done-last" : "done"]);
-      j.steps.forEach(function (t) { MOMENTS.push([t, ""]); });
+    /* Pip's line keeps room for its tallest message at this width, so
+       nothing Pip says can make the window grow */
+    var MSGS = [];
+    JOBS.forEach(function (j) {
+      MSGS.push(j.done);
+      j.steps.forEach(function (s) { MSGS.push(s.offer); MSGS.push.apply(MSGS, s.lines); });
     });
 
     function fitBar() {
       pip.style.minHeight = "";
       var kids = Array.prototype.slice.call(msg.childNodes);
       var busyCls = msg.classList.contains("is-busy");
-      var keep = [optsBox.hidden, goBtn.hidden, undoBtn.hidden, nextBtn.hidden, goBtn.textContent, undoBtn.textContent, nextLabel.textContent];
-      var h = 0;
       msg.classList.remove("is-busy");
-      MOMENTS.forEach(function (m) {
-        msg.textContent = m[0];
-        optsBox.hidden = m[1].indexOf("opts") !== 0;
-        goBtn.hidden = m[1] !== "go";
-        if (m[2]) goBtn.textContent = m[2];
-        undoBtn.hidden = nextBtn.hidden = !(m[1] === "opts-done" || m[1].indexOf("done") === 0);
-        undoBtn.textContent = m[1] === "opts-done" ? "View original" : "Undo";
-        nextLabel.textContent = m[1] === "done-last" ? "Back to the first job" : "Next job";
-        h = Math.max(h, pip.getBoundingClientRect().height);
-      });
+      var h = 0;
+      MSGS.forEach(function (t) { msg.textContent = t; h = Math.max(h, pip.getBoundingClientRect().height); });
       msg.textContent = "";
       kids.forEach(function (k) { msg.appendChild(k); });
       msg.classList.toggle("is-busy", busyCls);
-      optsBox.hidden = keep[0]; goBtn.hidden = keep[1]; undoBtn.hidden = keep[2]; nextBtn.hidden = keep[3];
-      goBtn.textContent = keep[4]; undoBtn.textContent = keep[5]; nextLabel.textContent = keep[6];
       pip.style.minHeight = Math.ceil(h) + "px";
       measureNote();
       railTo(jobBtns[cur], false);
@@ -1510,13 +1488,14 @@
     function fold(lis) {
       var left = ideas.filter(function (li) { return !li.hidden && lis.indexOf(li) < 0; });
       var what = left.length ? lis : [ideasBox];
+      var id = run;
       what.forEach(function (node) {
         var h = node.offsetHeight;
         var anim = node.animate && node.animate(
           [{ height: h + "px", opacity: 1 }, { height: "0px", opacity: 0, paddingTop: "0px", paddingBottom: "0px" }],
           { duration: 300, easing: EASE_OUT }
         );
-        var gone = function () { node.hidden = true; measureNote(); };
+        var gone = function () { if (id === run) { node.hidden = true; measureNote(); } };
         if (anim) anim.onfinish = gone; else gone();
       });
     }
@@ -1524,7 +1503,7 @@
     function nlPara(n) {
       if (n >= NL.length) {
         if (note.classList.contains("is-long")) note.scrollTo({ top: note.scrollHeight, behavior: "smooth" });
-        finish();
+        stepDone();
         return;
       }
       var src = NL_FROM[n].map(function (i) { return ideas[i]; });
@@ -1541,9 +1520,9 @@
       var words = NL[n].split(" ");
       var k = 0;
       (function word() {
-        var at = topIn(ideasBox);
+        var at0 = topIn(ideasBox);
         text.data += (k ? " " : "") + words[k++];
-        pushIdeas(at);
+        pushIdeas(at0);
         follow(caret, n);
         if (k < words.length) { later(word, WORD_MS); return; }
         if (src.length) fold(src);
@@ -1577,14 +1556,13 @@
     }
 
     /* ── 1 · The product shot ───────────────────────────────────────────────
-       One dim snapshot of the lamp on Jo's desk, and three ways to finish it.
-       Tidy it up: crop it square (the notepad still in), paint a selection
-       over what goes and fill it in, then brighten it, still on the desk.
-       Cut it out: trace the lamp's edge and lift it off its background onto
-       transparency. New background: the same, then onto a sand backdrop with
-       a soft shadow. Each tool lights as it works. */
-
-    var TOOLS = { tidy: ["crop", "remove", "bright"], cut: ["cut", "bright"], bg: ["cut", "backdrop", "bright"] };
+       A dim snapshot of the lamp on a busy desk, made into a product shot in
+       three steps, each from where the last one ended. Tidy it up: crop it
+       square (the notepad still in), paint a selection over what goes and
+       fill it in, then brighten it, still on the desk. Cut it out: trace the
+       lamp's edge and let the room fall away to transparency. Add a
+       backdrop: the cut-out onto a sand backdrop with a soft shadow. Each
+       tool lights as it works. */
 
     function tool(name) {
       tools.forEach(function (t) {
@@ -1592,43 +1570,53 @@
         if (name && t.getAttribute("data-tool") === name) t.classList.add("is-active");
       });
     }
-
-    function photoPlay() {
-      var s = OPTS[mode].steps;
-      var add = function (c) { photo.classList.add.apply(photo.classList, c.split(" ")); };
-      if (mode === "tidy") {
-        tool("crop");
-        add("is-framing");
-        later(function () { add("is-cropped"); }, 1000);
-        later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 1950);
-        later(function () { step(s[1]); tool("remove"); add("is-selecting"); }, 2250);
-        later(function () { add("is-filled"); }, 3650);
-        later(function () { step(s[2]); tool("bright"); add("is-bright"); }, 4550);
-        later(function () { photoEnd(); finish(); }, 5750);
-        return;
-      }
-      tool("cut");
-      add("is-tracing");
-      later(function () { step(s[1]); add("is-cut is-cropped"); }, 1500);
-      later(function () { add("is-cut-done"); }, 2450);
-      if (mode === "cut") {
-        later(function () { step(s[2]); tool("bright"); add("is-bright"); }, 2750);
-        later(function () { photoEnd(); finish(); }, 3950);
-        return;
-      }
-      later(function () { step(s[2]); tool("backdrop"); add("is-backdrop"); }, 2850);
-      later(function () { step(s[3]); tool("bright"); add("is-bright"); }, 4050);
-      later(function () { photoEnd(); finish(); }, 5200);
-    }
-
-    function photoEnd() {
-      var on = { tidy: "is-cropped is-square is-filled is-bright", cut: "is-cropped is-cut is-cut-done is-bright", bg: "is-cropped is-cut is-cut-done is-backdrop is-bright" }[mode].split(" ");
-      PHOTO_STATES.forEach(function (c) { photo.classList.toggle(c, on.indexOf(c) > -1); });
+    function add(c) { photo.classList.add.apply(photo.classList, c.split(" ")); }
+    function settle(names, label) {
       tools.forEach(function (t) {
         t.classList.remove("is-active");
-        t.classList.toggle("is-done", TOOLS[mode].indexOf(t.getAttribute("data-tool")) > -1);
+        if (names.indexOf(t.getAttribute("data-tool")) > -1) t.classList.add("is-done");
       });
-      frame.setAttribute("aria-label", OPTS[mode].label);
+      frame.setAttribute("aria-label", label);
+    }
+
+    function tidyPlay() {
+      var s = JOBS[1].steps[0].lines;
+      tool("crop");
+      add("is-framing");
+      later(function () { add("is-cropped"); }, 1000);
+      later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 1950);
+      later(function () { line(s[1]); tool("remove"); add("is-selecting"); }, 2250);
+      later(function () { add("is-filled"); }, 3650);
+      later(function () { line(s[2]); tool("bright"); add("is-bright"); }, 4550);
+      later(function () { tidyEnd(); stepDone(); }, 5750);
+    }
+    function tidyEnd() {
+      photo.classList.remove("is-framing", "is-selecting");
+      add("is-cropped is-square is-filled is-bright");
+      settle(["crop", "remove", "bright"], JOBS[1].steps[0].label);
+    }
+
+    function cutPlay() {
+      var s = JOBS[1].steps[1].lines;
+      tool("cut");
+      add("is-tracing");
+      later(function () { line(s[1]); add("is-cut"); }, 1500);
+      later(function () { cutEnd(); stepDone(); }, 2900);
+    }
+    function cutEnd() {
+      photo.classList.remove("is-tracing");
+      add("is-cut");
+      settle(["cut"], JOBS[1].steps[1].label);
+    }
+
+    function backdropPlay() {
+      tool("backdrop");
+      later(function () { add("is-backdrop"); }, 250);
+      later(function () { backdropEnd(); stepDone(); }, 2000);
+    }
+    function backdropEnd() {
+      add("is-backdrop");
+      settle(["backdrop"], JOBS[1].steps[2].label);
     }
 
     function photoUndo() {
@@ -1638,38 +1626,30 @@
     }
 
     /* ── 2 · The costs ──────────────────────────────────────────────────────
-       Pip reads the supplier's invoice (the oak base, now £28), puts every
-       cost from Jo's sheet into one clean table, then works out the margin
-       each makes. The lowest, the slim lamp, keeps the wash. */
+       One table, and only what Pip's tables do: a formula column (Cost to
+       make), a percent column (Margin), and a conditional format that
+       colours any row whose margin is under 50%. */
 
     function costsPlay() {
-      later(function () { invLine.classList.add("is-lit"); }, 300);
-      later(function () { step(JOBS[2].steps[1]); invLine.classList.remove("is-lit"); costs.classList.add("is-built"); }, 1800);
-      costRows.forEach(function (r, i) {
-        later(function () {
-          r.classList.add("is-in");
-          if (r === lowRow) lit(matCell, 1100);
-        }, 2150 + i * 380);
-      });
-      later(function () { step(JOBS[2].steps[2]); }, 3950);
-      costRows.forEach(function (r, i) { later(function () { r.classList.add("is-m"); }, 4200 + i * 320); });
-      later(function () { lowRow.classList.add("is-low"); }, 4200 + costRows.length * 320 + 250);
-      later(finish, 6000);
+      var s = JOBS[2].steps[0].lines;
+      later(function () { costs.classList.add("has-cost"); }, 350);
+      costRows.forEach(function (r, i) { later(function () { r.classList.add("is-c"); }, 800 + i * 320); });
+      later(function () { line(s[1]); costs.classList.add("has-marg"); }, 2450);
+      costRows.forEach(function (r, i) { later(function () { r.classList.add("is-m"); }, 2900 + i * 320); });
+      later(function () { line(s[2]); }, 4500);
+      later(function () { costs.classList.add("is-ruled"); lowRow.classList.add("is-low"); }, 4900);
+      later(function () { stepDone(); }, 6100);
     }
 
     function costsEnd() {
-      invLine.classList.remove("is-lit");
-      matCell.classList.remove("is-lit");
-      costs.classList.add("is-built");
-      costRows.forEach(function (r) { r.classList.add("is-in", "is-m"); });
+      costs.classList.add("has-cost", "has-marg", "is-ruled");
+      costRows.forEach(function (r) { r.classList.add("is-c", "is-m"); });
       lowRow.classList.add("is-low");
     }
 
     function costsUndo() {
-      invLine.classList.remove("is-lit");
-      matCell.classList.remove("is-lit");
-      costs.classList.remove("is-built");
-      costRows.forEach(function (r) { r.classList.remove("is-in", "is-m", "is-low"); });
+      costs.classList.remove("has-cost", "has-marg", "is-ruled");
+      costRows.forEach(function (r) { r.classList.remove("is-c", "is-m", "is-low"); });
     }
 
     /* ── 3 · The deck ───────────────────────────────────────────────────────
@@ -1685,7 +1665,7 @@
           lit(stepLines[i], 760);
         }, 380 + i * 520);
       });
-      later(finish, 380 + slideEls.length * 520 + 480);
+      later(stepDone, 380 + slideEls.length * 520 + 480);
     }
 
     function deckEnd() {
@@ -1706,10 +1686,10 @@
 
     function cvPlay() {
       cv.classList.add("is-sorted");
-      later(function () { step(JOBS[4].steps[1]); cvPrices.classList.add("is-lit"); }, 1900);
+      later(function () { line(JOBS[4].steps[0].lines[1]); cvPrices.classList.add("is-lit"); }, 1900);
       later(function () { cvPrices.classList.remove("is-lit"); cvPrice.classList.add("is-lit"); }, 2800);
       later(function () { swapText(cvPriceText, PRICE_AFTER); }, 3250);
-      later(function () { cvPrice.classList.remove("is-lit"); finish(); }, 4300);
+      later(function () { cvPrice.classList.remove("is-lit"); stepDone(); }, 4300);
     }
 
     function cvEnd() {
@@ -1731,8 +1711,9 @@
        grows, and the one finding. */
 
     function countUp(nodes, duration) {
-      var t0 = null;
+      var t0 = null, id = run;
       function frameFn(ts) {
+        if (id !== run) return;
         if (t0 === null) t0 = ts;
         var k = reduced() ? 1 : Math.min(1, (ts - t0) / duration);
         var eased = 1 - Math.pow(1 - k, 3);
@@ -1751,10 +1732,11 @@
     }
 
     function dashPlay() {
-      later(function () { step(JOBS[5].steps[1]); dash.classList.add("is-shown"); countUp(tiles, 1500); }, 1000);
-      later(function () { step(JOBS[5].steps[2]); chart.classList.add("is-grown"); }, 2000);
-      later(function () { step(JOBS[5].steps[3]); }, 3200);
-      later(finish, 4200);
+      var s = JOBS[5].steps[0].lines;
+      later(function () { line(s[1]); dash.classList.add("is-shown"); countUp(tiles, 1500); }, 1000);
+      later(function () { line(s[2]); chart.classList.add("is-grown"); }, 2000);
+      later(function () { line(s[3]); }, 3200);
+      later(stepDone, 4200);
     }
 
     function dashEnd() {
@@ -1769,49 +1751,25 @@
       setTiles(false);
     }
 
-    var PLAY = [nlPlay, photoPlay, costsPlay, deckPlay, cvPlay, dashPlay];
-    var END = [nlEnd, photoEnd, costsEnd, deckEnd, cvEnd, dashEnd];
-    var UNDO = [nlUndo, photoUndo, costsUndo, deckUndo, cvUndo, dashUndo];
+    /* ── the controls ─────────────────────────────────────────────────────── */
 
     goBtn.addEventListener("click", function () {
-      if (busy || done[cur]) return;
+      if (busy || at[cur] >= JOBS[cur].steps.length) return;
+      bringIntoView();
       play();
     });
-    // A finish for the product shot: from the original each time, so the
-    // three can be compared
-    optBtns.forEach(function (b) {
-      b.addEventListener("click", function () {
-        var next = b.getAttribute("data-opt");
-        if (busy || (done[cur] && next === mode)) return;
-        if (done[cur]) instantly(photoUndo);
-        done[cur] = false;
-        mode = next;
-        bringIntoView();
-        play();
-      });
-    });
-    // Undo (or View original): the before, with Pip's offer, ready again
-    undoBtn.addEventListener("click", function () {
+    backBtn.addEventListener("click", function () {
       if (busy) return;
-      instantly(UNDO[cur]);
-      done[cur] = false;
+      revert(cur);
       paint();
       bringIntoView();
-      var first = firstAction();
-      if (first) first.focus({ preventScroll: true });
-    });
-    nextBtn.addEventListener("click", function () {
-      if (busy) return;
-      cur = (cur + 1) % JOBS.length;
-      paint();
-      bringIntoView();
-      var first = firstAction();
-      if (first) first.focus({ preventScroll: true });
+      goBtn.focus({ preventScroll: true });
     });
     jobBtns.forEach(function (b, i) {
       b.addEventListener("click", function () {
-        if (busy) return;
-        if (i === cur) { bringIntoView(); nudge(firstAction()); return; }
+        if (i === cur) { bringIntoView(); return; }
+        // Mid-step: stop it now, and put that job back to its before
+        if (busy) { stopAll(); revert(cur); }
         cur = i;
         paint();
         bringIntoView();
