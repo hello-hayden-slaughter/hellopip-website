@@ -957,16 +957,15 @@
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
 
     function start() {
+      // The app exactly as it is: no bar, title or chrome of the site's own
+      // around it. The frame only rounds its corners and casts the shadow.
       var win = el("div", "win win--live");
       win.setAttribute("aria-hidden", "true");
-      var bar = el("div", "win-bar");
-      bar.innerHTML = '<span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="win-title">Lume Lighting</span><span class="win-end"></span>';
       var frame = document.createElement("iframe");
       frame.src = src;
       frame.title = "Pip, with a sample workspace you can play with";
       frame.setAttribute("referrerpolicy", "no-referrer");
       frame.tabIndex = -1;
-      win.appendChild(bar);
       win.appendChild(frame);
       play.appendChild(win);
       var note = el("p", "live-note", "A sample workspace to play with. The replies are set, and nothing you do is saved.");
