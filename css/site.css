@@ -1023,6 +1023,10 @@ small { font-size: inherit; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-about { grid-column: 1 / -1; }
 }
+@media (max-width: 400px) {
+  .footer-grid { column-gap: 24px; }
+  .footer-col { min-width: 0; }
+}
 
 /* ── The close band, shared by home and pricing ─────────────────────────── */
 .close { text-align: center; }
@@ -1334,7 +1338,7 @@ small { font-size: inherit; }
 @container (min-width: 521px) {
   .win--note .pipbar { flex-wrap: nowrap; }
   .win--note .pipbar-text { flex-basis: auto; }
-  .win--note .pipbar-actions { flex-basis: auto; justify-content: flex-end; }
+  .win--note .pipbar-actions { flex-basis: auto; justify-content: flex-end; padding-left: 0; }
 }
 
 @container (max-width: 520px) {
@@ -1384,13 +1388,25 @@ small { font-size: inherit; }
 .job.is-done .job-done { opacity: 1; }
 
 .jobs-main { display: flex; flex-direction: column; min-width: 0; }
-.jobs-stage { flex: 1; display: grid; min-height: 500px; padding: clamp(20px, 3.4cqi, 40px); }
-.surf { min-width: 0; }
-/* Without script every job's "before" is listed; with it, they share one frame */
+/* The stage is one fixed height at each width, so the window never changes
+   size: not between jobs, not while one plays. Each height holds the tallest
+   state at its width (measured); a note that runs longer scrolls under a soft
+   fade. Without script every job's "before" is listed instead. */
+.jobs-stage {
+  --stage-h: 580px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: clamp(20px, 3.4cqi, 40px);
+}
+.win--jobs.is-ready .jobs-stage { flex: none; height: var(--stage-h); grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+.surf { min-width: 0; min-height: 0; }
 .win--jobs:not(.is-ready) .surf + .surf { margin-top: 40px; padding-top: 40px; box-shadow: inset 0 1px 0 var(--border-light); }
 .win--jobs.is-ready .surf { grid-area: 1 / 1; }
 .surf-title { margin: 2px 0 14px; font-size: 22px; font-weight: var(--weight-semibold); letter-spacing: -0.015em; }
 
+/* Pip's bar. It holds room for its longest message and its widest buttons
+   (measured in script), so a long answer never makes the window grow. */
 .pipbar {
   display: flex;
   align-items: center;
@@ -1399,68 +1415,148 @@ small { font-size: inherit; }
   background: var(--bg-primary);
   box-shadow: inset 0 1px 0 var(--border-light);
 }
-.pipbar-face { display: inline-flex; flex: none; }
-.pipbar-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.pipbar-face { display: inline-flex; flex: none; align-self: flex-start; margin-top: 6px; }
+.pipbar-text { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .pipbar-label { font-size: 12px; font-weight: var(--weight-medium); color: var(--text-muted); }
 .pipbar-msg { font-size: 15px; line-height: 1.45; color: var(--text-primary); min-height: 1.45em; }
-.pipbar-msg.is-busy { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); }
-.pipbar-actions { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
-.pipbar-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Working: the dots, then one live line naming the step */
+.pipbar-msg.is-busy { display: flex; align-items: flex-start; gap: 8px; color: var(--text-secondary); }
+.pipbar-msg.is-busy .dots { height: 1.45em; }
+.pipbar-actions { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; min-height: var(--control-h); }
 .pipbar-actions .btn .i { margin-right: -2px; }
 
-/* Newsletter */
-.surf--note { max-width: 640px; }
-.rough { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 15px; color: var(--text-secondary); }
-.rough li { position: relative; padding-left: 16px; }
+/* A coral wash on the thing Pip is looking at (.is-lit): it holds while he does */
+.rough li.is-lit,
+.step-note .is-lit { background-color: var(--accent-soft); }
+
+/* Newsletter. Jo's ideas are a dumping ground; Pip reads them one by one,
+   then writes the draft above them, word by word. Her ideas stay. */
+.surf--note { position: relative; max-width: 640px; }
+.win--jobs.is-ready .surf--note { overflow-y: auto; scrollbar-width: none; }
+/* Only a note longer than the stage fades out at the foot (script sets .is-long) */
+.win--jobs.is-ready .surf--note.is-long {
+  padding-bottom: 36px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+          mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
+}
+/* …and once it has scrolled, at its head too, so no line is cut clean */
+.win--jobs.is-ready .surf--note.is-long.is-scrolled {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 40px), transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 40px), transparent);
+}
+.win--jobs.is-ready .surf--note::-webkit-scrollbar { display: none; }
+.nl-h { margin: 0 0 6px; font-size: 14px; font-weight: var(--weight-semibold); line-height: 1.4; color: var(--text-secondary); transition: color 320ms var(--ease-out); }
+.nl-draft { margin-bottom: 20px; }
+.nl p { font-size: 15px; line-height: 1.6; }
+.nl p + p { margin-top: 8px; }
+.nl .caret { opacity: 1; height: 1.1em; vertical-align: -0.18em; margin-left: 2px; }
+.rough { list-style: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; font-size: 15px; line-height: 1.45; color: var(--text-secondary); }
+.rough li {
+  position: relative;
+  margin-inline: -8px;
+  padding: 2px 10px 2px 24px;
+  border-radius: var(--radius-xs);
+  transition: background-color 260ms var(--ease-out), color 320ms var(--ease-out);
+}
 .rough li::before {
   content: "";
   position: absolute;
-  left: 2px;
-  top: 0.68em;
+  left: 10px;
+  top: calc(2px + 0.725em - 2.5px);
   width: 5px;
   height: 5px;
   border-radius: var(--radius-full);
   background: var(--border);
 }
-.nl p { font-size: 15px; line-height: 1.7; }
-.nl p + p { margin-top: 10px; }
-.nl p.is-new { animation: pip-arrive 320ms var(--ease-out) both; }
+.rough li.is-lit { color: var(--text-primary); }
+/* Done: the draft above, her notes kept underneath, a step quieter */
+.nl-ideas.is-kept .nl-h,
+.nl-ideas.is-kept .rough { color: var(--text-muted); }
 
-/* Photo */
-.photo-job { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; height: 100%; }
+/* Product shot. One photo the whole way. .pv is the desk shot; .pv-sq is the
+   square inside it that Pip crops to (left 0, top 17.448%, 56.152% wide,
+   74.870% tall: measured from the original), and it carries every later
+   layer. Cropping widens the frame's grip on .pv by 1.33565, so the square
+   fills the frame exactly and the layers on it never jump. */
+.photo-job { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; height: 100%; }
 .photo-frame {
-  --ph-h: clamp(200px, 34cqi, 300px);
+  --ph-h: min(clamp(210px, 40cqi, 340px), (100cqi - 32px) * 0.75);
   position: relative;
+  flex: none;
   height: var(--ph-h);
   width: calc(var(--ph-h) * 4 / 3);
   max-width: 100%;
   border-radius: 14px;
   overflow: hidden;
+  isolation: isolate;
+  background: var(--bg-tertiary);
   box-shadow: var(--shadow-md), var(--win-ring);
-  transition: width 560ms var(--ease-out);
+  transition: width 900ms var(--ease-out);
 }
-.photo-cut {
+.pv {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--ph-h) * 4 / 3);
+  height: var(--ph-h);
+  transform-origin: 0 0;
+  transition: transform 900ms var(--ease-out);
+}
+.pv-wide { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pv-sq { position: absolute; left: 0; top: 17.448%; width: 56.152%; height: 74.870%; transition: filter 800ms var(--ease-out); }
+.pv-wide { transition: opacity 0s; }
+/* The layers on the square run a pixel past it, so no sliver of the desk shot
+   can show at the frame's edge once it's cropped (and it's hidden then too) */
+.pv-layer { position: absolute; left: 0; top: 0; display: block; width: calc(100% + 1px); height: calc(100% + 1px); opacity: 0; transition: opacity 800ms var(--ease-out); }
+/* The selection Pip paints over the notepad and the plant: a wash inside, a
+   line round the edge (both in the mask), brushed in from the left */
+.pv-sel {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--surface-pip);
-  background-image:
-    linear-gradient(45deg, var(--bg-secondary) 25%, transparent 25%, transparent 75%, var(--bg-secondary) 75%),
-    linear-gradient(45deg, var(--bg-secondary) 25%, transparent 25%, transparent 75%, var(--bg-secondary) 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 8px 8px;
+  background: var(--accent);
+  opacity: 0;
+  -webkit-mask: url("../assets/img/lume/job-shot-select.png") 0 0 / 100% 100% no-repeat;
+          mask: url("../assets/img/lume/job-shot-select.png") 0 0 / 100% 100% no-repeat;
+  clip-path: inset(0 46% 0 0);
+  transition: opacity 600ms var(--ease-out), clip-path 1000ms var(--ease-out);
 }
-/* The clean shot fills the frame (a 4:3 window onto its square, the lamp kept
-   in it); as the frame closes to square it shows whole */
-.photo-cut .ph { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; object-position: 50% 32%; transition: filter 500ms var(--ease-out); }
-.photo-orig { position: absolute; inset: 0; transition: opacity 700ms var(--ease-out); }
-.ph--fill { height: 100%; aspect-ratio: auto; border-radius: 0; }
-.photo-orig .ph { box-shadow: none; }
-.photo-job.is-clean .photo-orig { opacity: 0; }
-.photo-job.is-bright .photo-cut .ph { filter: brightness(1.07) saturate(1.15); }
-.photo-job.is-square .photo-frame { width: var(--ph-h); }
+/* The crop: the outside dimmed, a white frame, thirds and four corner grips
+   (the lines carry a faint shadow so they still read over a white wall) */
+.pv-crop {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  box-shadow: 0 0 0 100vmax var(--scrim);
+  outline: 1.5px solid var(--text-on-dark);
+  outline-offset: -1.5px;
+  transition: opacity 320ms var(--ease-out);
+}
+.pv-crop::before {
+  --crop-line: color-mix(in srgb, var(--text-on-dark) 70%, transparent);
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent calc(100% / 3 - 0.5px), var(--crop-line) 0, var(--crop-line) calc(100% / 3 + 0.5px), transparent 0, transparent calc(200% / 3 - 0.5px), var(--crop-line) 0, var(--crop-line) calc(200% / 3 + 0.5px), transparent 0),
+    linear-gradient(to bottom, transparent calc(100% / 3 - 0.5px), var(--crop-line) 0, var(--crop-line) calc(100% / 3 + 0.5px), transparent 0, transparent calc(200% / 3 - 0.5px), var(--crop-line) 0, var(--crop-line) calc(200% / 3 + 0.5px), transparent 0);
+  filter: drop-shadow(0 0 1px var(--scrim));
+}
+.pv-crop i { position: absolute; width: 16px; height: 16px; border: 0 solid var(--text-on-dark); filter: drop-shadow(0 0 1.5px var(--scrim)); }
+.pv-crop i:nth-child(1) { left: 0; top: 0; border-width: 3px 0 0 3px; }
+.pv-crop i:nth-child(2) { right: 0; top: 0; border-width: 3px 3px 0 0; }
+.pv-crop i:nth-child(3) { left: 0; bottom: 0; border-width: 0 0 3px 3px; }
+.pv-crop i:nth-child(4) { right: 0; bottom: 0; border-width: 0 3px 3px 0; }
+/* The journey, a class a step */
+.photo-job.is-framing .pv-crop { opacity: 1; }
+.photo-job.is-cropped .photo-frame { width: var(--ph-h); }
+.photo-job.is-cropped .pv { transform: scale(1.33565) translate(0, -17.448%); }
+.photo-job.is-square .pv-square { opacity: 1; transition-duration: 160ms; }
+.photo-job.is-square .pv-wide { opacity: 0; transition-delay: 160ms; }
+.photo-job.is-selecting .pv-sel { opacity: 1; clip-path: inset(0 0 0 0); }
+.photo-job.is-filled .pv-clean { opacity: 1; }
+.photo-job.is-filled .pv-sel { opacity: 0; }
+.photo-job.is-studio .pv-studio { opacity: 1; transition-duration: 1100ms; }
+.photo-job.is-bright .pv-sq { filter: brightness(1.06) saturate(1.1); }
 .photo-tools {
   display: inline-flex;
   flex-wrap: wrap;
@@ -1481,20 +1577,69 @@ small { font-size: inherit; }
   font-size: 12.5px;
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
+  white-space: nowrap;
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 .ptool.is-active { background: var(--accent-soft); color: var(--text-primary); }
 .ptool.is-done { color: var(--text-primary); }
 
-/* Price table */
-.surf--table .tbl-wrap { max-width: 520px; }
+/* Bookings. Pip reads the drum rows, checks each name against the lino rows,
+   and saves who's left as a view of the same table */
+.bk { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; max-width: 560px; }
+.bk-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--bg-secondary); }
+.bk-tab {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: background-color var(--transition-normal), color var(--transition-normal), box-shadow var(--transition-normal);
+}
+.bk-tab--all,
+.bk.is-view .bk-tab--new { background: var(--surface-pip); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+.bk.is-view .bk-tab--all { background: transparent; color: var(--text-secondary); box-shadow: none; }
+.bk-tab--new { display: none; }
+.bk.is-saved .bk-tab--new { display: inline-flex; }
+.bk-frame { display: grid; width: 100%; }
+.bk-frame > .tbl-wrap { grid-area: 1 / 1; align-self: start; max-width: none; transition: opacity 360ms var(--ease-out), visibility 0s linear 360ms; }
+.bk-view { opacity: 0; visibility: hidden; }
+.bk.is-view .bk-all { opacity: 0; visibility: hidden; }
+.bk.is-view .bk-view { opacity: 1; visibility: visible; transition-delay: 0s; }
+.tbl--bk { table-layout: fixed; }
+.tbl--bk th:not(:last-child), .tbl--bk td:not(:last-child) { text-align: left; }
+.tbl--bk td { white-space: nowrap; }
+.bk-all th:nth-child(1) { width: 50%; }
+.bk-all th:nth-child(2) { width: 28%; }
+.bk-view th:nth-child(1) { width: 60%; }
+.tbl--bk td { transition: background-color 260ms var(--ease-out), color 320ms var(--ease-out); }
+.tbl--bk tr.is-lit td { background: var(--accent-soft); }
+.tbl--bk tr.is-out td { color: var(--text-muted); }
+.bk-tag {
+  display: none;
+  margin-left: 8px;
+  padding: 0 7px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  font-size: 11.5px;
+  font-weight: var(--weight-medium);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  vertical-align: 1px;
+}
+.tbl--bk tr.is-out .bk-tag { display: inline-block; }
 
-/* Deck: ghost frames, then the slides are dealt into them */
+/* Deck. On a laptop the note sits beside six ghost frames, and each step
+   lights up as its slide is dealt. On a phone the note fills the stage, then
+   steps aside for the slides. */
 .deck-job { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 24px; align-items: start; }
 .step-note { padding: 16px 18px 18px; border-radius: 12px; background: var(--bg-secondary); }
-.step-note-title { margin: 2px 0 10px; font-size: 15px; font-weight: var(--weight-semibold); }
-.step-note ol { list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; line-height: 1.4; }
-.step-note li { counter-increment: step; display: flex; gap: 10px; }
+.step-note-title { margin: 2px -6px 8px; padding: 2px 6px; border-radius: var(--radius-xs); font-size: 15px; font-weight: var(--weight-semibold); transition: background-color 300ms var(--ease-out); }
+.step-note ol { list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; line-height: 1.4; }
+.step-note li { counter-increment: step; display: flex; gap: 10px; margin-inline: -6px; padding: 3px 6px; border-radius: var(--radius-xs); transition: background-color 300ms var(--ease-out); }
 .step-note li::before { content: counter(step); flex: none; width: 12px; font-weight: var(--weight-semibold); color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .slides { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .slide {
@@ -1515,7 +1660,7 @@ small { font-size: inherit; }
   line-height: 1.3;
   opacity: 0;
 }
-.slides.is-built .slide-face { opacity: 1; }
+.slide.is-dealt .slide-face { opacity: 1; }
 .slide-face b { display: block; font-size: 12px; font-weight: var(--weight-semibold); line-height: 1.25; }
 .slide-face small { display: block; margin-top: 2px; font-size: 10.5px; color: var(--text-secondary); }
 .s-n { display: block; margin-bottom: 2px; font-size: 10px; font-weight: var(--weight-semibold); color: var(--text-muted); }
@@ -1540,7 +1685,8 @@ small { font-size: inherit; }
 .s-stack { display: grid; grid-template-rows: minmax(0, 1fr) auto; }
 .s-stack .s-txt { padding: 6px 9px 8px; }
 
-/* Canvas: scattered ideas, then grouped */
+/* Canvas: scattered ideas, sorted into fabrics, shapes and notes; then the
+   one gap filled, in place, with Pip's mark on it */
 .cv {
   position: relative;
   height: clamp(320px, 50cqi, 420px);
@@ -1559,9 +1705,9 @@ small { font-size: inherit; }
   font-weight: var(--weight-semibold);
   color: var(--text-secondary);
   opacity: 0;
-  transition: opacity 240ms var(--ease-out);
+  transition: opacity 280ms var(--ease-out);
 }
-.cv.is-sorted .cvh { opacity: 1; transition-delay: 520ms; }
+.cv.is-sorted .cvh { opacity: 1; transition-delay: 780ms; }
 .cvi {
   position: absolute;
   left: var(--x0);
@@ -1570,11 +1716,10 @@ small { font-size: inherit; }
   max-width: 168px;
   transform: rotate(var(--r0));
   transition:
-    left 640ms var(--ease-out),
-    top 640ms var(--ease-out),
-    transform 640ms var(--ease-out),
-    box-shadow var(--transition-normal);
-  transition-delay: calc(var(--n, 0) * 40ms);
+    left 900ms var(--ease-out),
+    top 900ms var(--ease-out),
+    transform 900ms var(--ease-out);
+  transition-delay: calc(var(--n, 0) * 60ms);
 }
 .cv.is-sorted .cvi { left: var(--x1); top: var(--y1); transform: none; }
 .cvi--sw { aspect-ratio: 2 / 1; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm); }
@@ -1583,6 +1728,7 @@ small { font-size: inherit; }
 .cvi--shape svg { width: 100%; height: 100%; fill: none; stroke: var(--text-secondary); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .cvi--shape svg * { vector-effect: non-scaling-stroke; }
 .cvi--sticky {
+  isolation: isolate;
   padding: 10px 12px;
   border-radius: 4px 4px 4px 12px;
   background: var(--surface-pip);
@@ -1590,7 +1736,28 @@ small { font-size: inherit; }
   font-size: 13px;
   line-height: 1.3;
 }
-.cvi.is-chosen { box-shadow: 0 0 0 2px var(--surface-pip), 0 0 0 4px var(--accent), var(--shadow-sm); }
+.cvi--sticky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--accent-soft-strong);
+  opacity: 0;
+  transition: opacity 320ms var(--ease-out);
+}
+.cvi--sticky.is-lit::after { opacity: 1; }
+.cv-pip {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: none;
+  padding: 3px;
+  border-radius: var(--radius-full);
+  background: var(--surface-pip);
+  box-shadow: var(--shadow-sm), var(--win-ring);
+}
+.cvi.is-pip .cv-pip { display: block; }
 
 /* Dashboard: the table becomes tiles and a chart */
 .dash { display: grid; }
@@ -1608,13 +1775,21 @@ small { font-size: inherit; }
 .bar-g { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .bar-g span { font-size: 11px; text-align: center; color: var(--text-secondary); }
 .pair { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; box-shadow: inset 0 -1px 0 var(--border); }
-.pair i { flex: 1; max-width: 16px; height: 0; border-radius: 3px 3px 0 0; transition: height 700ms var(--ease-out); transition-delay: calc(var(--n, 0) * 40ms); }
+.pair i { flex: 1; max-width: 16px; height: 0; border-radius: 3px 3px 0 0; transition: height 800ms var(--ease-out); transition-delay: calc(var(--n, 0) * 50ms); }
 .b1, .k1 { background: var(--chart-sage); }
 .b2, .k2 { background: var(--chart-coral); }
 .chart.is-grown .pair i { height: var(--h); }
 .key { display: flex; gap: 18px; margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
 .key i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
 
+/* A window too narrow for words and buttons side by side: the buttons go
+   under the words, lined up with them */
+@container (max-width: 1040px) {
+  .pipbar { flex-wrap: wrap; row-gap: 10px; }
+  .pipbar-text { flex-basis: calc(100% - 42px); }
+  .pipbar-actions { flex-basis: 100%; justify-content: flex-start; padding-left: 42px; }
+  .slides { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @container (max-width: 780px) {
   .jobs-grid { grid-template-columns: minmax(0, 1fr); }
   .jobs-rail { flex-direction: row; flex-wrap: wrap; gap: 6px; padding: 12px; }
@@ -1624,13 +1799,19 @@ small { font-size: inherit; }
   .job-kind { display: none; }
   .job-done { display: none; }
   .job.is-done .job-ic { box-shadow: inset 0 0 0 1px var(--border); }
-  .jobs-stage { min-height: 420px; padding: 20px 16px; }
-  .pipbar { flex-wrap: wrap; padding: 14px 16px; }
-  .pipbar-text { flex-basis: calc(100% - 42px); }
-  .pipbar-actions { flex-basis: 100%; justify-content: flex-start; }
+  .jobs-stage { --stage-h: 470px; padding: 20px 16px; }
+  .pipbar { padding: 14px 16px; }
+  .pipbar-actions { padding-left: 0; }
+  /* The deck: the note first, full width; then the slides in its place */
   .deck-job { grid-template-columns: minmax(0, 1fr); }
-  .step-note { display: none; }
-  .slides { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .deck-job > * { grid-area: 1 / 1; }
+  .step-note { padding: 18px 20px 20px; transition: opacity 240ms var(--ease-out), visibility 0s linear 240ms; }
+  .step-note-title { font-size: 17px; margin-bottom: 10px; }
+  .step-note ol { gap: 4px; font-size: 15px; line-height: 1.45; }
+  .deck-job.is-dealing .step-note { opacity: 0; visibility: hidden; }
+  .slides { visibility: hidden; width: 100%; max-width: 440px; margin-inline: auto; gap: 10px; }
+  .deck-job.is-dealing .slides { visibility: visible; }
+  .slide { outline: none; }
   .tile { padding: 12px; }
   .tile-v { font-size: 20px; }
   .tile-k { font-size: 11.5px; }
@@ -1639,9 +1820,13 @@ small { font-size: inherit; }
   .cvi { width: 28%; }
   .cvi--sticky { padding: 6px 8px; font-size: 11px; }
   .cvh { font-size: 11.5px; }
+  .cv-pip { top: -9px; right: -7px; padding: 2px; }
   .s-big { font-size: 36px; }
 }
 @container (max-width: 480px) {
+  .jobs-stage { --stage-h: 420px; }
+  .pipbar-msg { font-size: 14px; }
+  .slides { max-width: 390px; }
   .slide-face { font-size: 10px; }
   .slide-face b { font-size: 11px; }
   .slide-face small { display: none; }
@@ -1655,8 +1840,27 @@ small { font-size: inherit; }
   .chart { padding: 14px 12px 10px; }
   .bars { height: 130px; gap: 3px; }
   .bar-g span { font-size: 10px; }
-  .photo-tools { border-radius: 18px; }
-  .ptool { padding: 0 9px; font-size: 12px; }
+  .photo-tools { display: grid; grid-template-columns: auto auto; border-radius: 19px; }
+  .ptool { justify-content: center; padding: 0 10px; font-size: 12px; }
+  .cv.is-sorted .cvi--prices { top: 39%; }
+  .cv.is-sorted .cvi--gap { top: 71%; }
+  .tbl--bk { font-size: 13.5px; }
+  .tbl--bk th, .tbl--bk td { padding: 6px 10px; }
+  .bk { gap: 10px; }
+  .bk-tag { margin-left: 6px; padding: 0 6px; font-size: 11px; }
+}
+/* The smallest phones: the bookings tighten, and a "did lino" tag sits under
+   its name rather than pushing the row wider than the window */
+@container (max-width: 340px) {
+  .tbl--bk { font-size: 12.5px; }
+  .tbl--bk th { font-size: 11.5px; }
+  .tbl--bk th, .tbl--bk td { padding: 5px 7px; }
+  .tbl--bk td:first-child { white-space: normal; }
+  .tbl--bk tr.is-out .bk-tag { display: block; width: max-content; margin: 1px 0 0; }
+  .bk-all th:nth-child(1) { width: 46%; }
+  .bk-all th:nth-child(2) { width: 30%; }
+  .bk-view th:nth-child(1) { width: 56%; }
+  .cvi--sticky { padding: 6px; font-size: 10.5px; }
 }
 
 /* ── Already briefed ────────────────────────────────────────────────────── */
@@ -2359,12 +2563,11 @@ small { font-size: inherit; }
   .dots i:nth-child(3) { animation-delay: 0.3s; }
 
   /* ── The six jobs ────────────────────────────────────────────────────── */
-  .slides.is-built .slide-face {
-    animation: slide-deal 420ms var(--ease-out) both;
-    animation-delay: calc(var(--n, 0) * 90ms);
-  }
-  .nl p.is-new { animation-delay: calc(var(--n, 0) * 110ms); }
-  .nl.is-leaving { animation: pip-leave var(--dur-instant) var(--ease-out) both; }
+  .slide.is-dealt .slide-face { animation: slide-deal 480ms var(--ease-out) both; }
+  .nl-draft.is-new .nl-h { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
+  .bk.is-saved .bk-tab--new { animation: pip-grow var(--dur-settle) var(--ease-out) both; }
+  .tbl--bk tr.is-out .bk-tag { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
+  .cvi.is-pip .cv-pip { animation: pip-grow var(--dur-settle) var(--ease-out) both; }
 }
 
 

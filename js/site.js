@@ -624,6 +624,15 @@
       root.className = was;
       if (!root.classList.contains("is-edited")) setWords(root.classList.contains("is-typing-in") ? typed.textContent.length : 0);
       body.style.minHeight = Math.ceil(h) + "px";
+      // and Pip's line at its longest message, so the bar never changes height
+      msg.style.minHeight = "";
+      var probe = el("p", "pipbar-msg");
+      probe.style.cssText = "position:absolute;visibility:hidden;left:0;right:0;top:0";
+      msg.parentNode.appendChild(probe);
+      var most = 0;
+      [COPY.offer, COPY.again, COPY.done].forEach(function (t) { probe.textContent = t; most = Math.max(most, probe.getBoundingClientRect().height); });
+      probe.remove();
+      msg.style.minHeight = Math.ceil(most) + "px";
     }
 
     function tighten() {
@@ -962,40 +971,48 @@
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
      Six things you've made, and what each could become. Pick a job on the
-     left; the window changes in place (old out 100ms, new in 150ms, frame
-     fixed). Pip offers; "Yes, …" plays the transformation; Reset shows the
-     before again. Two jobs hand you one decision first. */
+     left; the window changes in place (old out 100ms, new in 150ms) and never
+     changes size: the stage is one fixed height at each width (CSS), and Pip's
+     bar keeps room for its longest message and widest buttons (fitBar). Pip
+     offers; "Yes, …" plays the job in named steps, his face thinking and one
+     live line saying what he's doing now; Reset puts the before back exactly.
+     Under reduced motion every job lands on its end state at once. */
 
   function jobs() {
     var win = $("#jobs-win");
     if (!win) return;
 
-    var RATES = [15, 20, 25];
     var JOBS = [
-      { title: "Lume Lighting › Newsletter: " + D.month, intro: "You've got this month's news as rough notes. Want a first draft of the newsletter, in your words?", go: "Yes, draft it", done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
-      { title: "Lume Lighting › sage-slim-lamp.jpg", intro: "There's a plant, a notepad and a laptop around the lamp. Want me to take the background out, brighten it and make it square for the shop?", go: "Yes, clean it up", done: "Background out, a little brighter, and square for the listing. Your original is still there if you want it back." },
-      { title: "Lume Lighting › Costs: large scallop", intro: "I can add up what a large scallop costs you to make. I'll need one number from you first.", go: "Yes, add it up",
-        ask: {
-          q: "What's an hour of your time worth?",
-          opts: ["£15", "£20", "£25"],
-          apply: function (i) {
-            var rate = RATES[i];
-            addRow(["Your time, 3 hours at £" + rate, "£" + (3 * rate) + ".00", ""]);
-            later(function () { addRow(["To make and send", "£" + (50 + 3 * rate) + ".00", "is-total"]); }, 380);
-          },
-          after: function (i) { return "£" + (50 + 3 * RATES[i]) + " to make and send. Your large scallop sells for £350, so the margin's there. The price is your call."; }
-        } },
-      { title: "Lume Lighting › Drum workshop steps", intro: "You've got the steps for Sunday. Want them as a deck?", go: "Yes, make the deck", done: "Six slides, one for each step, with your step photos in. Move anything you like." },
-      { title: "Lume Lighting › Spring collection · Canvas", intro: "Your ideas for spring are all over the place. Want me to group them?", go: "Yes, group them",
-        ask: {
-          q: "Which fabric leads the spring collection?",
-          opts: ["Green leaf linen", "Dotted cotton", "Striped linen"],
-          apply: function (i) {
-            $$(".cvi--sw", win).forEach(function (s) { s.classList.toggle("is-chosen", +s.getAttribute("data-fabric") === i); });
-          },
-          after: function (i) { return this.opts[i] + " leads, then. One gap to fill: the 60cm scallop has no price yet."; }
-        } },
-      { title: "Lume Lighting › Sales " + D.salesYear, intro: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?", go: "Yes, show me", done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year." }
+      { title: "Lume Lighting › Newsletter: " + D.month,
+        intro: "You've jotted down this month's news. Want me to turn it into a first draft, in your words?",
+        go: "Yes, draft it",
+        steps: ["Reading your ideas…", "Writing it in your words…"],
+        done: "Drafted from your notes, in your tone. The dates and prices came straight from them, so they're the bit to check." },
+      { title: "Lume Lighting › sage-slim-lamp.jpg",
+        intro: "Your sage lamp's on a busy desk. Want me to make it a product shot for the shop?",
+        go: "Yes, make it a product shot",
+        steps: ["Cropping it square…", "Taking out the notepad…", "Clearing the background…", "Brightening it…"],
+        done: "There's your product shot: square, clean and bright, ready for the listing. Your original's still there if you want it back." },
+      { title: "Lume Lighting › Bookings",
+        intro: "Your lino day has six places. Want me to find who's likely to book?",
+        go: "Yes, find them",
+        steps: ["Looking through your bookings…", "Checking who's done lino…", "Saving them as a view…"],
+        done: "Four people have made a drum shade with you but haven't done lino yet. I've saved them as a view, so they're easy to invite." },
+      { title: "Lume Lighting › Drum workshop steps",
+        intro: "You've got the steps for Sunday. Want them as a deck?",
+        go: "Yes, make the deck",
+        steps: ["Making a slide for each step…"],
+        done: "Six slides, one for each step, with your step photos in. Move anything you like." },
+      { title: "Lume Lighting › Spring collection · Canvas",
+        intro: "Your spring ideas are all over the place. Want me to sort them and fill in what's missing?",
+        go: "Yes, sort them",
+        steps: ["Sorting your ideas…", "Pricing the 60cm scallop…"],
+        done: "Sorted into fabrics, shapes and notes. Your 60cm scallop had no price, so I followed your sizes, up £50 a step: £400. Change it if you like." },
+      { title: "Lume Lighting › Sales " + D.salesYear,
+        intro: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?",
+        go: "Yes, show me",
+        steps: ["Reading your sales sheet…", "Adding up the year…", "Drawing the chart…", "Looking for what stands out…"],
+        done: "Here's one you might have missed: workshops made 43% of sales this year, up from 22% last year." }
     ];
     var NL = [
       "Hello, and thank you for such a lovely summer at the studio.",
@@ -1004,48 +1021,67 @@
       "The last posting day for Christmas is " + D.dayMonth(D.xmas) + ".",
       "Speak soon."
     ];
-    var ADDED = [["Materials", "£38.00", "is-sub"], ["Courier", "£12.00", ""]];
+    // The idea(s) each paragraph is written from. "Speak soon." is how Jo signs off.
+    var NL_FROM = [[4], [0], [1, 2], [3], []];
+    var WORD_MS = 40, PARA_MS = 200;
 
     var jobBtns = $$(".job", win);
     var surfs = $$(".surf", win);
     var title = $("#jobs-title");
+    var bar = $(".pipbar", win);
     var msg = $("#jobs-msg");
     var faceHolder = $("#jobs-face");
-    var opts = $("#jobs-opts");
+    var actions = $("#jobs-actions");
     var goBtn = $("#jobs-go");
     var resetBtn = $("#jobs-reset");
     var nextBtn = $("#jobs-next");
     var nextLabel = $("span", nextBtn);
-    var nl = $("#nl-text");
-    var NL_ROUGH = nl.innerHTML;
+
+    var note = $("#nl");
+    var draft = $("#nl-draft");
+    var nlText = $("#nl-text");
+    var ideasBox = $("#nl-ideas");
+    var ideas = $$(".rough li", ideasBox);
+
     var photo = $("#photo-job");
+    var frame = $("#photo-frame");
     var tools = $$(".ptool", photo);
-    var costBody = $("#cost-tbl tbody");
-    var slides = $("#slides");
+    var PHOTO_BEFORE = frame.getAttribute("aria-label");
+    var PHOTO_AFTER = "The same sage lamp as a square product shot, on its own against a plain white backdrop";
+    var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-studio", "is-bright"];
+
+    var bk = $("#bk");
+    var bkRows = $$(".bk-all tbody tr", bk);
+
+    var deck = $("#deck-job");
+    var slideEls = $$(".slide", deck);
+    var stepLines = $$("[data-step-line]", deck);
+
     var cv = $("#cv");
+    var cvPrices = $("#cv-prices");
+    var cvPrice = $("#cv-price");
+    var cvPriceText = $(".cv-t", cvPrice);
+    var PRICE_BEFORE = cvPriceText.textContent;
+    var PRICE_AFTER = "Scallop, 60cm: £400";
+
     var dash = $("#dash");
     var chart = $(".chart", dash);
     var tiles = $$(".tile-v", dash);
 
     var cur = 0, shown = 0, busy = false;
     var done = [false, false, false, false, false, false];
-    var chosen = [null, null, null, null, null, null];
-    var timers = [];
     var swapping = null;
+    var lineNode = null;
 
     surfs.forEach(function (s, i) { s.hidden = i !== 0; });
     win.classList.add("is-ready");
-    $$(".slide-face", slides).forEach(function (s, i) { s.style.setProperty("--n", i); });
     $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
     $$(".pair", chart).forEach(function (p, i) { $$("i", p).forEach(function (b) { b.style.setProperty("--n", i); }); });
 
-    function later(fn, ms) { timers.push(setTimeout(fn, reduced() ? 0 : ms)); }
-
-    function addRow(r) {
-      var tr = el("tr", "is-new" + (r[2] ? " " + r[2] : ""));
-      tr.appendChild(el("td", "", r[0]));
-      tr.appendChild(el("td", "", r[1]));
-      costBody.appendChild(tr);
+    function later(fn, ms) { setTimeout(fn, ms); }
+    function lit(node, ms) {
+      node.classList.add("is-lit");
+      later(function () { node.classList.remove("is-lit"); }, ms);
     }
 
     /* The stage: change in place, with the frame held still */
@@ -1074,51 +1110,40 @@
       };
     }
 
+    /* Pip's bar: an offer, then the dots and one live line per step, then
+       what he did */
     function setMessage(text) {
       msg.classList.remove("is-busy");
+      lineNode = null;
       setThinking(faceHolder, false);
       swapText(msg, text);
     }
 
-    function setBusy() {
+    function setBusy(text) {
       setThinking(faceHolder, true);
       msg.textContent = "";
       msg.classList.add("is-busy");
       msg.appendChild(dots());
-      msg.appendChild(el("span", "", "Pip is working…"));
+      lineNode = el("span", "", text);
+      msg.appendChild(lineNode);
     }
+
+    function step(text) { if (lineNode) swapText(lineNode, text); }
 
     function paint() {
       var j = JOBS[cur];
-      var pending = !!(done[cur] && j.ask && chosen[cur] === null);
       jobBtns.forEach(function (b, i) {
         b.classList.toggle("is-on", i === cur);
         b.setAttribute("aria-pressed", i === cur ? "true" : "false");
-        b.classList.toggle("is-done", done[i] && !(JOBS[i].ask && chosen[i] === null));
+        b.classList.toggle("is-done", done[i]);
       });
       showSurf(cur);
+      if (cur === 0) later(function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, 120);
       swapText(title, j.title);
-      if (busy) setBusy();
-      else setMessage(pending ? j.ask.q : done[cur] ? (j.ask ? j.ask.after(chosen[cur]) : j.done) : j.intro);
-
+      if (!busy) setMessage(done[cur] ? j.done : j.intro);
       goBtn.textContent = j.go;
       goBtn.hidden = busy || done[cur];
-      opts.textContent = "";
-      opts.hidden = !pending;
-      if (pending) {
-        j.ask.opts.forEach(function (o, k) {
-          var b = el("button", "btn btn--secondary btn--xs", o);
-          b.type = "button";
-          b.addEventListener("click", function () {
-            chosen[cur] = k;
-            if (j.ask.apply) j.ask.apply(k);
-            paint();
-            nextBtn.focus();
-          });
-          opts.appendChild(b);
-        });
-      }
-      resetBtn.hidden = nextBtn.hidden = busy || !done[cur] || pending;
+      resetBtn.hidden = nextBtn.hidden = busy || !done[cur];
       nextLabel.textContent = cur === JOBS.length - 1 ? "Back to the first job" : "Next job";
     }
 
@@ -1126,106 +1151,349 @@
       busy = false;
       done[cur] = true;
       paint();
-      var first = $("button", opts);
-      if (first) first.focus();
-      else if (!nextBtn.hidden) nextBtn.focus();
+      if (!nextBtn.hidden) nextBtn.focus({ preventScroll: true });
     }
 
-    function countUp(nodes, duration, then) {
+    /* The bar holds room for its widest buttons and its longest message at
+       this width, so nothing Pip says can make the window grow */
+    var MSGS = [];
+    JOBS.forEach(function (j) { MSGS.push(j.intro, j.done); MSGS.push.apply(MSGS, j.steps); });
+
+    function fitBar() {
+      actions.style.minWidth = "";
+      msg.style.minHeight = "";
+      if (getComputedStyle(bar).flexWrap === "nowrap") {
+        var keep = [goBtn.hidden, resetBtn.hidden, nextBtn.hidden, goBtn.textContent, nextLabel.textContent];
+        var w = 0;
+        goBtn.hidden = false;
+        resetBtn.hidden = nextBtn.hidden = true;
+        JOBS.forEach(function (j) { goBtn.textContent = j.go; w = Math.max(w, actions.getBoundingClientRect().width); });
+        goBtn.hidden = true;
+        resetBtn.hidden = nextBtn.hidden = false;
+        ["Next job", "Back to the first job"].forEach(function (t) { nextLabel.textContent = t; w = Math.max(w, actions.getBoundingClientRect().width); });
+        goBtn.hidden = keep[0];
+        resetBtn.hidden = keep[1];
+        nextBtn.hidden = keep[2];
+        goBtn.textContent = keep[3];
+        nextLabel.textContent = keep[4];
+        actions.style.minWidth = Math.ceil(w) + "px";
+      }
+      var probe = el("p", "pipbar-msg");
+      probe.setAttribute("aria-hidden", "true");
+      probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;min-height:0;width:" + msg.getBoundingClientRect().width + "px";
+      msg.parentNode.appendChild(probe);
+      var h = 0;
+      MSGS.forEach(function (t) { probe.textContent = t; h = Math.max(h, probe.getBoundingClientRect().height); });
+      probe.remove();
+      msg.style.minHeight = Math.ceil(h) + "px";
+      measureNote();
+    }
+
+    /* ── 0 · The newsletter ─────────────────────────────────────────────────
+       Pip reads Jo's ideas one by one, then writes the draft above them word
+       by word; while a paragraph writes, the idea it comes from holds a wash.
+       The note follows the writing point if it runs past the stage. */
+
+    function topIn(node) {
+      var y = 0;
+      while (node && node !== note) { y += node.offsetTop; node = node.offsetParent; }
+      return y;
+    }
+
+    // The ideas slide down as the draft grows above them, never jump
+    function pushIdeas(before) {
+      var d = before - topIn(ideasBox);
+      if (d && ideasBox.animate) {
+        ideasBox.animate([{ transform: "translateY(" + d + "px)" }, { transform: "none" }], { duration: 240, easing: EASE_OUT });
+      }
+    }
+
+    // Only a note longer than the stage gets the fade at its foot
+    function measureNote() {
+      note.classList.toggle("is-long", topIn(ideasBox) + ideasBox.offsetHeight > note.clientHeight - 2);
+    }
+
+    function follow(caret, n) {
+      measureNote();
+      var view = note.clientHeight - 48;
+      var caretTop = topIn(caret);
+      var bottom = caretTop + caret.offsetHeight;
+      NL_FROM[n].forEach(function (i) { bottom = Math.max(bottom, topIn(ideas[i]) + ideas[i].offsetHeight); });
+      var want = Math.min(bottom - view, caretTop - 16);
+      if (want > note.scrollTop + 2) note.scrollTo({ top: want, behavior: "smooth" });
+    }
+
+    note.addEventListener("scroll", function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, { passive: true });
+
+    function nlPara(n) {
+      ideas.forEach(function (li, i) { li.classList.toggle("is-lit", n < NL.length && NL_FROM[n].indexOf(i) > -1); });
+      if (n >= NL.length) {
+        // Done: if the note runs long, settle at its foot, her ideas kept under the draft
+        ideasBox.classList.add("is-kept");
+        if (note.classList.contains("is-long")) note.scrollTo({ top: note.scrollHeight, behavior: "smooth" });
+        finish();
+        return;
+      }
+      var before = topIn(ideasBox);
+      var p = el("p");
+      var text = document.createTextNode("");
+      var caret = el("span", "caret");
+      caret.setAttribute("aria-hidden", "true");
+      p.appendChild(text);
+      p.appendChild(caret);
+      nlText.appendChild(p);
+      pushIdeas(before);
+      var words = NL[n].split(" ");
+      var k = 0;
+      (function word() {
+        var at = topIn(ideasBox);
+        text.data += (k ? " " : "") + words[k++];
+        pushIdeas(at);
+        follow(caret, n);
+        if (k < words.length) later(word, WORD_MS);
+        else later(function () { caret.remove(); nlPara(n + 1); }, PARA_MS);
+      })();
+    }
+
+    function nlPlay() {
+      ideas.forEach(function (li, i) {
+        later(function () { lit(li, 600); }, 150 + i * 360);
+      });
+      later(function () {
+        step(JOBS[0].steps[1]);
+        var before = topIn(ideasBox);
+        nlText.textContent = "";
+        draft.hidden = false;
+        draft.classList.add("is-new");
+        pushIdeas(before);
+        later(function () { nlPara(0); }, 200);
+      }, 150 + ideas.length * 360 + 250);
+    }
+
+    function nlEnd() {
+      nlText.textContent = "";
+      NL.forEach(function (t) { nlText.appendChild(el("p", "", t)); });
+      draft.hidden = false;
+      ideas.forEach(function (li) { li.classList.remove("is-lit"); });
+      ideasBox.classList.add("is-kept");
+      note.scrollTop = 0;
+      measureNote();
+    }
+
+    function nlUndo() {
+      nlText.textContent = "";
+      draft.hidden = true;
+      draft.classList.remove("is-new");
+      ideas.forEach(function (li) { li.classList.remove("is-lit"); });
+      ideasBox.classList.remove("is-kept");
+      note.scrollTop = 0;
+      measureNote();
+    }
+
+    /* ── 1 · The product shot ───────────────────────────────────────────────
+       One photo, four tools: crop it square (the notepad still in), paint a
+       selection over what goes and fill it in, fade the room to a studio
+       sweep, then a gentle lift. Each tool lights as it works. */
+
+    function tool(name) {
+      tools.forEach(function (t) {
+        if (t.classList.contains("is-active")) { t.classList.remove("is-active"); t.classList.add("is-done"); }
+        if (name && t.getAttribute("data-tool") === name) t.classList.add("is-active");
+      });
+    }
+
+    function photoPlay() {
+      tool("crop");
+      photo.classList.add("is-framing");
+      later(function () { photo.classList.add("is-cropped"); }, 1100);
+      later(function () { photo.classList.add("is-square"); photo.classList.remove("is-framing"); }, 2050);
+      later(function () { step(JOBS[1].steps[1]); tool("remove"); photo.classList.add("is-selecting"); }, 2350);
+      later(function () { photo.classList.add("is-filled"); }, 3800);
+      later(function () { step(JOBS[1].steps[2]); tool("clean"); photo.classList.add("is-studio"); }, 4750);
+      later(function () { step(JOBS[1].steps[3]); tool("bright"); photo.classList.add("is-bright"); }, 5950);
+      later(function () { photoEnd(); finish(); }, 6800);
+    }
+
+    function photoEnd() {
+      photo.classList.remove("is-framing", "is-selecting");
+      photo.classList.add("is-cropped", "is-square", "is-filled", "is-studio", "is-bright");
+      tools.forEach(function (t) { t.classList.remove("is-active"); t.classList.add("is-done"); });
+      frame.setAttribute("aria-label", PHOTO_AFTER);
+    }
+
+    function photoUndo() {
+      PHOTO_STATES.forEach(function (c) { photo.classList.remove(c); });
+      tools.forEach(function (t) { t.classList.remove("is-active", "is-done"); });
+      frame.setAttribute("aria-label", PHOTO_BEFORE);
+    }
+
+    /* ── 2 · The lino day ───────────────────────────────────────────────────
+       Pip reads down the drum bookings, checks each name against the lino
+       ones (Ben and Chloe have done both), and saves the four left as a view
+       of the same table. */
+
+    function bkRow(who, kind) {
+      return bkRows.filter(function (r) { return r.getAttribute("data-who") === who && r.getAttribute("data-w") === kind; })[0];
+    }
+
+    function bkPlay() {
+      var drums = bkRows.filter(function (r) { return r.getAttribute("data-w") === "drum"; });
+      drums.forEach(function (r, i) { later(function () { r.classList.add("is-lit"); }, 250 + i * 340); });
+      var t = 250 + drums.length * 340 + 260;
+      later(function () { step(JOBS[2].steps[1]); }, t);
+      ["ben", "chloe"].forEach(function (who, i) {
+        var lino = bkRow(who, "lino");
+        var drum = bkRow(who, "drum");
+        later(function () { lino.classList.add("is-lit"); }, t + 250 + i * 950);
+        later(function () {
+          lino.classList.remove("is-lit");
+          drum.classList.remove("is-lit");
+          drum.classList.add("is-out");
+        }, t + 850 + i * 950);
+      });
+      t += 2150;
+      later(function () { step(JOBS[2].steps[2]); bk.classList.add("is-saved"); }, t);
+      later(function () { bk.classList.add("is-view"); }, t + 520);
+      later(finish, t + 1300);
+    }
+
+    function bkEnd() {
+      bkRows.forEach(function (r) {
+        var drum = r.getAttribute("data-w") === "drum";
+        var out = drum && !!r.getAttribute("data-who");
+        r.classList.toggle("is-lit", drum && !out);
+        r.classList.toggle("is-out", out);
+      });
+      bk.classList.add("is-saved", "is-view");
+    }
+
+    function bkUndo() {
+      bkRows.forEach(function (r) { r.classList.remove("is-lit", "is-out"); });
+      bk.classList.remove("is-saved", "is-view");
+    }
+
+    /* ── 3 · The deck ───────────────────────────────────────────────────────
+       A slide is dealt for each step, and on a laptop the step it came from
+       lights as it lands (the cover answers to the note's title). On a phone
+       the note steps aside first and the slides take its place. */
+
+    function deckPlay() {
+      deck.classList.add("is-dealing");
+      slideEls.forEach(function (s, i) {
+        later(function () {
+          s.classList.add("is-dealt");
+          lit(stepLines[i], 760);
+        }, 380 + i * 520);
+      });
+      later(finish, 380 + slideEls.length * 520 + 480);
+    }
+
+    function deckEnd() {
+      deck.classList.add("is-dealing");
+      slideEls.forEach(function (s) { s.classList.add("is-dealt"); });
+      stepLines.forEach(function (l) { l.classList.remove("is-lit"); });
+    }
+
+    function deckUndo() {
+      deck.classList.remove("is-dealing");
+      slideEls.forEach(function (s) { s.classList.remove("is-dealt"); });
+      stepLines.forEach(function (l) { l.classList.remove("is-lit"); });
+    }
+
+    /* ── 4 · The collection ─────────────────────────────────────────────────
+       The ideas regroup into fabrics, shapes and notes; then Pip reads the
+       scallop prices and fills the one that's missing, with his mark on it. */
+
+    function cvPlay() {
+      cv.classList.add("is-sorted");
+      later(function () { step(JOBS[4].steps[1]); cvPrices.classList.add("is-lit"); }, 1900);
+      later(function () { cvPrices.classList.remove("is-lit"); cvPrice.classList.add("is-lit"); }, 2800);
+      later(function () { swapText(cvPriceText, PRICE_AFTER); cvPrice.classList.add("is-pip"); }, 3250);
+      later(function () { cvPrice.classList.remove("is-lit"); finish(); }, 4300);
+    }
+
+    function cvEnd() {
+      cv.classList.add("is-sorted");
+      cvPrices.classList.remove("is-lit");
+      cvPrice.classList.remove("is-lit");
+      cvPriceText.textContent = PRICE_AFTER;
+      cvPrice.classList.add("is-pip");
+    }
+
+    function cvUndo() {
+      cv.classList.remove("is-sorted");
+      cvPrices.classList.remove("is-lit");
+      cvPrice.classList.remove("is-lit", "is-pip");
+      cvPriceText.textContent = PRICE_BEFORE;
+    }
+
+    /* ── 5 · The year ───────────────────────────────────────────────────────
+       The sheet becomes a dashboard: totals that count up, a chart that
+       grows, and the one finding. */
+
+    function countUp(nodes, duration) {
       var t0 = null;
-      function frame(ts) {
+      function frameFn(ts) {
         if (t0 === null) t0 = ts;
         var k = reduced() ? 1 : Math.min(1, (ts - t0) / duration);
         var eased = 1 - Math.pow(1 - k, 3);
         nodes.forEach(function (b) {
           b.textContent = (b.getAttribute("data-pre") || "") + Math.round(+b.getAttribute("data-to") * eased).toLocaleString("en-GB") + (b.getAttribute("data-suf") || "");
         });
-        if (k < 1) requestAnimationFrame(frame); else then();
+        if (k < 1) requestAnimationFrame(frameFn);
       }
-      requestAnimationFrame(frame);
+      requestAnimationFrame(frameFn);
     }
 
-    var DO = [
-      function () { // the newsletter drafts in, from the rough notes, in place
-        nl.classList.add("is-leaving");
-        later(function () {
-          nl.classList.remove("is-leaving");
-          nl.textContent = "";
-          NL.forEach(function (text, n) {
-            var p = el("p", "is-new", text);
-            p.style.setProperty("--n", n);
-            nl.appendChild(p);
-          });
-        }, 110);
-        later(finish, 110 + NL.length * 110 + 340);
-      },
-      function () { // background out, brighter, square
-        var steps = [["clean", "is-clean"], ["bright", "is-bright"], ["square", "is-square"]];
-        steps.forEach(function (s, n) {
-          later(function () {
-            tools.forEach(function (t) { if (t.classList.contains("is-active")) { t.classList.remove("is-active"); t.classList.add("is-done"); } });
-            $('[data-tool="' + s[0] + '"]', photo).classList.add("is-active");
-            photo.classList.add(s[1]);
-          }, n * 700);
-        });
-        later(function () {
-          tools.forEach(function (t) { t.classList.remove("is-active"); t.classList.add("is-done"); });
-          finish();
-        }, 2100);
-      },
-      function () { // add up what we know, then ask for the one number we don't
-        ADDED.forEach(function (r, n) { later(function () { addRow(r); }, n * 380); });
-        later(finish, ADDED.length * 380 + 200);
-      },
-      function () { // the slides are dealt into their frames
-        slides.classList.add("is-built");
-        later(finish, 6 * 90 + 520);
-      },
-      function () { // the ideas regroup
-        cv.classList.add("is-sorted");
-        later(finish, 640 + 8 * 40 + 200);
-      },
-      function () { // the sheet becomes a dashboard
-        dash.classList.add("is-shown");
-        later(function () {
-          chart.classList.add("is-grown");
-          countUp(tiles, 900, finish);
-        }, 360);
-      }
-    ];
+    function setTiles(final) {
+      tiles.forEach(function (b) {
+        b.textContent = (b.getAttribute("data-pre") || "") + (final ? (+b.getAttribute("data-to")).toLocaleString("en-GB") : "0") + (b.getAttribute("data-suf") || "");
+      });
+    }
 
-    var UNDO = [
-      function () { nl.innerHTML = NL_ROUGH; nl.classList.remove("is-leaving"); },
-      function () { photo.classList.remove("is-clean", "is-bright", "is-square"); tools.forEach(function (t) { t.classList.remove("is-active", "is-done"); }); },
-      function () { $$("tr.is-new", costBody).forEach(function (r) { r.remove(); }); },
-      function () { slides.classList.remove("is-built"); },
-      function () { cv.classList.remove("is-sorted"); $$(".is-chosen", cv).forEach(function (c) { c.classList.remove("is-chosen"); }); },
-      function () {
-        dash.classList.remove("is-shown");
-        chart.classList.remove("is-grown");
-        tiles.forEach(function (b) { b.textContent = (b.getAttribute("data-pre") || "") + "0" + (b.getAttribute("data-suf") || ""); });
-      }
-    ];
+    function dashPlay() {
+      later(function () { step(JOBS[5].steps[1]); dash.classList.add("is-shown"); countUp(tiles, 1500); }, 1000);
+      later(function () { step(JOBS[5].steps[2]); chart.classList.add("is-grown"); }, 2000);
+      later(function () { step(JOBS[5].steps[3]); }, 3200);
+      later(finish, 4200);
+    }
+
+    function dashEnd() {
+      dash.classList.add("is-shown");
+      chart.classList.add("is-grown");
+      setTiles(true);
+    }
+
+    function dashUndo() {
+      dash.classList.remove("is-shown");
+      chart.classList.remove("is-grown");
+      setTiles(false);
+    }
+
+    var PLAY = [nlPlay, photoPlay, bkPlay, deckPlay, cvPlay, dashPlay];
+    var END = [nlEnd, photoEnd, bkEnd, deckEnd, cvEnd, dashEnd];
+    var UNDO = [nlUndo, photoUndo, bkUndo, deckUndo, cvUndo, dashUndo];
 
     goBtn.addEventListener("click", function () {
       if (busy || done[cur]) return;
       busy = true;
       paint();
-      DO[cur]();
+      setBusy(JOBS[cur].steps[0]);
+      if (reduced()) { END[cur](); finish(); return; }
+      PLAY[cur]();
     });
     resetBtn.addEventListener("click", function () {
       if (busy) return;
       UNDO[cur]();
       done[cur] = false;
-      chosen[cur] = null;
       paint();
-      goBtn.focus();
+      goBtn.focus({ preventScroll: true });
     });
     nextBtn.addEventListener("click", function () {
       if (busy) return;
       cur = (cur + 1) % JOBS.length;
       paint();
-      if (!goBtn.hidden) goBtn.focus();
+      if (!goBtn.hidden) goBtn.focus({ preventScroll: true });
     });
     jobBtns.forEach(function (b, i) {
       b.addEventListener("click", function () {
@@ -1236,6 +1504,20 @@
     });
 
     paint();
+    fitBar();
+    var lastW = win.getBoundingClientRect().width;
+    if ("ResizeObserver" in window) {
+      var queued = false;
+      new ResizeObserver(function () {
+        var w = win.getBoundingClientRect().width;
+        if (w === lastW) return;
+        lastW = w;
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(function () { queued = false; fitBar(); });
+      }).observe(win);
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBar);
   }
 
 

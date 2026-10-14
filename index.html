@@ -316,8 +316,8 @@
       <div class="jobs-grid">
         <div class="jobs-rail" role="group" aria-label="Jobs">
           <button type="button" class="job is-on" data-job="0" aria-pressed="true"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg></span><span class="job-t"><span class="job-name">Write the newsletter</span><span class="job-kind">Note</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
-          <button type="button" class="job" data-job="1" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg></span><span class="job-t"><span class="job-name">Clean up a photo</span><span class="job-kind">Photo</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
-          <button type="button" class="job" data-job="2" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg></span><span class="job-t"><span class="job-name">Work out a price</span><span class="job-kind">Table</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+          <button type="button" class="job" data-job="1" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg></span><span class="job-t"><span class="job-name">Make a product shot</span><span class="job-kind">Photo</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
+          <button type="button" class="job" data-job="2" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg></span><span class="job-t"><span class="job-name">Fill the lino day</span><span class="job-kind">Table</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
           <button type="button" class="job" data-job="3" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg></span><span class="job-t"><span class="job-name">Make slides for a workshop</span><span class="job-kind">Deck</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
           <button type="button" class="job" data-job="4" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg></span><span class="job-t"><span class="job-name">Plan a new collection</span><span class="job-kind">Canvas</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
           <button type="button" class="job" data-job="5" aria-pressed="false"><span class="job-ic"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg></span><span class="job-t"><span class="job-name">See how the year is going</span><span class="job-kind">Dashboard</span></span><svg class="i i-14 job-done" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></button>
@@ -325,10 +325,15 @@
         <div class="jobs-main">
           <div class="jobs-stage" id="jobs-stage">
 
-            <div class="surf surf--note" data-surf="0">
+            <div class="surf surf--note" data-surf="0" id="nl">
               <p class="doc-meta">Note · edited yesterday</p>
               <h3 class="surf-title">Newsletter: <span data-date="month">October</span></h3>
-              <div class="nl" id="nl-text">
+              <div class="nl-draft" id="nl-draft" hidden>
+                <h4 class="nl-h">Draft</h4>
+                <div class="nl" id="nl-text"></div>
+              </div>
+              <div class="nl-ideas" id="nl-ideas">
+                <h4 class="nl-h">Some ideas</h4>
                 <ul class="rough">
                   <li>mustard scallop finally in the shop, only one</li>
                   <li>drum workshop <span data-date="drum" data-fmt="lower">sun 18 oct</span>, 2 places left</li>
@@ -341,42 +346,69 @@
 
             <div class="surf surf--photo" data-surf="1">
               <div class="photo-job" id="photo-job">
-                <div class="photo-frame">
-                  <div class="photo-cut"><img class="ph ph--fill ph--cut" data-photo="job-photo-cutout" src="assets/img/lume/job-photo-cutout.jpg" width="800" height="800" alt="The same lamp on its own against a plain wall, the desk clutter gone" style="--ar: 1 / 1" loading="lazy" decoding="async"></div>
-                  <div class="photo-orig"><img class="ph ph--fill" data-photo="job-photo" src="assets/img/lume/job-photo.jpg" width="800" height="600" alt="A sage green linen slim lamp on a desk, with a plant, a notepad, a laptop and scissors around it" style="--ar: 4 / 3" loading="lazy" decoding="async"></div>
+                <div class="photo-frame" id="photo-frame" role="img" aria-label="A sage green linen slim lamp on a desk, with a plant, a notepad, a laptop and scissors around it">
+                  <div class="pv">
+                    <img class="pv-wide" data-photo="job-photo" src="assets/img/lume/job-photo.jpg" width="800" height="600" alt="" loading="lazy" decoding="async">
+                    <div class="pv-sq">
+                      <img class="pv-layer pv-square" src="assets/img/lume/job-shot-square.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
+                      <span class="pv-sel"></span>
+                      <img class="pv-layer pv-clean" src="assets/img/lume/job-shot-clean.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
+                      <img class="pv-layer pv-studio" src="assets/img/lume/job-shot-studio.jpg" width="800" height="800" alt="" loading="lazy" decoding="async">
+                      <span class="pv-crop"><i></i><i></i><i></i><i></i></span>
+                    </div>
+                  </div>
                 </div>
                 <div class="photo-tools" aria-hidden="true">
-                  <span class="ptool" data-tool="clean"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-eraser"/></svg>Remove background</span>
+                  <span class="ptool" data-tool="crop"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-crop"/></svg>Crop</span>
+                  <span class="ptool" data-tool="remove"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-eraser"/></svg>Remove</span>
+                  <span class="ptool" data-tool="clean"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>Clean background</span>
                   <span class="ptool" data-tool="bright"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg>Brighten</span>
-                  <span class="ptool" data-tool="square"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-crop"/></svg>Square for the shop</span>
                 </div>
               </div>
             </div>
 
             <div class="surf surf--table" data-surf="2">
-              <div class="tbl-wrap"><table class="tbl tbl--cost" id="cost-tbl" aria-label="Costs: large scallop">
-                <thead><tr><th scope="col">Item</th><th scope="col">Cost</th></tr></thead>
-                <tbody>
-                  <tr><td>Linen, 0.6m</td><td>£16.80</td></tr>
-                  <tr><td>Lampshade panel</td><td>£7.50</td></tr>
-                  <tr><td>Rings, 50cm</td><td>£6.20</td></tr>
-                  <tr><td>Lining</td><td>£4.00</td></tr>
-                  <tr><td>Box and packing</td><td>£3.50</td></tr>
-                </tbody>
-              </table></div>
+              <div class="bk" id="bk">
+                <div class="bk-tabs" aria-hidden="true"><span class="bk-tab bk-tab--all">All bookings</span><span class="bk-tab bk-tab--new">Invite to lino</span></div>
+                <div class="bk-frame">
+                  <div class="tbl-wrap bk-all"><table class="tbl tbl--bk" aria-label="Bookings">
+                    <thead><tr><th scope="col">Name</th><th scope="col">Workshop</th><th scope="col">Date</th></tr></thead>
+                    <tbody>
+                      <tr data-w="drum"><td>Amara Okafor</td><td>Drum</td><td><span data-date="ago:31">13 Sep</span></td></tr>
+                      <tr data-w="lino" data-who="ben"><td>Ben Hughes</td><td>Lino</td><td><span data-date="ago:73">2 Aug</span></td></tr>
+                      <tr data-w="drum" data-who="chloe"><td>Chloe Martin<span class="bk-tag">did lino</span></td><td>Drum</td><td><span data-date="ago:31">13 Sep</span></td></tr>
+                      <tr data-w="drum"><td>Dev Patel</td><td>Drum</td><td><span data-date="ago:73">2 Aug</span></td></tr>
+                      <tr data-w="drum" data-who="ben"><td>Ben Hughes<span class="bk-tag">did lino</span></td><td>Drum</td><td><span data-date="ago:101">5 Jul</span></td></tr>
+                      <tr data-w="drum"><td>Freya Lewis</td><td>Drum</td><td><span data-date="ago:59">16 Aug</span></td></tr>
+                      <tr data-w="lino" data-who="chloe"><td>Chloe Martin</td><td>Lino</td><td><span data-date="ago:24">20 Sep</span></td></tr>
+                      <tr data-w="drum"><td>Grace Kim</td><td>Drum</td><td><span data-date="ago:115">21 Jun</span></td></tr>
+                      <tr><td>Isla Brown</td><td>Vintage</td><td><span data-date="ago:45">30 Aug</span></td></tr>
+                    </tbody>
+                  </table></div>
+                  <div class="tbl-wrap bk-view"><table class="tbl tbl--bk" aria-label="Invite to lino">
+                    <thead><tr><th scope="col">Name</th><th scope="col">Drum workshop</th></tr></thead>
+                    <tbody>
+                      <tr><td>Amara Okafor</td><td><span data-date="ago:31">13 Sep</span></td></tr>
+                      <tr><td>Dev Patel</td><td><span data-date="ago:73">2 Aug</span></td></tr>
+                      <tr><td>Freya Lewis</td><td><span data-date="ago:59">16 Aug</span></td></tr>
+                      <tr><td>Grace Kim</td><td><span data-date="ago:115">21 Jun</span></td></tr>
+                    </tbody>
+                  </table></div>
+                </div>
+              </div>
             </div>
 
             <div class="surf surf--deck" data-surf="3">
-              <div class="deck-job">
+              <div class="deck-job" id="deck-job">
                 <div class="step-note">
                   <p class="doc-meta">Note</p>
-                  <p class="step-note-title">Drum workshop steps</p>
+                  <p class="step-note-title" data-step-line>Drum workshop steps</p>
                   <ol>
-                    <li>Cut the panel to size</li>
-                    <li>Stick the fabric on</li>
-                    <li>Roll it round the rings</li>
-                    <li>Tuck in the edges</li>
-                    <li>Trim and finish</li>
+                    <li data-step-line>Cut the panel to size</li>
+                    <li data-step-line>Stick the fabric on</li>
+                    <li data-step-line>Roll it round the rings</li>
+                    <li data-step-line>Tuck in the edges</li>
+                    <li data-step-line>Trim and finish</li>
                   </ol>
                 </div>
                 <div class="slides" id="slides">
@@ -395,14 +427,14 @@
                 <span class="cvh" style="--x: 4%">Fabrics</span>
                 <span class="cvh" style="--x: 37%">Shapes</span>
                 <span class="cvh" style="--x: 70%">Notes</span>
-                <div class="cvi cvi--sw" data-fabric="0" style="--x0: 5%; --y0: 9%; --r0: -6deg; --x1: 4%; --y1: 15%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Green leaf linen"><rect width="60" height="40" fill="url(#pt-leaf)"/></svg></div>
-                <div class="cvi cvi--sw" data-fabric="1" style="--x0: 52%; --y0: 58%; --r0: 5deg; --x1: 4%; --y1: 42%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Dotted cotton"><rect width="60" height="40" fill="url(#pt-dots)"/></svg></div>
-                <div class="cvi cvi--sw" data-fabric="2" style="--x0: 27%; --y0: 66%; --r0: -3deg; --x1: 4%; --y1: 69%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Striped linen"><rect width="60" height="40" fill="url(#pt-stripe)"/></svg></div>
+                <div class="cvi cvi--sw" style="--x0: 5%; --y0: 9%; --r0: -6deg; --x1: 4%; --y1: 15%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Green leaf linen"><rect width="60" height="40" fill="url(#pt-leaf)"/></svg></div>
+                <div class="cvi cvi--sw" style="--x0: 52%; --y0: 60%; --r0: 5deg; --x1: 4%; --y1: 42%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Dotted cotton"><rect width="60" height="40" fill="url(#pt-dots)"/></svg></div>
+                <div class="cvi cvi--sw" style="--x0: 27%; --y0: 68%; --r0: -3deg; --x1: 4%; --y1: 69%"><svg viewBox="0 0 60 40" preserveAspectRatio="none" role="img" aria-label="Striped linen"><rect width="60" height="40" fill="url(#pt-stripe)"/></svg></div>
                 <div class="cvi cvi--shape" style="--x0: 71%; --y0: 7%; --r0: 4deg; --x1: 37%; --y1: 15%"><svg viewBox="0 0 120 80" role="img" aria-label="Scallop shape"><path d="M60 3v11"/><path d="M46 14h28l20 46q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-10 0q-5 7-8 0z"/></svg></div>
                 <div class="cvi cvi--shape" style="--x0: 35%; --y0: 5%; --r0: -4deg; --x1: 37%; --y1: 52%"><svg viewBox="0 0 120 80" role="img" aria-label="Drum shape"><path d="M60 3v11"/><ellipse cx="60" cy="20" rx="28" ry="6"/><path d="M32 20v38a28 6 0 0 0 56 0V20"/></svg></div>
-                <div class="cvi cvi--sticky" style="--x0: 8%; --y0: 54%; --r0: 3deg; --x1: 70%; --y1: 15%">Mustard sold out in two days</div>
-                <div class="cvi cvi--sticky" style="--x0: 75%; --y0: 50%; --r0: -5deg; --x1: 70%; --y1: 41%">Try a 60cm scallop</div>
-                <div class="cvi cvi--sticky" style="--x0: 57%; --y0: 24%; --r0: 2deg; --x1: 70%; --y1: 67%">Scallop, 60cm: £?</div>
+                <div class="cvi cvi--sticky" style="--x0: 7%; --y0: 50%; --r0: 3deg; --x1: 70%; --y1: 15%">Mustard sold out in two days</div>
+                <div class="cvi cvi--sticky cvi--prices" id="cv-prices" style="--x0: 69%; --y0: 50%; --r0: -4deg; --x1: 70%; --y1: 37%">Scallops<br>30cm £250<br>40cm £300<br>50cm £350</div>
+                <div class="cvi cvi--sticky cvi--gap" id="cv-price" style="--x0: 56%; --y0: 27%; --r0: 2deg; --x1: 70%; --y1: 70%"><span class="cv-t">Scallop, 60cm: £?</span><span class="cv-pip" aria-hidden="true"><svg class="pf pf-18" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span></div>
               </div>
             </div>
 
@@ -453,10 +485,9 @@
             <span class="pipbar-face" id="jobs-face"><svg class="pf pf-28" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
             <div class="pipbar-text">
               <p class="pipbar-label">How Pip can help</p>
-              <p class="pipbar-msg" id="jobs-msg" aria-live="polite">You've got this month's news as rough notes. Want a first draft of the newsletter, in your words?</p>
+              <p class="pipbar-msg" id="jobs-msg" aria-live="polite">You've jotted down this month's news. Want me to turn it into a first draft, in your words?</p>
             </div>
-            <div class="pipbar-actions">
-              <span class="pipbar-opts" id="jobs-opts" hidden></span>
+            <div class="pipbar-actions" id="jobs-actions">
               <button type="button" class="btn btn--primary btn--xs" id="jobs-go">Yes, draft it</button>
               <button type="button" class="btn btn--secondary btn--xs" id="jobs-reset" hidden>Reset</button>
               <button type="button" class="btn btn--primary btn--xs" id="jobs-next" hidden><span>Next job</span><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button>
