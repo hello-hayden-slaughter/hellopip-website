@@ -669,6 +669,10 @@
       frame.tabIndex = -1;
       win.appendChild(frame);
       play.appendChild(win);
+      // Scale the 1280 x 800 app to the frame's width.
+      var fit = function () { win.style.setProperty("--live-scale", String(Math.min(1, win.clientWidth / 1280))); };
+      fit();
+      if (window.ResizeObserver) new ResizeObserver(fit).observe(win); else window.addEventListener("resize", fit);
       var note = el("p", "live-note", "A sample workspace to play with. The replies are set, and nothing you do is saved.");
       note.hidden = true;
       play.appendChild(note);

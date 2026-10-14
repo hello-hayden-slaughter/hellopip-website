@@ -2523,20 +2523,28 @@ small { font-size: inherit; }
    On a laptop, the real Pip (the web demo, in a frame) replaces the stand-in
    once it says it has painted (pip-demo:ready). Until then, and on phones, the
    scripted window stays. */
+/* The app always draws at a real Mac window size (1280 x 800) and is scaled
+   to fit, so it never reflows into a layout the Mac app can't reach. */
 .win--live {
   position: absolute;
   inset: 0 0 auto 0;
-  height: clamp(600px, 58vw, 800px);
+  aspect-ratio: 16 / 10;
+  max-width: 100%;
   opacity: 0;
   pointer-events: none;
   transition: opacity 420ms var(--ease-out);
 }
 .win--live iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 1280px;
+  height: 800px;
   border: 0;
   background: var(--bg-primary);
+  transform-origin: 0 0;
+  transform: scale(var(--live-scale, 1));
 }
 .play.is-live .demo-shot { display: none; }
 .play.is-live .win--live { position: relative; opacity: 1; pointer-events: auto; }
