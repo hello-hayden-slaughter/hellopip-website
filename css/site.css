@@ -1250,6 +1250,23 @@ small { font-size: inherit; }
 .demo-pip { position: relative; }
 .demo-pip p { min-width: 0; flex: 1; }
 .demo-pip .is-busy { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); }
+/* The one button to press next sits at the end of Pip's line, beside what
+   Pip asks: the do-it button (Yes, draft it / Next step) before, View
+   original or Start again after. Choices stay in the strip above. */
+.demo-pip--act { align-items: center; min-height: 64px; padding-block: 12px; padding-right: clamp(12px, 2.4cqi, 16px); }
+.demo-pip--act .pf { margin-top: 0; }
+.demo-pip-act { flex: none; display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.demo-pip-act .try-go,
+.demo-pip-act .try-back { height: 38px; font-size: 14.5px; }
+.demo-pip-act .try-go { padding: 0 18px; }
+/* a demo whose button comes and goes keeps its place, so the line never reflows */
+.demo-pip-act--keep > [hidden] { display: inline-flex !important; visibility: hidden; }
+@container (max-width: 560px) {
+  .demo-pip--act { flex-wrap: wrap; align-items: flex-start; gap: 8px 10px; }
+  .demo-pip--act > p { flex: 1 1 calc(100% - 40px); }
+  .demo-pip--act .pf { margin-top: 1px; }
+  .demo-pip-act { margin-left: 34px; }
+}
 .demo-body { position: relative; min-width: 0; }
 /* Until someone has tried it, the first button gently asks to be pressed */
 @media (prefers-reduced-motion: no-preference) {
