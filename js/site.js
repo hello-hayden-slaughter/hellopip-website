@@ -1842,14 +1842,17 @@
 
   /* ── flow ──────────────────────────────────────────────────────────────────
      From a few ideas to a month of posts: one whole job in four steps, which
-     the visitor drives. A step button jumps straight to that step as it ends
-     (step 4 already filled in). Next step plays the move into the next one:
-     the question types into the chat box and Pip reads the note and answers
-     (2); the plan arrives as a table, the columns Pip added washed coral (3);
-     Pip writes each caption and picks each photo, row by row (4). On the last
-     step Next step becomes Start again. CSS holds the demo at one height; Pip's
-     line keeps the height of its tallest message for the panel on screen, and
-     the table shows as many whole rows as fit, the next fading under "N more".
+     the visitor drives from the strip. Step 1 plays whenever it shows (when
+     the demo first comes into view, on clicking it, on Start again): the
+     ideas are jotted into the note one by one. The other step buttons jump
+     straight to that step as it ends (step 4 already filled in). Next step,
+     the one brick button, plays the move into the next step: the question
+     types into the chat box and Pip reads the note and answers (2); the plan
+     arrives as a table, the columns Pip added washed coral (3); Pip writes
+     each caption and picks each photo, row by row (4). On the last step it
+     gives way to Start again. CSS holds the demo at one height; Pip's line
+     keeps the height of its tallest message for the panel on screen, and the
+     table shows as many whole rows as fit, the next fading under "N more".
      The dates are next month's Mondays, Wednesdays and Fridays. Under reduced
      motion each step is simply its end state. */
 
@@ -1879,9 +1882,9 @@
     $$("[data-flow-month]", root).forEach(function (n) { n.textContent = month; });
 
     var LINES = [
-      "Got some ideas down? Ask me to turn them into a plan.",
+      "Jot your ideas down any old way. Then ask me to turn them into a plan.",
       "Just ask, in your own words. I'll read your note first.",
-      "Want me to write the captions in your voice and pick photos from your folders?",
+      "Next, I'll write the captions in your voice and pick photos from your folders.",
       "Done. Twelve posts for " + month + ", in your voice. Change anything you like."
     ];
     var WORKING = "Writing captions and picking photos…";
@@ -1889,16 +1892,16 @@
     var stepBtns = $$("[data-flow-to]", root);
     var stepsRow = $("[data-flow-steps]", root);
     var nextBtn = $("[data-flow-next]", root);
-    var nextLabel = $("[data-flow-next-label]", root);
-    var nextUse = $("use", nextBtn);
+    var againBtn = $("[data-flow-again]", root);
     var pip = $("[data-flow-pip]", root);
     var msg = $("[data-flow-msg]", root);
     var faceHolder = $("[data-flow-face]", root);
-    var fillBtn = $("[data-flow-fill]", root);
     var panelA = $('[data-flow-panel="a"]', root);
     var panelB = $('[data-flow-panel="b"]', root);
     var note = $("[data-flow-note]", root);
     var ideas = $$(".flow-rough li", root);
+    var IDEAS = ideas.map(function (li) { return li.textContent; });
+    var caret = $(".flow-caret", note);
     var chat = $("[data-flow-chat]", root);
     var said = $$("[data-step]", chat); // the question, then Pip's answer
     var box = composer(chat);
@@ -1911,7 +1914,7 @@
     var photos = rows.map(function (r) { return $(".c-ph", r); });
     var more = $("[data-flow-more]", panelB);
 
-    var at = 0, run = 0, busy = false, shown = 6, swapping = null;
+    var at = 0, run = 0, busy = false, shown = 6, swapping = null, touched = false;
     var pipH = [0, 0]; // Pip's line at its tallest: for the note and chat, and for the table
 
     table.setAttribute("aria-label", month + " posts");
@@ -1926,7 +1929,7 @@
       root.classList.remove("is-instant");
     }
 
-    function tried() { root.classList.add("is-tried"); }
+    function tried() { touched = true; root.classList.add("is-tried"); }
 
     // A phone shows the note and the chat in turn, not side by side
     function oneAtATime() { return getComputedStyle(note).display === "none" || getComputedStyle(chat).display === "none"; }
@@ -1962,6 +1965,17 @@
       stepsEdges();
     }
     stepsRow.addEventListener("scroll", stepsEdges, { passive: true });
+
+    /* The note: the first n ideas written, the next one started and empty
+       (its caret waiting), the rest not yet there */
+    function jotTo(n) {
+      ideas.forEach(function (li, i) {
+        li.hidden = i > n || (i === n && n >= ideas.length);
+        li.textContent = i < n ? IDEAS[i] : "";
+      });
+      ideas[Math.min(n, ideas.length - 1)].appendChild(caret);
+      root.classList.remove("is-jotting");
+    }
 
     /* The chat: empty (step 1), or the question and Pip's answer (step 2) */
     function chatTo(answered) {
@@ -2020,12 +2034,10 @@
       msg.classList.remove("is-busy");
       setThinking(faceHolder, false);
       swapText(msg, LINES[n]);
-      fillBtn.hidden = n !== 2;
       pip.style.minHeight = pipH[n < 2 ? 0 : 1] + "px";
     }
     function setBusy(text) {
       setThinking(faceHolder, true);
-      fillBtn.hidden = true;
       msg.textContent = "";
       msg.classList.add("is-busy");
       msg.appendChild(dots());
@@ -2038,30 +2050,32 @@
       probe.removeAttribute("data-flow-pip");
       probe.setAttribute("aria-hidden", "true");
       probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;min-height:0;width:" + pip.getBoundingClientRect().width + "px";
-      var pm = $(".flow-msg", probe), pb = $(".flow-fill", probe);
+      var pm = $(".flow-msg", probe);
       pm.removeAttribute("aria-live");
       root.appendChild(probe);
-      function h(text, withButton, working) {
+      function h(text, working) {
         pm.className = "flow-msg";
         pm.textContent = "";
         if (working) { pm.classList.add("is-busy"); pm.appendChild(dots()); pm.appendChild(el("span", "", text)); }
         else pm.textContent = text;
-        pb.hidden = !withButton;
         return probe.getBoundingClientRect().height;
       }
       pipH[0] = Math.ceil(Math.max(h(LINES[0]), h(LINES[1])));
-      pipH[1] = Math.ceil(Math.max(h(LINES[2], true), h(WORKING, false, true), h(LINES[3])));
+      pipH[1] = Math.ceil(Math.max(h(LINES[2]), h(WORKING, true), h(LINES[3])));
       probe.remove();
       pip.style.minHeight = pipH[at < 2 ? 0 : 1] + "px";
     }
 
-    /* The strip: which step is on, and what Next step will do */
+    /* The strip: which step is on; Next step, or Start again on the last */
     function paint(n) {
       at = n;
       [0, 1, 2, 3].forEach(function (i) { root.classList.toggle("is-at-" + i, i === n); });
       stepBtns.forEach(function (b, i) { b.setAttribute("aria-pressed", i === n ? "true" : "false"); });
-      nextLabel.textContent = n === 3 ? "Start again" : "Next step";
-      nextUse.setAttribute("href", n === 3 ? "#i-rotate" : "#i-arrow-right");
+      var last = n === 3;
+      var hadFocus = document.activeElement === (last ? nextBtn : againBtn);
+      nextBtn.hidden = last;
+      againBtn.hidden = !last;
+      if (hadFocus) (last ? againBtn : nextBtn).focus({ preventScroll: true });
       stepsTo(stepBtns[n], true);
     }
 
@@ -2072,6 +2086,7 @@
       busy = false;
       paint(n);
       instantly(function () {
+        jotTo(ideas.length);
         chatTo(n >= 1);
         tableTo(n === 3);
       });
@@ -2088,12 +2103,42 @@
       };
     }
 
+    /* Step 1: the ideas jotted into the note, one by one, a caret leading */
+    function playJot(sleep) {
+      var was = at;
+      paint(0);
+      instantly(function () { jotTo(0); chatTo(false); tableTo(false); });
+      showPanel(0, true);
+      if (was === 1 && oneAtATime()) fadeIn(note);
+      setPip(0);
+      root.classList.add("is-jotting");
+      var i = 0;
+      function idea() {
+        if (i >= ideas.length) return Promise.resolve();
+        var li = ideas[i], text = IDEAS[i], k = 0;
+        li.hidden = false;
+        li.appendChild(caret);
+        function key() {
+          if (k >= text.length) return Promise.resolve();
+          k += 1;
+          li.textContent = text.slice(0, k);
+          li.appendChild(caret);
+          return sleep(text.charAt(k - 1) === " " ? 22 : 11 + Math.random() * 7).then(key);
+        }
+        i += 1;
+        return key().then(function () { return i < ideas.length ? sleep(140).then(idea) : null; });
+      }
+      return sleep(260)
+        .then(idea)
+        .then(function () { root.classList.remove("is-jotting"); });
+    }
+
     /* 1 → 2: the question types into the chat box and goes; Pip reads the
        note, each idea washing in turn, and answers */
     function playAsk(sleep) {
       var q = said[0], a = said[1];
       paint(1);
-      instantly(function () { chatTo(false); tableTo(false); });
+      instantly(function () { jotTo(ideas.length); chatTo(false); tableTo(false); });
       showPanel(1, true);
       if (oneAtATime()) fadeIn(chat);
       setPip(1);
@@ -2169,7 +2214,7 @@
       var id = ++run;
       var sleep = sleeper(id);
       busy = true;
-      var moves = [null, playAsk, playPlan, playFill];
+      var moves = [playJot, playAsk, playPlan, playFill];
       moves[n](sleep)
         .then(function () { if (id === run) busy = false; })
         .catch(function (err) { if (err !== CANCELLED) throw err; });
@@ -2178,6 +2223,7 @@
     stepBtns.forEach(function (b, i) {
       b.addEventListener("click", function () {
         tried();
+        if (i === 0) { play(0); intoView(); return; } // step 1 always jots afresh
         if (i === at && !busy) return;
         jump(i);
         intoView();
@@ -2186,15 +2232,14 @@
     nextBtn.addEventListener("click", function () {
       tried();
       var n = at;
+      if (n >= 3) return;
       if (busy) jump(n); // finish this step at once, then move on
-      if (n === 3) jump(0); else play(n + 1);
+      play(n + 1);
       intoView();
     });
-    fillBtn.addEventListener("click", function () {
+    againBtn.addEventListener("click", function () {
       tried();
-      if (at !== 2) return;
-      nextBtn.focus({ preventScroll: true });
-      play(3);
+      play(0);
       intoView();
     });
 
@@ -2205,9 +2250,15 @@
 
     panelB.hidden = true;
     paint(0);
-    instantly(function () { chatTo(false); tableTo(false); });
+    instantly(function () { jotTo(reduced() ? ideas.length : 0); chatTo(false); tableTo(false); });
     setPip(0);
     fitPip();
+    // The first time the demo comes into view, the ideas are jotted down
+    if (!reduced()) {
+      onceVisible(root, function () {
+        setTimeout(function () { if (!touched && at === 0 && !busy) play(0); }, 450);
+      }, 0.35);
+    }
 
     var queued = false;
     function refit() {
