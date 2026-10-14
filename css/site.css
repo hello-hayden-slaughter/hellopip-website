@@ -1087,6 +1087,110 @@ small { font-size: inherit; }
 }
 .win-end { justify-self: end; display: flex; align-items: center; }
 
+/* ── Try-it demos ────────────────────────────────────────────────────────────
+   Every demo a visitor can drive has the same shape, top to bottom:
+     .demo-try   YOUR part: a "Try it" label with a pulsing dot, and buttons
+                 that look like buttons (a white pill with an edge; the one
+                 you picked turns brick). Replay for a moment that plays on
+                 its own sits here too.
+     .demo-pip   Pip's line: what Pip says about it (the narrative).
+     .demo-body  the result.
+   No fake Mac title bar: these are things to use, not pictures of a window. */
+.demo {
+  position: relative;
+  min-width: 0;
+  border-radius: 22px;
+  background: var(--surface-pip);
+  box-shadow: var(--shadow-lg), var(--win-ring);
+  overflow: hidden;
+  isolation: isolate;
+  container-type: inline-size;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+.demo-try {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px clamp(14px, 3cqi, 20px);
+  background: var(--bg-secondary);
+  box-shadow: inset 0 -1px 0 var(--border-light);
+}
+.demo-try-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.demo-try-label::before {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+.demo-try-actions { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.demo-try-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.try-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-pip);
+  box-shadow: inset 0 0 0 1px var(--border), 0 1px 2px rgba(0, 0, 0, 0.06);
+  font-size: 14px;
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  color: var(--text-primary);
+  white-space: nowrap;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+.try-btn .i { color: var(--text-secondary); }
+.try-btn:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px var(--accent-strong), 0 4px 10px rgba(166, 61, 34, 0.12); }
+.try-btn:active { transform: scale(var(--press)); }
+.try-btn[aria-pressed="true"] { background: var(--accent-strong); color: var(--text-on-dark); box-shadow: none; }
+.try-btn[aria-pressed="true"] .i { color: currentColor; }
+.try-btn:disabled { opacity: 0.45; transform: none; }
+.try-btn--quiet { height: 32px; padding: 0 12px; background: transparent; box-shadow: none; color: var(--text-secondary); }
+.try-btn--quiet:hover { background: var(--bg-hover); box-shadow: none; color: var(--text-primary); }
+.demo-pip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 52px;
+  padding: 13px clamp(14px, 3cqi, 20px);
+  box-shadow: inset 0 -1px 0 var(--border-light);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.demo-pip .pf { margin-top: 1px; }
+.demo-pip p { min-width: 0; }
+.demo-pip .is-busy { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); }
+.demo-body { position: relative; min-width: 0; }
+/* Until someone has tried it, the first button gently asks to be pressed */
+@media (prefers-reduced-motion: no-preference) {
+  .demo:not(.is-tried) .demo-try-label::before { animation: try-pulse 2.2s var(--ease-in-out) infinite; }
+  .demo:not(.is-tried) .try-btn[data-first] { animation: try-nudge 2.2s var(--ease-in-out) 1s infinite; }
+}
+@keyframes try-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-soft-strong); }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+@keyframes try-nudge {
+  0%, 70%, 100% { box-shadow: inset 0 0 0 1px var(--border), 0 1px 2px rgba(0, 0, 0, 0.06); }
+  35%           { box-shadow: inset 0 0 0 1px var(--accent-strong), 0 0 0 4px var(--accent-soft); }
+}
+
 /* ── Shared insides ─────────────────────────────────────────────────────── */
 
 /* The file tree: the demo's sidebar and the "In Pip" window */
