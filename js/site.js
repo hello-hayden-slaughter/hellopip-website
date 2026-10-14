@@ -14,7 +14,7 @@
      jobs       the six one-click jobs
      accordion  questions that open with height and fade
      jumpList   the questions page's group list
-     download   arch detection and the latest release from GitHub
+     signup     the first-50 sign-up form (download.html)
 
    Reduced motion is a real mode: every module renders its end state and
    nothing loops, types or slides.
@@ -119,7 +119,7 @@
   }
 
   /* A scripted vignette moment. It plays once when it comes into view, rests at
-     its end state, and offers Reset (a quiet button under the window, named by
+     its end state, and offers Replay (a quiet button under the window, named by
      data-replay-for). Under reduced motion it only ever shows the end state.
      scene = { start(), play(sleep), end() } */
   function createScene(root, scene) {
@@ -551,10 +551,10 @@
      end() puts the end state back exactly. */
 
   /* It's your page: Pip's bar sits under the note the whole time, the way it
-     does in the jobs window. It offers; "Yes, tighten it" sweeps a wash over
-     paragraph two, strikes the old words through and types the new ones in;
-     then the button becomes Undo. Undo puts her words back, and Pip offers
-     again. The note never changes height: it's measured at its edited size. */
+     does in the jobs window. It offers; "Yes, tighten it" selects paragraph
+     two, clears it and writes the new words in its place; then the button
+     becomes Undo. Undo puts her words back, and Pip offers again. The note
+     never changes height: it's held at the taller of its two versions. */
   function sceneYours() {
     var root = $('[data-scene="yours"]');
     if (!root) return;
@@ -569,7 +569,7 @@
     var goBtn = $("[data-yours-go]", root);
     var undoBtn = $("[data-yours-undo]", root);
     var NEW = typed.textContent;
-    var STATES = ["is-before", "is-washed", "is-struck", "is-typing-in", "is-edited"];
+    var STATES = ["is-before", "is-washed", "is-clearing", "is-typing-in", "is-edited"];
     var COPY = {
       offer: "That second paragraph runs on a bit. Want me to tighten it?",
       again: "Back to your words. Want me to reword that paragraph?",
@@ -614,13 +614,15 @@
       undoBtn.hidden = false;
     }
 
-    // Hold the note at its edited height, so nothing below it ever moves
+    // Hold the note at the taller of its two versions, so nothing ever moves
     function measure() {
       body.style.minHeight = "";
       var was = root.className;
       setState("is-edited");
       setWords(NEW.length);
       var h = body.getBoundingClientRect().height;
+      setState("is-before");
+      h = Math.max(h, body.getBoundingClientRect().height);
       root.className = was;
       if (!root.classList.contains("is-edited")) setWords(root.classList.contains("is-typing-in") ? typed.textContent.length : 0);
       body.style.minHeight = Math.ceil(h) + "px";
@@ -659,8 +661,8 @@
         return sleep(ch === " " ? 42 : ch === "." || ch === "," ? 140 : 26 + Math.random() * 12).then(type);
       }
       sleep(240)
-        .then(function () { root.classList.add("is-washed"); return sleep(700); })
-        .then(function () { root.classList.add("is-struck"); return sleep(560); })
+        .then(function () { root.classList.add("is-washed"); return sleep(760); })
+        .then(function () { root.classList.add("is-clearing"); return sleep(280); })
         .then(function () { root.classList.add("is-typing-in"); return type(); })
         .then(function () { return sleep(320); })
         .then(function () { edited(); undoBtn.focus({ preventScroll: true }); })
@@ -754,38 +756,68 @@
     });
   }
 
-  /* Switch AI: Pip's chat with a conversation already going. The settings
-     button opens Chat settings over the chat, the tick moves from Claude
-     Sonnet to Claude Opus, it closes, and the chat carries on with a follow-up
-     on the new model. Nothing in the conversation is lost. */
+  /* Switch AI: a chat already going, with its AI named in the chat box
+     (Claude Sonnet 5) and under each answer. A pointer clicks the name, the
+     menu opens up from it, the pointer picks Claude Opus 5.5, and the name
+     changes. Then a follow-up goes in and the answer says it came from Opus,
+     with the Sonnet answer still above it: same chat, different AI. */
   function sceneSwitch() {
     var root = $('[data-scene="switch"]');
     if (!root) return;
+    var chat = $(".pchat", root);
     var steps = $$("[data-step]", root);
-    var opts = $$("[data-sheet-models] .copt", root);
-    var tune = $("[data-tune]", root);
+    var chip = $("[data-chip]", root);
+    var label = $("[data-chip-label]", root);
+    var opts = $$("[data-menu] .mopt", root);
+    var cursor = $("[data-cursor]", root);
     var box = composer(root);
-    var DEFAULT = 0, PICK = 3; // Pip default (Claude Sonnet 5) → Claude Opus 5.5
+    var DEFAULT = 0, PICK = 1; // Claude Sonnet 5 → Claude Opus 5.5
 
-    function choose(i) { opts.forEach(function (o, k) { o.classList.toggle("is-on", k === i); }); }
+    function choose(i, animate) {
+      opts.forEach(function (o, k) { o.classList.toggle("is-on", k === i); o.classList.remove("is-hover"); });
+      var name = opts[i].getAttribute("data-model");
+      if (animate) swapText(label, name); else label.textContent = name;
+    }
+    // Put the pointer's tip on the middle of a node (or a point in the chat)
+    function point(node, fx, fy) {
+      var c = chat.getBoundingClientRect();
+      var x, y;
+      if (node) {
+        var r = node.getBoundingClientRect();
+        x = r.left - c.left + r.width * (fx || 0.5);
+        y = r.top - c.top + r.height * (fy || 0.5);
+      } else { x = c.width * fx; y = c.height * fy; }
+      cursor.style.setProperty("--cx", (x - 2) + "px");
+      cursor.style.setProperty("--cy", (y - 1.5) + "px");
+    }
+    function press(sleep) {
+      cursor.classList.add("is-press");
+      return sleep(130).then(function () { cursor.classList.remove("is-press"); });
+    }
     function clear() {
       steps.forEach(function (s) { s.classList.remove("is-shown", "is-thinking", "is-answered"); });
       root.classList.remove("is-open");
-      tune.classList.remove("is-on");
+      chip.classList.remove("is-on", "is-changed");
+      cursor.classList.remove("is-on", "is-press");
       box.reset();
     }
 
     createScene(root, {
       start: function () { clear(); choose(DEFAULT); root.classList.add("is-pre"); },
       play: function (sleep) {
-        var line = steps[0], q = steps[1], a = steps[2];
-        return sleep(600)
-          .then(function () { tune.classList.add("is-on"); return sleep(260); })
-          .then(function () { root.classList.add("is-open"); return sleep(1500); })
-          .then(function () { opts[PICK].classList.add("is-hover"); return sleep(520); })
-          .then(function () { opts[PICK].classList.remove("is-hover"); choose(PICK); return sleep(900); })
-          .then(function () { root.classList.remove("is-open"); tune.classList.remove("is-on"); return sleep(420); })
-          .then(function () { line.classList.add("is-shown"); return sleep(900); })
+        var q = steps[0], a = steps[1];
+        point(null, 0.62, 0.42);
+        return sleep(500)
+          .then(function () { cursor.classList.add("is-on"); return sleep(250); })
+          .then(function () { point(chip, 0.55, 0.6); return sleep(900); })
+          .then(function () { return press(sleep); })
+          .then(function () { chip.classList.add("is-on"); root.classList.add("is-open"); return sleep(900); })
+          .then(function () { point(opts[PICK], 0.3, 0.55); return sleep(760); })
+          .then(function () { opts[PICK].classList.add("is-hover"); return sleep(420); })
+          .then(function () { return press(sleep); })
+          .then(function () { choose(PICK, true); chip.classList.add("is-changed"); return sleep(650); })
+          .then(function () { root.classList.remove("is-open"); chip.classList.remove("is-on"); point(null, 0.78, 0.5); return sleep(500); })
+          .then(function () { cursor.classList.remove("is-on"); chip.classList.remove("is-changed"); return sleep(500); })
           .then(function () { return box.type(q.textContent, sleep); })
           .then(function () { return sleep(400); })
           .then(function () { box.send(); q.classList.add("is-shown"); return sleep(500); })
@@ -796,19 +828,78 @@
     });
   }
 
-  /* See what Pip knows: "How does Pip know this?" opens the note it came from */
+  /* See what Pip knows: one thing he's learned (how Jo signs off), where he
+     learned it, and what you can do about it. "Change it" selects the words
+     and types new ones; "That's right" keeps them; "Put it back" undoes. The
+     card holds one height whatever it's saying. */
   function knows() {
-    var btn = $(".kitem-why");
-    var why = btn && document.getElementById(btn.getAttribute("aria-controls"));
-    if (!why) return;
-    btn.addEventListener("click", function () {
-      var open = btn.getAttribute("aria-expanded") !== "true";
-      btn.setAttribute("aria-expanded", open ? "true" : "false");
-      why.hidden = !open;
-      if (open && !reduced() && why.animate) {
-        why.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 150, easing: EASE_OUT });
+    var root = $("[data-knows]");
+    if (!root) return;
+    var value = $("[data-knows-value]", root);
+    var done = $("[data-knows-done]", root);
+    var foot = $(".kcard-foot", root);
+    var change = $("[data-knows-change]", root);
+    var keep = $("[data-knows-keep]", root);
+    var back = $("[data-knows-back]", root);
+    var OLD = value.textContent, NEW = "Love, Jo x";
+    var SAID = {
+      changed: "Updated. Everything Pip writes for you now signs off “" + NEW + "”.",
+      kept: "Good. Pip will keep signing off “" + OLD + "” for you."
+    };
+    var run = 0;
+
+    function show(state) {
+      change.hidden = state === "changed" || state === "busy";
+      keep.hidden = state !== "start";
+      back.hidden = state !== "changed";
+      done.textContent = SAID[state] || "";
+    }
+    function measure() {
+      foot.style.minHeight = "";
+      var h = 0;
+      ["start", "changed", "kept"].forEach(function (st) { show(st); h = Math.max(h, foot.getBoundingClientRect().height); });
+      show(value.textContent === NEW ? "changed" : "start");
+      foot.style.minHeight = Math.ceil(h) + "px";
+    }
+
+    change.addEventListener("click", function () {
+      var id = ++run;
+      show("busy");
+      if (reduced()) { value.textContent = NEW; show("changed"); back.focus(); return; }
+      var sleep = function (ms) {
+        return new Promise(function (resolve, reject) {
+          setTimeout(function () { if (id === run) resolve(); else reject(CANCELLED); }, ms);
+        });
+      };
+      var i = 0;
+      function type() {
+        if (i >= NEW.length) return Promise.resolve();
+        i += 1;
+        value.textContent = NEW.slice(0, i);
+        return sleep(NEW.charAt(i - 1) === " " ? 70 : 55 + Math.random() * 40).then(type);
       }
+      root.classList.add("is-selected");
+      sleep(520)
+        .then(function () { value.textContent = ""; root.classList.remove("is-selected"); root.classList.add("is-editing"); return sleep(220); })
+        .then(type)
+        .then(function () { return sleep(380); })
+        .then(function () { root.classList.remove("is-editing"); show("changed"); back.focus({ preventScroll: true }); })
+        .catch(function (err) { if (err !== CANCELLED) throw err; });
     });
+    keep.addEventListener("click", function () { run++; show("kept"); change.focus({ preventScroll: true }); });
+    back.addEventListener("click", function () {
+      run++;
+      root.classList.remove("is-selected", "is-editing");
+      value.textContent = OLD;
+      show("start");
+      change.focus({ preventScroll: true });
+    });
+
+    show("start");
+    measure();
+    var resizeT = null;
+    window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(measure, 150); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
   }
 
   function scenes() {
@@ -835,14 +926,16 @@
     if (!play || !dlg) return;
     var src = play.getAttribute("data-live-demo");
     var go = $("[data-play-go]", play);
-    var shot = $(".demo-shot img", play);
+    var shot = $("[data-playground]", play);
+    var alt = $("[data-takeover-alt]", dlg);
     var panel = $("[data-takeover-panel]", dlg);
     var stage = $("[data-takeover-stage]", dlg);
     var waitText = $("[data-takeover-wait-text]", dlg);
     var closeBtn = $("[data-takeover-close]", dlg);
-    if (!src || !go || !window.matchMedia) return;
+    if (!src || !go || !shot || !window.matchMedia) return;
     var origin;
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
+    alt.href = src;
     var big = window.matchMedia("(min-width: 768px)");
     var frame = null, ready = false, isOpen = false, slowTimer = null, lastFocus = null, anim = null;
 
@@ -867,6 +960,15 @@
       frame.src = src;
       frame.title = "Pip, with a sample business to play with";
       frame.setAttribute("referrerpolicy", "no-referrer");
+      // Loaded but silent (an older demo, or a page that can't show frames):
+      // show the frame anyway, and offer a new tab in case it's blank.
+      frame.addEventListener("load", function () {
+        setTimeout(function () {
+          if (ready) return;
+          dlg.classList.add("is-ready");
+          alt.hidden = false;
+        }, 3000);
+      });
       stage.appendChild(frame);
       fit();
     }
@@ -875,6 +977,7 @@
       if (e.origin !== origin || !e.data || e.data.type !== "pip-demo:ready") return;
       ready = true;
       clearTimeout(slowTimer);
+      alt.hidden = true;
       dlg.classList.add("is-ready");
     });
 
@@ -916,7 +1019,11 @@
       if (!ready) {
         waitText.textContent = "Opening Pip…";
         clearTimeout(slowTimer);
-        slowTimer = setTimeout(function () { if (!ready) waitText.textContent = "Still opening. Pip needs a moment on a slow connection."; }, 9000);
+        slowTimer = setTimeout(function () {
+          if (ready) return;
+          waitText.textContent = "Still opening. Pip needs a moment on a slow connection.";
+          alt.hidden = false;
+        }, 8000);
       }
       if (anim) anim.cancel();
       if (!reduced() && panel.animate) {
@@ -967,6 +1074,31 @@
       }, { threshold: 0.5 });
       io.observe(play);
     }
+  }
+
+  /* ── playground ────────────────────────────────────────────────────────────
+     The desk under "Go on, have a play": with a mouse, Jo's things drift a
+     few pixels away from the pointer, the nearer ones (--z) further, so the
+     desk has depth. Off under reduced motion and on touch. */
+  function playground() {
+    var desk = $("[data-playground]");
+    if (!desk || reduced() || !window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    var objs = $$(".pg-obj", desk).map(function (o) { return { node: o, z: parseFloat(getComputedStyle(o).getPropertyValue("--z")) || 1 }; });
+    var frame = 0, mx = 0, my = 0;
+    function apply() {
+      frame = 0;
+      objs.forEach(function (o) {
+        o.node.style.setProperty("--px", (-mx * 12 * o.z).toFixed(1) + "px");
+        o.node.style.setProperty("--py", (-my * 9 * o.z).toFixed(1) + "px");
+      });
+    }
+    desk.addEventListener("pointermove", function (e) {
+      var r = desk.getBoundingClientRect();
+      mx = (e.clientX - r.left) / r.width * 2 - 1;
+      my = (e.clientY - r.top) / r.height * 2 - 1;
+      if (!frame) frame = requestAnimationFrame(apply);
+    });
+    desk.addEventListener("pointerleave", function () { mx = 0; my = 0; if (!frame) frame = requestAnimationFrame(apply); });
   }
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
@@ -1600,115 +1732,83 @@
     groups.forEach(function (g) { if (g) io.observe(g); });
   }
 
-  /* ── download ──────────────────────────────────────────────────────────────
-     The big button finds this Mac's chip and the latest release on GitHub,
-     and links straight to the right disk image. Without JavaScript, or if
-     GitHub doesn't answer, it links to the releases page. A visit from a
-     "Download" button elsewhere (?start=1) starts the download on a Mac. */
+  /* ── signup ────────────────────────────────────────────────────────────────
+     "Download for Mac" leads here while Pip opens to its first 50 people: a
+     name, an email and, if they like, what they do. It goes to Pip's own
+     database in the EU (an insert-only table; the key is the public one the
+     app ships with). Nothing is pretended: if it can't be saved, the form
+     says so and offers Hayden's email instead. A hidden field catches bots. */
 
-  var RELEASES_URL = "https://github.com/hello-hayden-slaughter/Pip-release/releases/latest";
-  var RELEASE_API = "https://api.github.com/repos/hello-hayden-slaughter/Pip-release/releases/latest";
+  var CONTACT = "hello@haydenslaughter.co.uk";
 
-  function detectMacArch() {
-    var fromHints = Promise.resolve(null);
-    try {
-      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-        fromHints = navigator.userAgentData.getHighEntropyValues(["architecture"]).then(function (ua) {
-          if (ua.architecture === "arm") return "arm64";
-          if (ua.architecture === "x86") return "x64";
-          return null;
-        }, function () { return null; });
-      }
-    } catch (e) { /* fall through to the renderer check */ }
-    return fromHints.then(function (arch) {
-      if (arch) return arch;
-      try {
-        var canvas = document.createElement("canvas");
-        var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        if (gl) {
-          var ext = gl.getExtension("WEBGL_debug_renderer_info");
-          if (ext) {
-            var r = String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "");
-            if (/\bApple\b/.test(r) && !/Intel/i.test(r)) return "arm64";
-            if (/\bIntel\b/i.test(r)) return "x64";
-            if (/\b(AMD|Radeon|ATI)\b/i.test(r)) return "x64";
-          }
-        }
-      } catch (e) { /* unknown */ }
-      return null;
-    });
-  }
-
-  function pickDmg(assets, arch) {
-    var arm = assets.filter(function (a) { return /-arm64\.dmg$/i.test(a.name); })[0];
-    var x64 = assets.filter(function (a) { return /\.dmg$/i.test(a.name) && !/arm64|universal/i.test(a.name); })[0];
-    if (arch === "x64") return x64 || arm;
-    return arm || x64;
-  }
-
-  function download() {
-    var root = $("[data-download]");
+  function signup() {
+    var root = $("[data-signup]");
     if (!root) return;
-    var btn = $("[data-dl-btn]", root);
-    var label = $("[data-dl-label]", root);
-    var chip = $("[data-dl-chip]", root);
-    var swap = $("[data-dl-swap]", root);
-    var again = $("[data-dl-again]");
-    var COPY = {
-      arm64: { chip: "This Mac has Apple silicon.", btn: "Download for Mac with Apple silicon", swap: "On an Intel Mac? Download the Intel version." },
-      x64: { chip: "This Mac has an Intel chip.", btn: "Download for Mac with Intel", swap: "On a Mac with Apple silicon? Download that version." }
-    };
-    var isMac = /Macintosh|Mac OS X/.test(navigator.userAgent) && !(navigator.maxTouchPoints > 1);
-    var arch = "arm64";
-    var release = null;
+    var form = $("[data-signup-form]", root);
+    var done = $("[data-signup-done]", root);
+    var error = $("[data-signup-error]", root);
+    var btn = $("[data-signup-btn]", root);
+    var thanks = $("[data-signup-thanks]", root);
+    var next = $("[data-signup-next]", root);
+    var endpoint = form.getAttribute("data-endpoint");
+    var key = form.getAttribute("data-key");
+    var busy = false;
+    // form.name is the form's own name, so reach the fields through elements
+    var f = function (n) { return form.elements.namedItem(n); };
 
-    function asset() { return release ? pickDmg(release.assets || [], arch) : null; }
-
-    function apply() {
-      chip.textContent = COPY[arch].chip;
-      label.textContent = COPY[arch].btn;
-      swap.textContent = COPY[arch].swap;
-      var dmg = asset();
-      var href = dmg && dmg.browser_download_url ? dmg.browser_download_url : RELEASES_URL;
-      btn.href = href;
-      if (again) again.href = href;
-      if (release) fillMeta(dmg);
-    }
-
-    function setMeta(key, text) {
-      var slot = $('[data-release="' + key + '"]', root);
-      if (slot && text) slot.textContent = text;
-    }
-    function fillMeta(dmg) {
-      if (release.tag_name) setMeta("version", String(release.tag_name).replace(/^v/i, ""));
-      if (dmg && dmg.size) setMeta("size", Math.round(dmg.size / 1048576) + " MB");
-      if (release.published_at) {
-        var d = new Date(release.published_at);
-        if (!isNaN(d)) setMeta("date", d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }));
+    function fail(text, withEmail) {
+      error.textContent = text;
+      if (withEmail) {
+        error.appendChild(document.createTextNode(" "));
+        var a = el("a", "", CONTACT);
+        a.href = "mailto:" + CONTACT;
+        error.appendChild(a);
+        error.appendChild(document.createTextNode(" and I'll add you myself."));
       }
+      error.hidden = false;
+    }
+    function finish(name, email) {
+      var first = name.split(/\s+/)[0];
+      thanks.textContent = "Thanks, " + first + ". You're on the list.";
+      next.textContent = "I'll email you at " + email + " when your place is ready. Keep an eye out for an email from Hayden at Pip.";
+      form.hidden = true;
+      done.hidden = false;
+      done.focus({ preventScroll: true });
     }
 
-    // A phone or a PC: the chip line describes a Mac, so leave it out
-    if (!isMac) chip.hidden = true;
-
-    swap.addEventListener("click", function () {
-      arch = arch === "arm64" ? "x64" : "arm64";
-      apply();
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (busy) return;
+      error.hidden = true;
+      var name = f("name").value.trim();
+      var email = f("email").value.trim();
+      var about = f("about").value.trim();
+      f("name").setAttribute("aria-invalid", name ? "false" : "true");
+      var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      f("email").setAttribute("aria-invalid", emailOk ? "false" : "true");
+      if (!name) { fail("Please add your name."); f("name").focus(); return; }
+      if (!emailOk) { fail("That email doesn't look quite right."); f("email").focus(); return; }
+      if (f("website").value) { finish(name, email); return; } // a bot filled the hidden field
+      if (!endpoint || !window.fetch) { fail("Sorry, sign-ups aren't working here yet. Email me at", true); return; }
+      busy = true;
+      btn.setAttribute("aria-busy", "true");
+      btn.textContent = "Saving…";
+      fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: key, Prefer: "return=minimal" },
+        body: JSON.stringify({ name: name, email: email, about: about || null, source: "website" })
+      }).then(function (r) {
+        // 409: they're already on the list, which is fine
+        if (r.ok || r.status === 409) finish(name, email);
+        else fail("Sorry, that didn't save. Try again, or email me at", true);
+      }, function () {
+        fail("Sorry, that didn't send. Check your connection and try again, or email me at", true);
+      }).then(function () {
+        busy = false;
+        btn.removeAttribute("aria-busy");
+        btn.textContent = "Save my place";
+      });
     });
-
-    var archReady = (isMac ? detectMacArch() : Promise.resolve(null)).then(function (a) {
-      if (a) { arch = a; apply(); }
-    });
-    var releaseReady = fetch(RELEASE_API, { headers: { Accept: "application/vnd.github+json" } })
-      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
-      .then(function (json) { release = json; apply(); });
-
-    var wantsStart = /(?:^|[?&])start=1(?:&|$)/.test(location.search);
-    if (wantsStart && history.replaceState) history.replaceState(null, "", location.pathname + location.hash);
-    Promise.all([archReady, releaseReady]).then(function () {
-      var dmg = asset();
-      if (wantsStart && isMac && dmg && dmg.browser_download_url) window.location.href = dmg.browser_download_url;
-    }).catch(function () { /* the button still links to the releases page */ });
   }
 
 
@@ -1716,7 +1816,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [dates, stops, header, mascots, reveal, scenes, takeover, jobs, accordion, jumpList, download].forEach(function (init) {
+  [dates, stops, header, mascots, reveal, scenes, takeover, playground, jobs, accordion, jumpList, signup].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }
