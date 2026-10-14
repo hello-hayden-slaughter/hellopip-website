@@ -2538,7 +2538,7 @@ small { font-size: inherit; }
   border: 0;
   background: var(--bg-primary);
 }
-.play.is-live .win--demo { display: none; }
+.play.is-live .demo-shot { display: none; }
 .play.is-live .win--live { position: relative; opacity: 1; pointer-events: auto; }
 .live-note {
   margin: 14px 0 0;
@@ -2548,3 +2548,24 @@ small { font-size: inherit; }
 }
 .live-note[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .win--live { transition: none; } }
+
+
+/* ── the demo poster ─────────────────────────────────────────────────────────
+   A real screenshot of the web demo (Pip itself, not a drawing of it): what
+   phones see, and what a laptop sees until the live demo is ready. */
+.demo-shot { margin: 0; }
+.demo-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--win-radius);
+  box-shadow: var(--win-shadow);
+  background: var(--bg-primary);
+}
+.demo-shot-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+@media (min-width: 1024px) { .demo-shot-note { display: none; } }
