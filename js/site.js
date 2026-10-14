@@ -503,6 +503,23 @@
     window.addEventListener("scroll", wake, { passive: true });
   }
 
+  /* ── page top ──────────────────────────────────────────────────────────────
+     A page opened from the menu or a link starts at its top, even where the
+     browser (or a frame the site is shown in) would carry the last scroll
+     position over. Back, forward and reload keep theirs; a link to
+     #a-section goes there. */
+  function pageTop() {
+    if (location.hash) return;
+    var nav = window.performance && performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+    if (nav && (nav.type === "back_forward" || nav.type === "reload")) return;
+    var moved = false;
+    function mark() { moved = true; }
+    ["wheel", "touchstart", "keydown"].forEach(function (t) { window.addEventListener(t, mark, { passive: true, once: true }); });
+    function top() { if (!moved && window.scrollY > 0) window.scrollTo(0, 0); }
+    top();
+    window.addEventListener("load", function () { top(); setTimeout(top, 60); });
+  }
+
   /* ── reveal ────────────────────────────────────────────────────────────────
      A headline block rises 12px and fades in over 640ms when it is about a
      fifth in view, its children 70ms apart; a visual follows 120ms after.
@@ -1116,6 +1133,68 @@
       }, { threshold: 0.5 });
       io.observe(play);
     }
+  }
+
+  /* ── in view ───────────────────────────────────────────────────────────────
+     The small moments (the hand-drawn notes, the squiggle under a word) play
+     when they're well on screen, not on load, so nobody scrolls past them
+     half-drawn. Each [data-inview] gets .is-seen once its top is above the
+     lowest fifth of the screen. Hover a squiggled word and it draws again. */
+  function inView() {
+    var nodes = $$("[data-inview]");
+    if (!nodes.length) return;
+    function see(n) { n.classList.add("is-seen"); }
+    if (reduced() || !("IntersectionObserver" in window)) { nodes.forEach(see); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        see(e.target);
+      });
+    }, { rootMargin: "0px 0px -20% 0px" });
+    nodes.forEach(function (n) { io.observe(n); });
+
+    $$(".squiggle[data-inview]").forEach(function (s) {
+      var flip = false, last = 0;
+      s.addEventListener("pointerenter", function () {
+        var now = Date.now();
+        if (!s.classList.contains("is-seen") || now - last < 900) return;
+        last = now;
+        flip = !flip;
+        s.classList.toggle("is-redraw-a", flip);
+        s.classList.toggle("is-redraw-b", !flip);
+      });
+    });
+  }
+
+  /* ── peek ──────────────────────────────────────────────────────────────────
+     Pip peeks over the play window, then the "no download needed" note
+     follows. On the first screen it waits about two seconds, so the eye has
+     landed on the window first; if the window is further down, it happens
+     as soon as a scroll brings the window's top edge on screen. Any scroll
+     while it's waiting brings it up sooner. */
+  function peek() {
+    var stage = $(".play-stage");
+    var play = $("#play");
+    if (!stage || !play) return;
+    if (reduced()) { stage.classList.add("is-up"); return; }
+    var timer = null;
+    function inSight() {
+      var r = play.getBoundingClientRect();
+      return r.top < window.innerHeight * 0.92 && r.bottom > 0; // the spot Pip peeks from is on screen
+    }
+    function up() {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      stage.classList.add("is-up");
+    }
+    function onScroll() {
+      if (!inSight()) return;
+      clearTimeout(timer);
+      timer = setTimeout(up, 450);
+    }
+    if (inSight()) timer = setTimeout(up, 2200);
+    window.addEventListener("scroll", onScroll, { passive: true });
   }
 
   /* ── playground ────────────────────────────────────────────────────────────
@@ -2363,7 +2442,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [dates, stops, header, mascots, reveal, scenes, takeover, playground, jobs, flow, accordion, jumpList, signup].forEach(function (init) {
+  [pageTop, dates, stops, header, mascots, reveal, inView, peek, scenes, takeover, playground, jobs, flow, accordion, jumpList, signup].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }
