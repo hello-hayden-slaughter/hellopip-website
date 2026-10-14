@@ -1758,6 +1758,391 @@
   }
 
 
+  /* ── flow ──────────────────────────────────────────────────────────────────
+     From a few ideas to a month of posts: one whole job in four steps, which
+     the visitor drives. A step button jumps straight to that step as it ends
+     (step 4 already filled in). Next step plays the move into the next one:
+     the question types into the chat box and Pip reads the note and answers
+     (2); the plan arrives as a table, the columns Pip added washed coral (3);
+     Pip writes each caption and picks each photo, row by row (4). On the last
+     step Next step becomes Start again. CSS holds the demo at one height; Pip's
+     line keeps the height of its tallest message for the panel on screen, and
+     the table shows as many whole rows as fit, the next fading under "N more".
+     The dates are next month's Mondays, Wednesdays and Fridays. Under reduced
+     motion each step is simply its end state. */
+
+  function flow() {
+    var root = $("#flow-demo");
+    if (!root) return;
+    var wrap = root.parentNode;
+    var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    var TOTAL = 12; // three posts a week, four weeks
+
+    // Next month's first twelve Mondays, Wednesdays and Fridays
+    var first = new Date();
+    first.setHours(12, 0, 0, 0);
+    first.setDate(1);
+    first.setMonth(first.getMonth() + 1);
+    var month = MONTHS[first.getMonth()];
+    var slots = [];
+    for (var d = new Date(first); d.getMonth() === first.getMonth() && slots.length < TOTAL; d.setDate(d.getDate() + 1)) {
+      var wd = d.getDay();
+      if (wd === 1 || wd === 3 || wd === 5) slots.push(DAYS[wd] + " " + d.getDate());
+    }
+    $$("[data-flow-day]", root).forEach(function (n) {
+      var s = slots[+n.getAttribute("data-flow-day")];
+      if (s) n.textContent = s;
+    });
+    $$("[data-flow-month]", root).forEach(function (n) { n.textContent = month; });
+
+    var LINES = [
+      "Got some ideas down? Ask me to turn them into a plan.",
+      "Just ask, in your own words. I'll read your note first.",
+      "Want me to write the captions in your voice and pick photos from your folders?",
+      "Done. Twelve posts for " + month + ", in your voice. Change anything you like."
+    ];
+    var WORKING = "Writing captions and picking photos…";
+
+    var stepBtns = $$("[data-flow-to]", root);
+    var stepsRow = $("[data-flow-steps]", root);
+    var nextBtn = $("[data-flow-next]", root);
+    var nextLabel = $("[data-flow-next-label]", root);
+    var nextUse = $("use", nextBtn);
+    var pip = $("[data-flow-pip]", root);
+    var msg = $("[data-flow-msg]", root);
+    var faceHolder = $("[data-flow-face]", root);
+    var fillBtn = $("[data-flow-fill]", root);
+    var panelA = $('[data-flow-panel="a"]', root);
+    var panelB = $('[data-flow-panel="b"]', root);
+    var note = $("[data-flow-note]", root);
+    var ideas = $$(".flow-rough li", root);
+    var chat = $("[data-flow-chat]", root);
+    var said = $$("[data-step]", chat); // the question, then Pip's answer
+    var box = composer(chat);
+    var grid = $(".flow-grid", panelB);
+    var table = $("[data-flow-table]", panelB);
+    var head = $(".flow-th", panelB);
+    var rows = $$(".flow-tr:not(.flow-th)", panelB);
+    var caps = rows.map(function (r) { return $(".c-cap", r); });
+    var CAPS = caps.map(function (c) { return c.textContent; });
+    var photos = rows.map(function (r) { return $(".c-ph", r); });
+    var more = $("[data-flow-more]", panelB);
+
+    var at = 0, run = 0, busy = false, shown = 6, swapping = null;
+    var pipH = [0, 0]; // Pip's line at its tallest: for the note and chat, and for the table
+
+    table.setAttribute("aria-label", month + " posts");
+    [head].concat(rows).forEach(function (r, i) { r.style.setProperty("--n", i); });
+    root.classList.add("is-ready");
+    wrap.classList.add("is-ready");
+
+    function instantly(fn) {
+      root.classList.add("is-instant");
+      fn();
+      void root.offsetWidth;
+      root.classList.remove("is-instant");
+    }
+
+    function tried() { root.classList.add("is-tried"); }
+
+    // A phone shows the note and the chat in turn, not side by side
+    function oneAtATime() { return getComputedStyle(note).display === "none" || getComputedStyle(chat).display === "none"; }
+
+    function fadeIn(node) {
+      if (reduced() || !node.animate) return;
+      node.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 150, easing: EASE_OUT });
+    }
+
+    /* The whole demo in view, under the sticky header, with a little air */
+    function intoView() {
+      var r = root.getBoundingClientRect();
+      var top = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0) + 12;
+      if (r.top >= top - 1 && r.bottom <= window.innerHeight - 11) return;
+      window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
+    }
+
+    /* On a narrow demo the steps are one sideways row: keep the current one in
+       view and fade the edge that has more */
+    function stepsEdges() {
+      var max = stepsRow.scrollWidth - stepsRow.clientWidth;
+      stepsRow.classList.toggle("is-scrolled", stepsRow.scrollLeft > 2);
+      stepsRow.classList.toggle("is-at-end", stepsRow.scrollLeft >= max - 2);
+    }
+    function stepsTo(btn, smooth) {
+      var max = stepsRow.scrollWidth - stepsRow.clientWidth;
+      if (max > 0) {
+        var r = stepsRow.getBoundingClientRect(), b = btn.getBoundingClientRect();
+        var left = Math.max(0, Math.min(max, stepsRow.scrollLeft + b.left - r.left - (r.width - b.width) / 2));
+        if (smooth && !reduced() && stepsRow.scrollTo) stepsRow.scrollTo({ left: left, behavior: "smooth" });
+        else stepsRow.scrollLeft = left;
+      }
+      stepsEdges();
+    }
+    stepsRow.addEventListener("scroll", stepsEdges, { passive: true });
+
+    /* The chat: empty (step 1), or the question and Pip's answer (step 2) */
+    function chatTo(answered) {
+      said.forEach(function (s) { s.classList.remove("is-shown", "is-thinking", "is-answered"); });
+      chat.classList.toggle("is-pre", !answered);
+      box.reset();
+      ideas.forEach(function (li) { li.classList.remove("is-lit"); });
+    }
+
+    /* The table: its gaps (step 3), or filled in (step 4) */
+    function tableTo(filled) {
+      rows.forEach(function (r, i) {
+        r.classList.remove("is-filling");
+        caps[i].textContent = filled ? CAPS[i] : "";
+        photos[i].classList.toggle("is-empty", !filled);
+      });
+      panelB.classList.remove("is-arriving");
+    }
+
+    /* As many whole rows as the table's room takes, then "N more" */
+    function fitRows() {
+      if (panelB.hidden) return;
+      var cs = getComputedStyle(panelB);
+      var rowH = parseFloat(cs.getPropertyValue("--row-h")) || 56;
+      var headH = parseFloat(cs.getPropertyValue("--head-h")) || 36;
+      var ghostH = parseFloat(cs.getPropertyValue("--ghost-h")) || 30;
+      shown = Math.max(1, Math.min(6, Math.floor((grid.clientHeight - headH - ghostH - 2) / rowH)));
+      root.style.setProperty("--flow-rows", shown);
+      more.textContent = (TOTAL - shown) + " more";
+    }
+
+    /* Change panel in place: the old leaves in 100ms, the new arrives in 150ms */
+    function showPanel(n, animate) {
+      var to = n < 2 ? panelA : panelB;
+      var from = to === panelA ? panelB : panelA;
+      if (swapping) { swapping.cancel(); swapping = null; }
+      if (from.hidden) { to.hidden = false; fitRows(); return; }
+      if (!animate || reduced() || !from.animate) { from.hidden = true; to.hidden = false; fitRows(); return; }
+      var out = from.animate(
+        [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(2px)" }],
+        { duration: 100, easing: EASE_OUT, fill: "forwards" }
+      );
+      swapping = out;
+      out.onfinish = function () {
+        swapping = null;
+        from.hidden = true;
+        out.cancel();
+        to.hidden = false;
+        fitRows();
+        to.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 150, easing: EASE_OUT });
+      };
+    }
+
+    /* Pip's line: what Pip says at a step, or the dots and what Pip's doing */
+    function setPip(n) {
+      msg.classList.remove("is-busy");
+      setThinking(faceHolder, false);
+      swapText(msg, LINES[n]);
+      fillBtn.hidden = n !== 2;
+      pip.style.minHeight = pipH[n < 2 ? 0 : 1] + "px";
+    }
+    function setBusy(text) {
+      setThinking(faceHolder, true);
+      fillBtn.hidden = true;
+      msg.textContent = "";
+      msg.classList.add("is-busy");
+      msg.appendChild(dots());
+      msg.appendChild(el("span", "", text));
+    }
+
+    // The tallest thing Pip's line says on each panel, at this width
+    function fitPip() {
+      var probe = pip.cloneNode(true);
+      probe.removeAttribute("data-flow-pip");
+      probe.setAttribute("aria-hidden", "true");
+      probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;min-height:0;width:" + pip.getBoundingClientRect().width + "px";
+      var pm = $(".flow-msg", probe), pb = $(".flow-fill", probe);
+      pm.removeAttribute("aria-live");
+      root.appendChild(probe);
+      function h(text, withButton, working) {
+        pm.className = "flow-msg";
+        pm.textContent = "";
+        if (working) { pm.classList.add("is-busy"); pm.appendChild(dots()); pm.appendChild(el("span", "", text)); }
+        else pm.textContent = text;
+        pb.hidden = !withButton;
+        return probe.getBoundingClientRect().height;
+      }
+      pipH[0] = Math.ceil(Math.max(h(LINES[0]), h(LINES[1])));
+      pipH[1] = Math.ceil(Math.max(h(LINES[2], true), h(WORKING, false, true), h(LINES[3])));
+      probe.remove();
+      pip.style.minHeight = pipH[at < 2 ? 0 : 1] + "px";
+    }
+
+    /* The strip: which step is on, and what Next step will do */
+    function paint(n) {
+      at = n;
+      [0, 1, 2, 3].forEach(function (i) { root.classList.toggle("is-at-" + i, i === n); });
+      stepBtns.forEach(function (b, i) { b.setAttribute("aria-pressed", i === n ? "true" : "false"); });
+      nextLabel.textContent = n === 3 ? "Start again" : "Next step";
+      nextUse.setAttribute("href", n === 3 ? "#i-rotate" : "#i-arrow-right");
+      stepsTo(stepBtns[n], true);
+    }
+
+    /* Straight to a step, as it ends */
+    function jump(n) {
+      var was = at;
+      run++;
+      busy = false;
+      paint(n);
+      instantly(function () {
+        chatTo(n >= 1);
+        tableTo(n === 3);
+      });
+      showPanel(n, true);
+      if (n < 2 && was < 2 && was !== n && oneAtATime()) fadeIn(n === 0 ? note : chat);
+      setPip(n);
+    }
+
+    function sleeper(id) {
+      return function (ms) {
+        return new Promise(function (resolve, reject) {
+          setTimeout(function () { if (id === run) resolve(); else reject(CANCELLED); }, ms);
+        });
+      };
+    }
+
+    /* 1 → 2: the question types into the chat box and goes; Pip reads the
+       note, each idea washing in turn, and answers */
+    function playAsk(sleep) {
+      var q = said[0], a = said[1];
+      paint(1);
+      instantly(function () { chatTo(false); tableTo(false); });
+      showPanel(1, true);
+      if (oneAtATime()) fadeIn(chat);
+      setPip(1);
+      var i = 0;
+      function read() {
+        if (i >= ideas.length) return sleep(420);
+        ideas[i++].classList.add("is-lit");
+        return sleep(260).then(read);
+      }
+      return sleep(450)
+        .then(function () { return box.type(q.textContent, sleep); })
+        .then(function () { return sleep(380); })
+        .then(function () { box.send(); q.classList.add("is-shown"); return sleep(520); })
+        .then(function () { a.classList.add("is-shown", "is-thinking"); setThinking(faceHolder, true); return sleep(300); })
+        .then(read)
+        .then(function () {
+          a.classList.remove("is-thinking");
+          a.classList.add("is-answered");
+          ideas.forEach(function (li) { li.classList.remove("is-lit"); });
+          setThinking(faceHolder, false);
+        });
+    }
+
+    /* 2 → 3: the plan arrives as a table, row by row, then the wash lands on
+       the columns Pip added */
+    function playPlan(sleep) {
+      paint(2);
+      instantly(function () { tableTo(false); });
+      void panelB.offsetWidth;
+      panelB.classList.add("is-arriving");
+      showPanel(2, true);
+      setPip(2);
+      return sleep(1400).then(function () { panelB.classList.remove("is-arriving"); });
+    }
+
+    /* 3 → 4: each caption written into its row, then its photo, row by row.
+       The faded row and those out of sight are filled at once. */
+    function playFill(sleep) {
+      paint(3);
+      instantly(function () { tableTo(false); });
+      showPanel(3, false);
+      setBusy(WORKING);
+      pip.style.minHeight = pipH[1] + "px";
+      var upto = Math.min(rows.length, shown);
+      rows.forEach(function (r, i) {
+        if (i < upto) return;
+        caps[i].textContent = CAPS[i];
+        photos[i].classList.remove("is-empty");
+      });
+      function fillRow(i) {
+        if (i >= upto) return sleep(260);
+        var words = CAPS[i].split(" "), k = 0;
+        function word() {
+          if (k >= words.length) return Promise.resolve();
+          k += 1;
+          caps[i].textContent = words.slice(0, k).join(" ");
+          return sleep(34).then(word);
+        }
+        rows[i].classList.add("is-filling");
+        return sleep(110)
+          .then(word)
+          .then(function () { return sleep(110); })
+          .then(function () { photos[i].classList.remove("is-empty"); return sleep(240); })
+          .then(function () { rows[i].classList.remove("is-filling"); return fillRow(i + 1); });
+      }
+      return sleep(420)
+        .then(function () { return fillRow(0); })
+        .then(function () { setPip(3); });
+    }
+
+    function play(n) {
+      if (reduced()) { jump(n); return; }
+      var id = ++run;
+      var sleep = sleeper(id);
+      busy = true;
+      var moves = [null, playAsk, playPlan, playFill];
+      moves[n](sleep)
+        .then(function () { if (id === run) busy = false; })
+        .catch(function (err) { if (err !== CANCELLED) throw err; });
+    }
+
+    stepBtns.forEach(function (b, i) {
+      b.addEventListener("click", function () {
+        tried();
+        if (i === at && !busy) return;
+        jump(i);
+        intoView();
+      });
+    });
+    nextBtn.addEventListener("click", function () {
+      tried();
+      var n = at;
+      if (busy) jump(n); // finish this step at once, then move on
+      if (n === 3) jump(0); else play(n + 1);
+      intoView();
+    });
+    fillBtn.addEventListener("click", function () {
+      tried();
+      if (at !== 2) return;
+      nextBtn.focus({ preventScroll: true });
+      play(3);
+      intoView();
+    });
+
+    // Warm the photos before anyone asks for them
+    onceVisible(wrap, function () {
+      photos.forEach(function (p) { var img = $("img", p); if (img) { var pre = new Image(); pre.src = img.currentSrc || img.src; } });
+    }, 0);
+
+    panelB.hidden = true;
+    paint(0);
+    instantly(function () { chatTo(false); tableTo(false); });
+    setPip(0);
+    fitPip();
+
+    var queued = false;
+    function refit() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () {
+        queued = false;
+        fitPip();
+        fitRows();
+        stepsTo(stepBtns[at], false);
+      });
+    }
+    window.addEventListener("resize", refit);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+  }
+
+
   /* ── accordion ─────────────────────────────────────────────────────────────
      Native <details>, so every answer works without JavaScript. With it, an
      answer opens with height and fade over 220ms and closes in 160ms
@@ -1921,7 +2306,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [dates, stops, header, mascots, reveal, scenes, takeover, playground, jobs, accordion, jumpList, signup].forEach(function (init) {
+  [dates, stops, header, mascots, reveal, scenes, takeover, playground, jobs, flow, accordion, jumpList, signup].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }
