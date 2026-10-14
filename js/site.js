@@ -581,85 +581,76 @@
   }
   function quietly(err) { if (err !== CANCELLED) throw err; }
 
-  /* Never lose your work again: three searches. A button types its words into
-     the search box; the results come in; the first one's folder opens in the
-     file list and the file lights up. Search is the app's, not Pip's. */
+  /* Never lose your work again: the same search in a chat app and in Pip.
+     A button types its words into both boxes. The chat app answers with a
+     long list of chats that all look alike; Pip opens the one folder and
+     lights up the files that match. */
   function findDemo() {
     var root = $("[data-find]");
     if (!root) return;
-    var q = $("[data-find-q]", root);
-    var count = $("[data-find-count]", root);
-    var list = $("[data-find-results]", root);
-    var tree = $$("[data-node]", root);
+    var qs = $$("[data-find-q]", root);
+    var chatCount = $("[data-chat-count]", root);
+    var chatList = $("[data-chat-list]", root);
+    var pipCount = $("[data-pip-count]", root);
+    var rows = $$("[data-find-tree] .tree-row", root);
     var btns = $$("[data-q]", root);
     var R = runner();
+    var M = D.month, P = D.monthPrev;
     var SEARCHES = [
-      { q: D.month.toLowerCase() + " newsletter", count: "2 results, in Newsletters", node: "Newsletters/October", results: [
-        ["file-text", "Newsletter: " + D.month, "Newsletters · edited yesterday", "Hello, and thank you for such a lovely summer at the studio.", [D.month, "Newsletter"]],
-        ["shapes", "Newsletter ideas", "Newsletters · canvas", D.month + ": the mustard scallop, the drum workshop, the lino day.", [D.month, "Newsletter"]]
-      ] },
-      { q: "drum workshop", count: "4 results: a note, slides, a table and a photo", node: "Workshops/Drum workshop steps", results: [
-        ["file-text", "Drum workshop steps", "Workshops · note", "Cut the panel to size, stick the fabric on, roll it round the rings.", ["Drum workshop"]],
-        ["presentation", "Drum workshop", "Workshops · slides", "Make a drum lampshade. Six slides, one for each step.", ["drum lampshade", "Drum workshop"]],
-        ["table", "Bookings", "Workshops · table", "Drum workshop, " + D.long(D.drum) + ": 2 places left.", ["Drum workshop"]],
-        ["image", "drum-step-2.jpg", "Products › Photos", "Jo wrapping fabric round a drum, in the workshop.", ["drum"]]
-      ] },
-      { q: "sales", count: "3 results, in Sales and Products", node: "Sales", results: [
-        ["table", "Sales " + D.salesYear, "Sales · table", "September: shades £2,400, workshops £2,160.", ["Sales"]],
-        ["dashboard", "Sales dashboard", "Sales · dashboard", "Workshops made 43% of sales this year.", ["sales", "Sales"]],
-        ["table", "Shades sold", "Products · table", "Medium scallop, Natural and mustard, £300. Sold in two days.", ["Sold", "sold"]]
-      ] }
+      { q: M.toLowerCase() + " newsletter", word: "newsletter",
+        chats: [M + " newsletter ideas", "Newsletter draft, make it warmer", "Rewrite the newsletter intro", M + " newsletter v2", "newsletter subject lines??", "Help with my newsletter", "Newsletter for " + M + " FINAL", "newsletter again", P + " newsletter", "Can you check this newsletter"],
+        chatCount: "14 chats mention “newsletter”. Which one was the final?",
+        pip: ["Newsletters/this-month"], pipCount: "1 note, in Newsletters" },
+      { q: "drum workshop", word: "workshop",
+        chats: ["Workshop slides?", "Drum workshop steps help", "Make my workshop instructions clearer", "workshop email to everyone", "Workshop prices", "Rewrite the workshop description", "drum workshop again", "Workshop booking list", "Workshop photos caption"],
+        chatCount: "11 chats mention “workshop”. Where are the slides?",
+        pip: ["Workshops/Drum workshop steps", "Workshops/Drum workshop slides", "Workshops/Bookings"], pipCount: "3 files, all in Workshops: a note, slides and a table" },
+      { q: "sales", word: "sales",
+        chats: ["Sales figures for " + P, "Can you add up these sales", "sales again", "Make a chart of my sales", "Which month sold best?", "Sales summary for the accountant", "sales " + D.salesYear, "Help with my sales sheet"],
+        chatCount: "9 chats mention “sales”. Which numbers are up to date?",
+        pip: ["Sales/table", "Sales/Sales dashboard"], pipCount: "2 files, in Sales: the table and its dashboard" }
     ];
-
-    function marked(text, words) {
+    function marked(text, word) {
       var frag = document.createDocumentFragment();
-      var re = new RegExp("(" + words.map(function (w) { return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")", "i");
+      var re = new RegExp("(" + word + ")", "i");
       text.split(re).forEach(function (part, k) {
         if (!part) return;
-        if (k % 2 === 1) frag.appendChild(el("mark", "", part)); else frag.appendChild(document.createTextNode(part));
+        frag.appendChild(k % 2 === 1 ? el("mark", "", part) : document.createTextNode(part));
       });
       return frag;
     }
-    function light(nodeName) {
-      var folder = nodeName ? nodeName.split("/")[0] : "";
-      tree.forEach(function (row) {
-        var name = row.getAttribute("data-node");
-        row.classList.toggle("is-selected", name === nodeName);
-        row.classList.toggle("is-near", !!folder && (row.getAttribute("data-in") === folder || name === folder));
-      });
-    }
     function show(k, animate) {
       var S = SEARCHES[k];
-      list.textContent = "";
-      count.textContent = S.count;
-      S.results.forEach(function (r, i) {
-        var li = el("li", "fres" + (i === 0 ? " is-top" : ""));
-        li.appendChild(icon(r[0], 16));
-        var t = el("span", "fres-t");
-        var b = el("b"); b.appendChild(marked(r[1], r[4])); t.appendChild(b);
-        t.appendChild(el("span", "", r[2]));
-        var line = el("span", "fres-line"); line.appendChild(marked(r[3], r[4])); t.appendChild(line);
-        li.appendChild(t);
+      chatList.textContent = "";
+      S.chats.forEach(function (t, i) {
+        var li = el("li", "fchat" + (animate ? " is-new" : ""));
+        li.appendChild(icon("message", 14));
+        var span = el("span"); span.appendChild(marked(t, S.word)); li.appendChild(span);
         if (animate) li.style.setProperty("--n", i);
-        li.classList.toggle("is-new", !!animate);
-        list.appendChild(li);
+        chatList.appendChild(li);
       });
-      light(S.node);
+      chatCount.textContent = S.chatCount;
+      pipCount.textContent = S.pipCount;
+      var folder = S.pip[0].split("/")[0];
+      root.classList.add("is-found");
+      rows.forEach(function (row) {
+        var node = row.getAttribute("data-node"), f = row.getAttribute("data-folder") || row.getAttribute("data-in");
+        row.classList.toggle("is-selected", !!node && S.pip.indexOf(node) > -1);
+        row.classList.toggle("is-near", f === folder);
+      });
     }
-
     btns.forEach(function (btn) {
       btn.addEventListener("click", function () {
         root.classList.add("is-tried");
         var k = +btn.getAttribute("data-q");
         btns.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
         var sleep = R.start();
-        if (reduced()) { q.textContent = SEARCHES[k].q; show(k, false); return; }
-        q.textContent = "";
+        if (reduced()) { qs.forEach(function (q) { q.textContent = SEARCHES[k].q; }); show(k, false); return; }
+        qs.forEach(function (q) { q.textContent = ""; });
         root.classList.add("is-typing");
-        list.classList.add("is-dim");
-        typeInto(q, SEARCHES[k].q, sleep)
+        Promise.all(qs.map(function (q) { return typeInto(q, SEARCHES[k].q, sleep); }))
           .then(function () { root.classList.remove("is-typing"); return sleep(260); })
-          .then(function () { list.classList.remove("is-dim"); show(k, true); })
+          .then(function () { show(k, true); })
           .catch(quietly);
       });
     });
@@ -686,7 +677,7 @@
       ["Our new sage linen lamp is in the shop: a linen shade on an oak base that looks lovely on a desk. £105, made to order in about two weeks.", "Tidied up. Same facts, easier to read.", "Tidying it up…"],
       ["New in: a sage linen lamp on an oak base. £105, made to order.", "Down to 13 words.", "Cutting it down…"],
       ["Our new sage linen lamp is in the shop. The shade is hand made in my studio in Hove and sits on a solid oak base, so it looks lovely on a desk or a bedside table. It's £105, made to order in about two weeks, with free UK delivery.", "Added what your notes say about it: made in Hove, free UK delivery.", "Adding more from your notes…"],
-      ["The sage lamp has landed in the shop. Linen shade, oak base, and it looks lovely on a desk (tidier desks than mine, anyway). £105, made to order in about two weeks.", "In your voice: short, warm, with a little joke.", "Writing it like you…"]
+      ["•  Sage linen shade on an oak base\n•  Looks lovely on a desk\n•  £105\n•  Made to order, in about two weeks", "Turned into a list, easy to scan.", "Making it a list…"]
     ];
 
     function say(t) { msg.classList.remove("is-busy"); setThinking(faceHolder, false); swapText(msg, t); }
@@ -894,43 +885,56 @@
     });
   }
 
-  /* See how Pip works like you: one request, written without and with what
-     Pip knows from Jo's notes. The reply types into the email; with what Pip
-     knows, the facts it used show underneath. */
-  function likeDemo() {
-    var root = $("[data-like]");
+  /* See who and what Pip knows: the people, places and suppliers Pip has
+     picked up from the notes, as the app's People and things page shows
+     them. Open one to see what Pip knows and which notes it came from. */
+  function peopleDemo() {
+    var root = $("[data-people]");
     if (!root) return;
-    var text = $("[data-like-text]", root);
-    var used = $("[data-like-used]", root);
-    var mail = $("[data-like-mail]", root);
-    var btns = $$("[data-like-mode]", root);
-    var R = runner();
-    var REPLIES = [
-      "Dear Sarah, Thank you for your enquiry. Delivery times vary depending on the product. Please allow 3 to 5 business days. Kind regards",
-      "Hi Sarah, thanks so much for your order. Each shade is made to order, so it takes up to 14 working days, and delivery is free anywhere in the UK. I'll let you know the moment it's on its way. Speak soon, Jo"
+    var card = $("[data-pcard]", root);
+    var f = function (k) { return $('[data-p="' + k + '"]', card); };
+    var btns = $$("[data-person]", root);
+    var PEOPLE = [
+      { kind: "Customer", name: "Sarah Green", role: "Runs Hove Gift Co, a shop that stocks your scallops.",
+        facts: [["Reorders", "about every two months"], ["Last order", "six medium scallops, " + D.ago(11)], ["Likes", "the mustard and the green linen"]],
+        src: ["Orders", "Visit to Hove Gift Co"] },
+      { kind: "Place", name: "Starling Studio", role: "Where your workshops happen, in Fiveways, Brighton.",
+        facts: [["Holds", "six people round the big table"], ["Book it", "a month ahead, with Mel"], ["Bring", "the cutting mats and the iron"]],
+        src: ["Drum workshop steps", "Bookings"] },
+      { kind: "Supplier", name: "Oak & Co", role: "Makes the oak bases for your slim lamps.",
+        facts: [["Price", "£28 a base, up from £22 in September"], ["Order", "ten at a time"], ["Takes", "about two weeks to arrive"]],
+        src: ["Oak & Co order", "Costs"] }
     ];
+    function fill(k) {
+      var P = PEOPLE[k];
+      f("kind").textContent = P.kind;
+      f("name").textContent = P.name;
+      f("role").textContent = P.role;
+      var ul = f("facts"); ul.textContent = "";
+      P.facts.forEach(function (x) { var li = el("li"); li.appendChild(el("b", "", x[0])); li.appendChild(el("span", "", x[1])); ul.appendChild(li); });
+      var src = f("src"); var span = $("span", src); span.textContent = "From ";
+      P.src.forEach(function (t, i) { if (i) span.appendChild(document.createTextNode(" ")); span.appendChild(el("span", "src", t)); });
+    }
+    // Hold the card at its tallest person, so nothing moves
     function measure() {
-      mail.style.minHeight = "";
-      var was = text.innerHTML, h = 0;
-      REPLIES.forEach(function (r) { text.textContent = r; h = Math.max(h, mail.getBoundingClientRect().height); });
-      text.innerHTML = was;
-      mail.style.minHeight = Math.ceil(h) + "px";
+      card.style.minHeight = "";
+      var on = btns.map(function (b) { return b.getAttribute("aria-pressed") === "true"; }).indexOf(true), h = 0;
+      PEOPLE.forEach(function (_, k) { fill(k); h = Math.max(h, card.getBoundingClientRect().height); });
+      fill(on < 0 ? 0 : on);
+      card.style.minHeight = Math.ceil(h) + "px";
     }
     btns.forEach(function (btn) {
       btn.addEventListener("click", function () {
         root.classList.add("is-tried");
-        var k = +btn.getAttribute("data-like-mode");
+        var k = +btn.getAttribute("data-person");
         btns.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
-        root.classList.toggle("is-with", k === 1);
-        root.classList.toggle("is-without", k === 0);
-        used.classList.remove("is-shown");
-        var sleep = R.start();
-        if (reduced()) { text.textContent = REPLIES[k]; used.classList.toggle("is-shown", k === 1); return; }
-        text.textContent = "";
-        root.classList.add("is-typing");
-        typeInto(text, REPLIES[k], sleep, true)
-          .then(function () { root.classList.remove("is-typing"); if (k === 1) used.classList.add("is-shown"); })
-          .catch(quietly);
+        if (reduced() || !card.animate) { fill(k); return; }
+        var out = card.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(3px)" }], { duration: 110, easing: EASE_OUT, fill: "forwards" });
+        out.onfinish = function () {
+          fill(k);
+          out.cancel();
+          card.animate([{ opacity: 0, transform: "translateY(5px)" }, { opacity: 1, transform: "none" }], { duration: 200, easing: EASE_OUT });
+        };
       });
     });
     measure();
@@ -942,7 +946,7 @@
   function scenes() {
     findDemo();
     helpDemo();
-    likeDemo();
+    peopleDemo();
     sceneBriefed();
     sceneSwitch();
   }

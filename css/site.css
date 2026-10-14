@@ -397,7 +397,7 @@
   /* Texture: a fine paper grain on every ground, and Pip's canvas dots
      behind the hero. Both are barely there; they stop the page reading flat. */
   --grain: url("../assets/img/grain.png");
-  --dot: rgba(26, 26, 26, 0.2);
+  --dot: rgba(26, 26, 26, 0.13);
 }
 
 @media (max-width: 719px) {
@@ -408,13 +408,13 @@
   :root:not([data-theme="light"]) {
     --win-ring: 0 0 0 1px var(--border-light);
     --grain: url("../assets/img/grain-dark.png");
-    --dot: rgba(232, 229, 224, 0.13);
+    --dot: rgba(232, 229, 224, 0.09);
   }
 }
 :root[data-theme="dark"] {
   --win-ring: 0 0 0 1px var(--border-light);
   --grain: url("../assets/img/grain-dark.png");
-  --dot: rgba(232, 229, 224, 0.13);
+  --dot: rgba(232, 229, 224, 0.09);
 }
 
 
@@ -1231,6 +1231,8 @@ small { font-size: inherit; }
 .try-back .i { color: var(--text-secondary); }
 .try-back:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px var(--text-secondary), 0 3px 8px rgba(0, 0, 0, 0.08); }
 .try-back:active { transform: scale(var(--press)); }
+/* Its place is kept while it's hidden, so the strip never changes height when it appears */
+.demo-try-end > .try-back[hidden] { display: inline-flex !important; visibility: hidden; }
 .try-btn:disabled { opacity: 0.45; transform: none; }
 .try-btn--quiet { height: 32px; padding: 0 12px; background: transparent; box-shadow: none; color: var(--text-secondary); }
 .try-btn--quiet:hover { background: var(--bg-hover); box-shadow: none; color: var(--text-primary); }
@@ -1354,50 +1356,55 @@ small { font-size: inherit; }
 .tbl tr.is-new td { animation: pip-arrive var(--dur-quick) var(--ease-out) both, pip-wash 1200ms linear both; }
 .tbl tr.is-total.is-new td { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
 
-/* ── Never lose your work again: the search demo ─────────────────────────── */
-.find-body { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 0; height: 400px; }
-.find-side { min-width: 0; padding: 16px 10px; background: var(--bg-secondary); overflow: hidden; }
-.find-side-h { padding: 0 10px 8px; font-size: 15px; font-weight: var(--weight-semibold); }
-.find-tree .tree-row { height: 29px; font-size: 13.5px; transition: background-color var(--dur-settle) var(--ease-out), color var(--dur-settle) var(--ease-out), opacity var(--dur-settle) var(--ease-out); }
-.find-tree .tree-in { padding-left: 34px; }
-.find-tree .tree-top { padding-left: 24px; }
-.demo--find.is-tried .find-tree .tree-row:not(.is-near):not(.is-selected) { opacity: 0.55; }
-.find-tree .tree-row.is-near { color: var(--text-primary); }
-.find-main { min-width: 0; display: flex; flex-direction: column; padding: 18px clamp(16px, 3.5cqi, 28px); overflow: hidden; }
-.find-main, .find-side { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); }
+/* ── Never lose your work again: one search, in a chat app and in Pip ──── */
+.find-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); height: 430px; }
+.find-pane { min-width: 0; display: flex; flex-direction: column; padding: 18px clamp(16px, 3cqi, 26px) 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent); }
+.find-pane--chat { background: color-mix(in srgb, var(--chart-amber) 5%, var(--bg-primary)); box-shadow: inset -1px 0 0 var(--border-light); }
+.find-pane--pip { background: var(--surface-pip); }
+.find-pane-h { flex: none; display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.find-tag { font-size: 14px; font-weight: var(--weight-semibold); }
+.find-tag--pip { color: var(--text-accent); }
+.find-sub { font-size: 12.5px; color: var(--text-muted); }
 .find-search {
   flex: none;
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 46px;
-  padding: 0 14px;
-  border-radius: 12px;
-  background: var(--bg-primary);
+  height: 42px;
+  padding: 0 13px;
+  border-radius: 11px;
+  background: var(--surface-pip);
   box-shadow: inset 0 0 0 1px var(--border);
   color: var(--text-secondary);
   transition: box-shadow var(--transition-normal);
 }
 .demo--find.is-typing .find-search { box-shadow: inset 0 0 0 1px var(--accent-strong), var(--accent-ring); }
-.find-q { font-size: 15.5px; color: var(--text-primary); white-space: nowrap; overflow: hidden; }
+.find-q { font-size: 15px; color: var(--text-primary); white-space: nowrap; overflow: hidden; }
 .find-ph { color: var(--text-muted); }
 .find-search .caret { height: 1.15em; }
 .demo--find.is-typing .find-search .caret { opacity: 1; }
-.find-count { flex: none; margin: 14px 2px 6px; font-size: 12.5px; font-weight: var(--weight-medium); color: var(--text-muted); }
-.find-results { list-style: none; display: flex; flex-direction: column; gap: 2px; transition: opacity var(--dur-quick) var(--ease-out); }
-.find-results.is-dim { opacity: 0.35; }
-.fres { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border-radius: 12px; }
-.fres > .i { flex: none; margin-top: 2px; color: var(--text-secondary); }
-.fres.is-top { background: var(--accent-soft); }
-.fres-t { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.fres-t b { font-size: 14.5px; font-weight: var(--weight-semibold); }
-.fres-t > span:not(.fres-line) { font-size: 12.5px; color: var(--text-muted); }
-.fres-line { margin-top: 3px; font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); }
-.fres mark { padding: 0 2px; border-radius: 3px; background: color-mix(in srgb, var(--chart-amber) 26%, transparent); color: inherit; }
-.fres.is-new { animation: pip-arrive var(--dur-quick) var(--ease-out) both; animation-delay: calc(var(--n, 0) * 70ms); }
+.find-count { flex: none; margin: 12px 2px 6px; font-size: 13px; font-weight: var(--weight-medium); line-height: 1.4; color: var(--text-muted); }
+.demo--find.is-found .find-pane--chat .find-count { color: var(--text-primary); }
+.demo--find.is-found .find-pane--pip .find-count { color: var(--text-accent); }
+.find-chats { list-style: none; display: flex; flex-direction: column; }
+.fchat { display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 6px 4px; box-shadow: inset 0 -1px 0 var(--border-light); font-size: 14px; color: var(--text-primary); }
+.fchat > .i { flex: none; color: var(--text-muted); }
+.fchat span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fchat.is-new { animation: pip-arrive var(--dur-quick) var(--ease-out) both; animation-delay: calc(var(--n, 0) * 45ms); }
+.find-pane mark { padding: 0 2px; border-radius: 3px; background: color-mix(in srgb, var(--chart-amber) 26%, transparent); color: inherit; }
+.find-tree { gap: 1px; }
+.find-tree .tree-row { height: 30px; font-size: 14px; transition: background-color var(--dur-settle) var(--ease-out), color var(--dur-settle) var(--ease-out), opacity var(--dur-settle) var(--ease-out); }
+.find-tree .tree-in { padding-left: 34px; }
+.demo--find.is-found .find-tree .tree-row:not(.is-near):not(.is-selected) { opacity: 0.45; }
+.demo--find.is-found .find-tree .tree-in:not(.is-near) { display: none; }
+.demo--find.is-found .find-tree .tree-row.is-near { color: var(--text-primary); }
 @container (max-width: 640px) {
-  .find-body { grid-template-columns: minmax(0, 1fr); height: 430px; }
-  .find-side { display: none; }
+  .find-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: 250px 300px; height: auto; }
+  .find-pane--chat { box-shadow: inset 0 -1px 0 var(--border-light); }
+  .find-tree .tree-row { height: 26px; font-size: 13.5px; }
+  .find-tree .tree-in { display: none; }
+  .demo--find.is-found .find-tree .tree-in.is-near { display: flex; }
 }
 
 /* ── Help with the bit you're stuck on: four rewrites of one paragraph ──── */
@@ -1411,11 +1418,11 @@ small { font-size: inherit; }
 .demo--help.is-edited .help-para:has([data-help-text]) { background: var(--accent-soft); }
 .demo--help.is-clearing .help-sel { opacity: 0; }
 .help-para .caret { height: 1.1em; vertical-align: -0.18em; }
+.help-sel { white-space: pre-line; }
 .demo--help.is-typing .help-para .caret { opacity: 1; }
 .help-para--rest { color: var(--text-primary); }
 .help-tag { padding-top: 11px; font-size: 12.5px; color: var(--text-accent); white-space: nowrap; }
 .help-tag--yours { color: var(--text-muted); }
-.help-foot { display: flex; min-height: 34px; margin-top: auto; }
 .demo-pip .demo-pip-face { display: inline-flex; flex: none; }
 @container (max-width: 520px) {
   .help-row { grid-template-columns: minmax(0, 1fr); gap: 0; }
@@ -2176,26 +2183,25 @@ small { font-size: inherit; }
 .memory-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .memory-col--offset { margin-top: clamp(0px, 7vw, 96px); }
 .memory-head { display: flex; flex-direction: column; gap: 2px; padding-left: 4px; }
-/* See how Pip works like you: the same reply, without and with what Pip knows */
-.like-body { display: flex; flex-direction: column; gap: 14px; padding: 18px clamp(16px, 4cqi, 24px) 20px; background: var(--bg-primary); }
-.like-ask { display: flex; justify-content: flex-end; }
-.like-mail {
-  padding: 16px 18px;
-  border-radius: 14px;
+/* See who and what Pip knows: one person, place or supplier at a time */
+.people-body { padding: 18px clamp(16px, 4cqi, 24px) 20px; background: var(--bg-primary); }
+.pcard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: clamp(18px, 4.5cqi, 26px);
+  border-radius: 16px;
   background: var(--surface-pip);
   box-shadow: var(--shadow-sm), var(--win-ring);
-  transition: box-shadow var(--dur-settle) var(--ease-out);
 }
-.demo--like.is-with .like-mail { box-shadow: 0 0 0 2px var(--accent-soft-strong), var(--shadow-sm); }
-.like-to { padding-bottom: 8px; margin-bottom: 10px; box-shadow: inset 0 -1px 0 var(--border-light); font-size: 12.5px; color: var(--text-muted); }
-.like-text { font-size: 15px; line-height: 1.6; }
-.demo--without .like-text { color: var(--text-secondary); }
-.like-ph { color: var(--text-muted); }
-.like-used { display: flex; flex-direction: column; gap: 8px; min-height: 76px; opacity: 0; transform: translateY(4px); transition: opacity var(--dur-settle) var(--ease-out), transform var(--dur-settle) var(--ease-out); }
-.like-used.is-shown { opacity: 1; transform: none; }
-.like-used-h { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: var(--weight-medium); color: var(--text-secondary); }
-.like-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.like-chips .src { white-space: normal; }
+.pcard-kind { align-self: flex-start; padding: 2px 9px; border-radius: var(--radius-full); background: var(--bg-secondary); font-size: 12px; font-weight: var(--weight-medium); color: var(--text-secondary); }
+.pcard-name { margin-top: 4px; font-size: clamp(22px, 5.5cqi, 26px); font-weight: var(--weight-semibold); line-height: 1.2; letter-spacing: -0.015em; }
+.pcard-role { font-size: 15px; line-height: 1.5; color: var(--text-secondary); }
+.pcard-facts { list-style: none; display: flex; flex-direction: column; margin-top: 8px; }
+.pcard-facts li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 9px 0; box-shadow: inset 0 1px 0 var(--border-light); font-size: 14.5px; line-height: 1.45; }
+.pcard-facts b { font-weight: var(--weight-medium); color: var(--text-muted); }
+.pcard-src { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 13px; color: var(--text-secondary); }
+.pcard-src > .i { flex: none; color: var(--text-muted); }
 .demo--ask .pchat { border-radius: 0; }
 @media (max-width: 899px) {
   .memory-grid { grid-template-columns: minmax(0, 1fr); row-gap: 56px; }
@@ -3030,10 +3036,9 @@ small { font-size: inherit; }
   position: relative;
   aspect-ratio: 16 / 9;
   border-radius: var(--win-radius);
-  background-color: var(--surface-pip);
-  background-image: radial-gradient(circle, var(--border) 1.1px, transparent 1.6px);
-  background-size: 22px 22px;
-  background-position: 50% 50%;
+  background-color: color-mix(in srgb, var(--chart-amber) 7%, var(--surface-pip));
+  background-image: var(--grain), radial-gradient(ellipse 60% 55% at 50% 50%, var(--surface-pip) 30%, transparent 100%);
+  background-size: 90px 90px, 100% 100%;
   box-shadow: var(--win-shadow);
   overflow: hidden;
   isolation: isolate;
