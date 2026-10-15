@@ -523,152 +523,127 @@
   <div class="container">
     <div class="sec-head" data-reveal>
       <h2 class="h2" id="flow-h">From a few ideas to a month of posts.</h2>
-      <p class="lead">Small businesses spend hours on social media. Here's one job, start to finish: a few rough ideas become a month of planned posts, with the captions written and the photos picked. Click through the steps.</p>
+      <p class="lead">Small businesses spend hours on social media. Here's one job, start to finish, in Pip: your rough ideas become a month of posts, with the captions written and the photos picked. You ask, and Pip works in your files.</p>
     </div>
-    <div class="flow-wrap stack-gap" data-reveal-visual>
-      <span class="flow-hand" aria-hidden="true" data-inview><span class="hand">click through</span><svg class="hand-arrow hand-arrow--flow" viewBox="0 0 84 76" width="56" height="50" focusable="false"><path pathLength="100" d="M3 15C18 6 44 2 61 15C73 25 74 44 67 64L75.5 57.5L67 64L63 54"/></svg></span>
-      <div class="demo flow-demo" id="flow-demo" role="group" aria-label="One job in four steps: a few social media ideas become a month of planned posts">
-        <div class="demo-try flow-try">
-          <span class="demo-try-label">Try it: step through</span>
-          <div class="demo-try-actions flow-steps" role="group" aria-label="Steps" data-flow-steps>
-            <button type="button" class="try-btn flow-step-btn" data-flow-to="0" aria-pressed="true"><span class="flow-n" aria-hidden="true">1</span><span><span class="sr-only">Step 1: </span>Jot down ideas</span></button>
-            <button type="button" class="try-btn flow-step-btn" data-flow-to="1" aria-pressed="false"><span class="flow-n" aria-hidden="true">2</span><span><span class="sr-only">Step 2: </span>Ask Pip to plan it</span></button>
-            <button type="button" class="try-btn flow-step-btn" data-flow-to="2" aria-pressed="false"><span class="flow-n" aria-hidden="true">3</span><span><span class="sr-only">Step 3: </span>Write the captions</span></button>
-            <button type="button" class="try-btn flow-step-btn" data-flow-to="3" aria-pressed="false"><span class="flow-n" aria-hidden="true">4</span><span><span class="sr-only">Step 4: </span>Pick the photos</span></button>
-          </div>
+  </div>
+  <div class="container container--wide stack-gap flow-box" data-reveal-visual>
+    <ol class="pp-steps" aria-label="How it goes" data-pp-steps>
+      <li>Jot down your ideas</li>
+      <li>Ask Pip to plan it</li>
+      <li>Pip writes the captions</li>
+      <li>Pip picks the photos</li>
+    </ol>
+    <div class="pp flow-stage" data-pp data-flow>
+      <button type="button" class="pp-replay" data-pp-replay hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg>Play it again</button>
+      <div class="pp-doc flow-doc" data-pp-doc>
+        <div class="pp-tabs" role="tablist" aria-label="Open files">
+          <button type="button" class="pp-tab" role="tab" id="flow-tab-note" aria-selected="true" aria-controls="flow-note" data-flow-tab="note"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Social ideas</span></button>
+          <button type="button" class="pp-tab" role="tab" id="flow-tab-plan" aria-selected="false" aria-controls="flow-plan" data-flow-tab="plan"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span><span data-flow-month>November</span> posts</span></button>
         </div>
-        <div class="demo-pip demo-pip--act flow-pip" data-flow-pip>
-          <span class="flow-face" data-flow-face><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
-          <p class="flow-msg" data-flow-msg aria-live="polite">Jot your ideas down any old way. Then ask me to turn them into a plan.</p>
-          <div class="demo-pip-act">
-            <button type="button" class="try-go flow-next" data-flow-next><span>Next step</span><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button>
-            <button type="button" class="try-back flow-again" data-flow-again hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg><span>Start again</span></button>
+
+        <!-- Your note: write in it -->
+        <div class="flow-file flow-file--note" id="flow-note" role="tabpanel" aria-labelledby="flow-tab-note" data-flow-file="note">
+          <p class="pp-crumb">Notes › Social</p>
+          <h3 class="pp-title">Social ideas</h3>
+          <div class="pp-body flow-ideas" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true" aria-label="Social ideas: a note you can write in" data-flow-ideas>
+            <ul>
+              <li>behind the scenes making a scallop</li>
+              <li>workshop photos</li>
+              <li>new sage lamp!!</li>
+              <li>christmas gift guide?</li>
+              <li>lampshades in customers' homes</li>
+            </ul>
           </div>
+          <div class="pp-toolbar" aria-hidden="true"><span>B</span><span><i>I</i></span><span><u>U</u></span><span class="pp-sep"></span><span>H1</span><span>H2</span><span class="pp-sep"></span><span>•</span><span>1.</span></div>
         </div>
-        <div class="demo-body flow-body">
 
-          <!-- Steps 1 and 2: the note, and Pip's chat beside it -->
-          <div class="flow-panel flow-a" data-flow-panel="a">
-            <div class="flow-head flow-head--1">
-              <p class="flow-head-n">Step 1</p>
-              <h3 class="flow-head-h">Jot down your ideas</h3>
-              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Jot your ideas down any old way. Then ask me to turn them into a plan.</span></p>
-            </div>
-            <div class="flow-note" data-flow-note>
-              <p class="doc-meta">Note · just now</p>
-              <p class="flow-note-title">Social ideas</p>
-              <ul class="rough flow-rough">
-                <li>behind the scenes making a scallop</li>
-                <li>workshop photos</li>
-                <li>new sage lamp!!</li>
-                <li>christmas gift guide?</li>
-                <li>lampshades in customers' homes<i class="caret flow-caret" aria-hidden="true"></i></li>
-              </ul>
-            </div>
-            <div class="flow-head flow-head--2">
-              <p class="flow-head-n">Step 2</p>
-              <h3 class="flow-head-h">Ask Pip to plan it</h3>
-              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Just ask, in your own words. I'll read your note first.</span></p>
-            </div>
-            <div class="flow-chat" data-flow-chat>
-              <div class="pchat flow-pchat">
-                <div class="pchat-log flow-log">
-                  <div class="pmsg pmsg--user" data-step>Can you turn these into a plan for <span data-flow-month>November</span>?</div>
-                  <div class="pmsg pmsg--pip" data-step><p class="pwork"><svg class="i i-12 pwork-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span class="pwork-done">Read Social ideas</span><span class="pwork-now">Reading Social ideas</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p><p class="pans">Here's your plan for <span data-flow-month>November</span>: three posts a week. I've left room for a caption and a photo on each.</p><button type="button" class="pdoc" data-flow-open><span class="pdoc-icon"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg></span><span class="pdoc-txt"><b><span data-flow-month>November</span> posts</b><small>Table · 12 posts · just made</small></span><span class="pdoc-open">Open<svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></span></button></div>
+        <!-- The plan Pip makes from it: a new table, in its own tab -->
+        <div class="flow-file flow-file--plan" id="flow-plan" role="tabpanel" aria-labelledby="flow-tab-plan" data-flow-file="plan">
+          <p class="pp-crumb">Tables › Social</p>
+          <h3 class="pp-title"><span data-flow-month>November</span> posts</h3>
+          <div class="flow-grid">
+            <div class="flow-tblbox">
+              <div class="flow-tbl" role="table" aria-label="November posts" data-flow-table>
+                <div class="flow-tr flow-th" role="row">
+                  <span class="c-day" role="columnheader">Day</span>
+                  <span class="c-where" role="columnheader">Where</span>
+                  <span class="c-post" role="columnheader">Post</span>
+                  <span class="c-cap" role="columnheader">Caption</span>
+                  <span class="c-ph" role="columnheader">Photo</span>
                 </div>
-                <div class="pcomposer" data-composer>
-                  <span class="pc-field"><span class="pc-ph" data-ph>Ask Pip anything…</span><span class="pc-typed" data-typing></span><i class="caret" aria-hidden="true"></i></span>
-                  <span class="pc-tune"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg></span>
-                  <span class="pc-send"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-send"/></svg></span>
+                <div class="flow-tr" role="row">
+                  <span class="c-day" role="cell" data-flow-day="0">Mon 2</span>
+                  <span class="c-where" role="cell">Instagram</span>
+                  <span class="c-post" role="cell">Making a scallop</span>
+                  <span class="c-cap" role="cell">Two goes to get these scallops even. Worth it.</span>
+                  <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/scallop-pleats.jpg" width="160" height="160" alt="A hand through the top of a pleated mustard scallop shade" loading="lazy" decoding="async"></span></span>
+                </div>
+                <div class="flow-tr" role="row">
+                  <span class="c-day" role="cell" data-flow-day="1">Wed 4</span>
+                  <span class="c-where" role="cell">Facebook</span>
+                  <span class="c-post" role="cell">Drum workshop</span>
+                  <span class="c-cap" role="cell">Sunday's drum workshop: six people, six shades, one very happy studio.</span>
+                  <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/drum-workshop.jpg" width="160" height="160" alt="The workshop table: fabric panels, instructions and a plate of biscuits" loading="lazy" decoding="async"></span></span>
+                </div>
+                <div class="flow-tr" role="row">
+                  <span class="c-day" role="cell" data-flow-day="2">Fri 6</span>
+                  <span class="c-where" role="cell">Instagram</span>
+                  <span class="c-post" role="cell">New sage lamp</span>
+                  <span class="c-cap" role="cell">The sage lamp has landed. Linen shade, wooden base, £105.</span>
+                  <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/sage-lamp.jpg" width="160" height="160" alt="The sage green linen slim lamp on its wooden base" loading="lazy" decoding="async"></span></span>
+                </div>
+                <div class="flow-tr" role="row">
+                  <span class="c-day" role="cell" data-flow-day="3">Mon 9</span>
+                  <span class="c-where" role="cell">Instagram</span>
+                  <span class="c-post" role="cell">In your homes</span>
+                  <span class="c-cap" role="cell">Your photos are the best bit. This scallop's found a very lucky dining table.</span>
+                  <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/scallop-at-home.jpg" width="160" height="160" alt="A natural and mustard scallop shade hanging over a dining table" loading="lazy" decoding="async"></span></span>
+                </div>
+                <div class="flow-tr" role="row">
+                  <span class="c-day" role="cell" data-flow-day="4">Wed 11</span>
+                  <span class="c-where" role="cell">Facebook</span>
+                  <span class="c-post" role="cell">Gift guide, part one</span>
+                  <span class="c-cap" role="cell">Gift guide, part one: a lampshade kit for the friend who has everything.</span>
+                  <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/drum-kit.jpg" width="160" height="160" alt="A lampshade making kit in its box" loading="lazy" decoding="async"></span></span>
+                </div>
+                <div class="flow-tr" role="row">
+                  <span class="c-day" role="cell" data-flow-day="5">Fri 13</span>
+                  <span class="c-where" role="cell">Instagram</span>
+                  <span class="c-post" role="cell">In the studio</span>
+                  <span class="c-cap" role="cell">Measure twice, cut once, put the kettle on, measure again.</span>
+                  <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/studio-cutting.jpg" width="160" height="160" alt="Cutting fabric at the studio bench" loading="lazy" decoding="async"></span></span>
+                </div>
+                <div class="flow-tr" role="row">
+                  <span class="c-day" role="cell" data-flow-day="6">Mon 16</span>
+                  <span class="c-where" role="cell">Facebook</span>
+                  <span class="c-post" role="cell">Gift guide, part two</span>
+                  <span class="c-cap" role="cell">The kit, opened up. Everything's in there except the fabric.</span>
+                  <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/kit-flatlay.jpg" width="160" height="160" alt="The lampshade kit opened: rings, tape, instructions and a pencil" loading="lazy" decoding="async"></span></span>
                 </div>
               </div>
+              <p class="flow-more"><span data-flow-more>6 more</span></p>
             </div>
           </div>
-
-          <!-- Steps 3 and 4: the plan as a table, its gaps, then filled in -->
-          <div class="flow-panel flow-b" data-flow-panel="b">
-            <div class="flow-head flow-head--3">
-              <p class="flow-head-n">Step 3</p>
-              <h3 class="flow-head-h">Write the captions</h3>
-              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Twelve captions, written in your voice. Next, I'll pick a photo for each one from your folders.</span></p>
-            </div>
-            <div class="flow-head flow-head--4">
-              <p class="flow-head-n">Step 4</p>
-              <h3 class="flow-head-h">Pick the photos</h3>
-              <p class="flow-head-pip"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Done. Twelve posts for <span data-flow-month>November</span>, with captions and photos. Change anything you like.</span></p>
-            </div>
-            <div class="flow-sheet">
-              <div class="flow-sheet-top">
-                <p class="flow-sheet-title"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span><span data-flow-month>November</span> posts</span></p>
-              </div>
-              <div class="flow-grid">
-                <div class="flow-tblbox">
-                  <div class="flow-tbl" role="table" aria-label="November posts" data-flow-table>
-                    <div class="flow-tr flow-th" role="row">
-                      <span class="c-day" role="columnheader">Day</span>
-                      <span class="c-where" role="columnheader">Where</span>
-                      <span class="c-post" role="columnheader">Post</span>
-                      <span class="c-cap" role="columnheader">Caption</span>
-                      <span class="c-ph" role="columnheader">Photo</span>
-                    </div>
-                    <div class="flow-tr" role="row">
-                      <span class="c-day" role="cell" data-flow-day="0">Mon 2</span>
-                      <span class="c-where" role="cell">Instagram</span>
-                      <span class="c-post" role="cell">Making a scallop</span>
-                      <span class="c-cap" role="cell">Two goes to get these scallops even. Worth it.</span>
-                      <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/scallop-pleats.jpg" width="160" height="160" alt="A hand through the top of a pleated mustard scallop shade" loading="lazy" decoding="async"></span></span>
-                    </div>
-                    <div class="flow-tr" role="row">
-                      <span class="c-day" role="cell" data-flow-day="1">Wed 4</span>
-                      <span class="c-where" role="cell">Facebook</span>
-                      <span class="c-post" role="cell">Drum workshop</span>
-                      <span class="c-cap" role="cell">Sunday's drum workshop: six people, six shades, one very happy studio.</span>
-                      <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/drum-workshop.jpg" width="160" height="160" alt="The workshop table: fabric panels, instructions and a plate of biscuits" loading="lazy" decoding="async"></span></span>
-                    </div>
-                    <div class="flow-tr" role="row">
-                      <span class="c-day" role="cell" data-flow-day="2">Fri 6</span>
-                      <span class="c-where" role="cell">Instagram</span>
-                      <span class="c-post" role="cell">New sage lamp</span>
-                      <span class="c-cap" role="cell">The sage lamp has landed. Linen shade, wooden base, £105.</span>
-                      <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/sage-lamp.jpg" width="160" height="160" alt="The sage green linen slim lamp on its wooden base" loading="lazy" decoding="async"></span></span>
-                    </div>
-                    <div class="flow-tr" role="row">
-                      <span class="c-day" role="cell" data-flow-day="3">Mon 9</span>
-                      <span class="c-where" role="cell">Instagram</span>
-                      <span class="c-post" role="cell">In your homes</span>
-                      <span class="c-cap" role="cell">Your photos are the best bit. This scallop's found a very lucky dining table.</span>
-                      <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/scallop-at-home.jpg" width="160" height="160" alt="A natural and mustard scallop shade hanging over a dining table" loading="lazy" decoding="async"></span></span>
-                    </div>
-                    <div class="flow-tr" role="row">
-                      <span class="c-day" role="cell" data-flow-day="4">Wed 11</span>
-                      <span class="c-where" role="cell">Facebook</span>
-                      <span class="c-post" role="cell">Gift guide, part one</span>
-                      <span class="c-cap" role="cell">Gift guide, part one: a lampshade kit for the friend who has everything.</span>
-                      <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/drum-kit.jpg" width="160" height="160" alt="A lampshade making kit in its box" loading="lazy" decoding="async"></span></span>
-                    </div>
-                    <div class="flow-tr" role="row">
-                      <span class="c-day" role="cell" data-flow-day="5">Fri 13</span>
-                      <span class="c-where" role="cell">Instagram</span>
-                      <span class="c-post" role="cell">In the studio</span>
-                      <span class="c-cap" role="cell">Measure twice, cut once, put the kettle on, measure again.</span>
-                      <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/studio-cutting.jpg" width="160" height="160" alt="Cutting fabric at the studio bench" loading="lazy" decoding="async"></span></span>
-                    </div>
-                    <div class="flow-tr" role="row">
-                      <span class="c-day" role="cell" data-flow-day="6">Mon 16</span>
-                      <span class="c-where" role="cell">Facebook</span>
-                      <span class="c-post" role="cell">Gift guide, part two</span>
-                      <span class="c-cap" role="cell">The kit, opened up. Everything's in there except the fabric.</span>
-                      <span class="c-ph" role="cell"><span class="flow-thumb"><img src="assets/img/flow/kit-flatlay.jpg" width="160" height="160" alt="The lampshade kit opened: rings, tape, instructions and a pencil" loading="lazy" decoding="async"></span></span>
-                    </div>
-                  </div>
-                  <p class="flow-more"><span data-flow-more>6 more</span></p>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
+      <button type="button" class="pp-face" aria-label="Ask Pip" aria-expanded="false" data-pp-face><svg class="pf" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></button>
+      <div class="pp-pop" role="dialog" aria-label="Pip" data-pp-pop hidden>
+        <div class="pp-pop-head">
+          <p class="pp-scope"><span data-pp-scope="note">Whole note</span><span data-pp-scope="plan">Whole table</span></p>
+          <button type="button" class="pp-close" aria-label="Close Pip" data-pp-close><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+        </div>
+        <p class="pp-label">How Pip can help</p>
+        <div class="pp-moves">
+          <button type="button" class="pp-move" data-move="plan" data-for="note"><span>Turn these into a plan for <span data-flow-month>November</span></span></button>
+          <button type="button" class="pp-move" data-move="captions" data-for="plan" hidden>Write the captions</button>
+          <button type="button" class="pp-move" data-move="photos" data-for="plan" hidden>Pick the photos</button>
+        </div>
+        <p class="pp-says" aria-live="polite" data-pp-says hidden><svg class="pf" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span data-pp-says-text></span></p>
+        <button type="button" class="try-back pp-undo" data-pp-undo hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg>Undo</button>
+        <form class="pp-compose" data-pp-compose><input type="text" placeholder="Ask Pip anything…" aria-label="Ask Pip" autocomplete="off"><button type="submit" aria-label="Send"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-send"/></svg></button></form>
+      </div>
+      <svg class="pp-pointer" viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-pp-pointer><path d="M4 2l15 9-6.5 1.8L16 20l-2.6 1.3-3.4-7.3L5 18z" fill="#1A1A1A" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <p class="pp-hint" data-pp-hint><b>Your turn:</b> add an idea to the note, or ask Pip to plan it.</p>
     </div>
   </div>
 </section>

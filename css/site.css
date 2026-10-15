@@ -3383,200 +3383,104 @@ html.has-takeover { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .stops-track.is-turning, .stops-row, .stops-flip .flip-row { transition: none; } }
 
 
-/* ── From a few ideas to a month of posts (the workflow) ── */
-/* One whole job, start to finish, in four steps a visitor clicks through:
-   a rough note jotted down, a question to Pip beside it, the plan as a table
-   with Pip's columns washed coral, then the gaps filled in. It wears the
-   try-it demo shape (.demo, .demo-try, .demo-pip, .demo-body), and the
-   strip's Next step drives every step. Once script is running
-   (.is-ready) the demo is one fixed height on every step: the view below the
-   sticky header with 12px of air above and below, 640px at most (720px on a
-   phone), so the page never jumps. Steps 1 and 2 share one panel (the note
-   and the chat), steps 3 and 4 share another (the table). Without script the
-   four steps are stacked, each under its own heading, at their end states. */
-
-.flow-wrap { position: relative; container: flowwrap / inline-size; }
-
-/* The hand note: points at the step buttons */
-.flow-hand {
-  position: absolute;
-  z-index: 2;
-  left: 92px;
-  bottom: calc(100% - 20px);
-  display: flex;
-  align-items: flex-start;
-  gap: 2px;
-  pointer-events: none;
+/* ── From a few ideas to a month of posts, on Pip's page ──────────────────
+   One whole job in your own files, on "Pip on your page" (.pp); this is only
+   what the job adds. The file card starts on the Social ideas note, which is
+   yours to write in. The plan Pip makes from it is a new table that opens in
+   its own tab beside the note; Pip writes its captions and picks its photos
+   row by row, each caption underlined as Pip's until you change it. Once
+   script runs (.is-ready) the stage holds one height whatever's open: the
+   view under the header with air for the steps, 640px at most, so the page
+   never jumps. On a phone the file holds one height and Pip's pop-over sits
+   under it. The table shows as many whole rows as fit (script sets
+   --flow-rows), the next fading under "N more"; in a narrow file it is
+   Day | Post with its caption under | Photo.
+     .flow-box    the steps and the stage (the flowbox container)
+     .flow-file   a file in the card: --note (the ideas), --plan (the table)
+     .flow-ideas  the note's list; li.is-lit while Pip reads it
+     .flow-tbl    the plan; .is-arriving as it opens, .is-writing and
+                  .is-picking wash the column Pip is filling */
+.flow-box { container: flowbox / inline-size; }
+@container flowbox (min-width: 641px) {
+  .flow-stage.is-ready {
+    display: flex;
+    flex-direction: column;
+    height: clamp(520px, calc(100vh - var(--header-h) - 64px), 640px);
+    height: clamp(520px, calc(100svh - var(--header-h) - 64px), 640px);
+  }
+  .flow-stage.is-ready > .pp-doc { flex: 1 1 auto; min-height: 0; }
 }
-.flow-hand .hand { margin-top: 0; white-space: nowrap; }
-.hand-arrow--flow { width: 56px; height: 50px; margin-top: 8px; }
-.flow-wrap:not(.is-ready) .flow-hand { display: none; }
-
-.flow-demo.is-ready {
-  --flow-max: 640px;
+@container flowbox (max-width: 640px) {
+  .flow-stage.is-ready > .pp-doc {
+    height: clamp(400px, calc(100vh - var(--header-h) - 330px), 470px);
+    height: clamp(400px, calc(100svh - var(--header-h) - 330px), 470px);
+  }
+}
+/* A phone: the folder line goes, so the table keeps its rows, and Pip's
+   pop-over under the file keeps the room of its tallest reply, so the page
+   under it never jumps */
+@container (max-width: 640px) {
+  .flow-file .pp-crumb { display: none; }
+  .flow-stage.is-ready .pp-pop { min-height: 352px; }
+  .flow-stage.is-ready .pp-compose { margin-top: auto; }
+}
+.flow-stage .pp-doc {
   display: flex;
   flex-direction: column;
-  height: clamp(440px, calc(100vh - var(--header-h) - 24px), var(--flow-max));
-  height: clamp(440px, calc(100svh - var(--header-h) - 24px), var(--flow-max));
-}
-@media (max-width: 719px) {
-  .flow-demo.is-ready { --flow-max: 720px; }
-}
-.flow-demo.is-ready > .demo-try,
-.flow-demo.is-ready > .demo-pip { flex: none; }
-.flow-demo:not(.is-ready) > .demo-try,
-.flow-demo:not(.is-ready) > .demo-pip { display: none; }
-
-/* The strip: the numbered steps. Next step (Start again on the last) sits
-   at the end of Pip's line */
-.flow-n {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  margin-left: -5px;
-  border-radius: var(--radius-full);
-  background: var(--bg-tertiary);
-  font-size: 12px;
-  font-weight: var(--weight-semibold);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-secondary);
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-}
-.try-btn[aria-pressed="true"] .flow-n { background: var(--accent-strong); color: var(--text-on-dark); }
-/* Dark: the button is Sand already, so the number's circle steps up to the edge colour */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .try-btn:not([aria-pressed="true"]) .flow-n { background: var(--border); }
-}
-:root[data-theme="dark"] .try-btn:not([aria-pressed="true"]) .flow-n { background: var(--border); }
-.flow-next .i { margin-right: -2px; }
-
-/* Narrower: the steps wrap under the label, never cut off; on a phone they
-   are a two by two grid */
-@container (max-width: 640px) {
-  .flow-steps { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 7px; }
-  .flow-steps .try-btn { width: 100%; padding: 0 10px; gap: 6px; font-size: 13.5px; }
-  .flow-steps .flow-n { margin-left: 0; }
-}
-
-/* Pip's line: narrative only. It holds the height of its tallest message
-   for the panel on screen (measured in script), so nothing moves while Pip
-   talks. */
-.flow-face { flex: none; display: inline-flex; }
-.flow-msg { flex: 1; min-width: 0; }
-@container (max-width: 560px) {
-  .flow-pip { gap: 8px; }
-  .flow-msg { font-size: 14px; line-height: 1.45; }
-}
-
-.flow-demo.is-ready > .flow-body {
-  flex: 1 1 auto;
+  width: 100%;
+  max-width: 860px;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-}
-.flow-demo.is-ready .flow-panel { container: flowpanel / size; grid-area: 1 / 1; min-width: 0; min-height: 0; }
-
-/* Each step's heading and Pip's line: shown only when the steps are stacked */
-.flow-head { display: flex; flex-direction: column; gap: 2px; padding: 26px clamp(18px, 4cqi, 36px) 6px; }
-.flow-head-n { font-size: 12.5px; font-weight: var(--weight-semibold); color: var(--text-muted); }
-.flow-head-h { font-size: 20px; font-weight: var(--weight-semibold); line-height: 1.3; letter-spacing: -0.01em; }
-.flow-head-pip { display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; font-size: 14.5px; line-height: 1.5; }
-.flow-head-pip .pf { margin-top: 1px; }
-.flow-demo:not(.is-ready) .flow-head--2,
-.flow-demo:not(.is-ready) .flow-b { margin-top: 18px; box-shadow: inset 0 1px 0 var(--border-light); }
-.flow-demo:not(.is-ready) .flow-b .flow-head--4 { padding-top: 14px; }
-.flow-demo.is-ready .flow-head {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
+  padding: 22px clamp(18px, 4cqi, 44px) 16px;
   overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
 }
-.flow-demo.is-ready .flow-head-pip { display: none; }
+/* Only the scope for the file on show */
+.flow-stage .pp-scope span:not(.is-on) { display: none; }
+/* The play-through's question going into the pop-over's box */
+.flow-stage .pp-compose.is-typing { box-shadow: inset 0 0 0 1px var(--accent-strong), var(--accent-ring); }
 
-/* Steps 1 and 2: the note on the left, Pip's chat on the right */
-.flow-demo.is-ready .flow-a {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
-  grid-template-rows: minmax(0, 1fr);
-}
-.flow-note { min-width: 0; padding: clamp(22px, 4cqi, 40px) clamp(20px, 4.4cqi, 48px); }
-.flow-demo.is-ready .flow-note { grid-column: 1; grid-row: 1; overflow: hidden; }
-.flow-note-title {
-  margin: 8px 0 14px;
-  font-size: 26px;
-  font-weight: var(--weight-semibold);
-  line-height: 1.2;
-  letter-spacing: var(--tracking-tight);
-}
-.flow-rough { gap: 3px; font-size: 16px; line-height: 1.5; }
-.flow-rough li::before { top: calc(2px + 0.75em - 2.5px); }
-.flow-caret { height: 1.1em; margin-left: 1px; vertical-align: -0.18em; }
-.flow-demo.is-at-0 .flow-caret { opacity: 1; }
+.flow-file { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.flow-file .pp-crumb { margin-bottom: 12px; }
+.flow-file .pp-title { flex: none; }
 
-.flow-chat { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg-primary); }
-.flow-demo.is-ready .flow-chat { grid-column: 2; grid-row: 1; box-shadow: inset 1px 0 0 var(--border-light); }
-.flow-pchat { height: auto; flex: 1 1 auto; min-height: 0; background: transparent; }
-/* The plan Pip made, in Pip's answer: a document you can open */
-.pdoc {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: min(100%, 300px);
-  margin-top: 4px;
-  padding: 8px 12px 8px 8px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--surface-pip);
-  box-shadow: inset 0 0 0 1px var(--border), var(--shadow-sm);
-  color: var(--text-primary);
-  font: inherit;
-  text-align: left;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+/* The note: a list you write in, with room for the format bar under it */
+.flow-file--note { position: relative; padding-bottom: 58px; }
+.flow-file--note .pp-toolbar { bottom: 2px; }
+.flow-ideas { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.flow-ideas::-webkit-scrollbar { display: none; }
+.flow-ideas ul { margin: 0; padding: 0; list-style: none; }
+.flow-ideas li {
+  position: relative;
+  width: fit-content;
+  min-width: 10em;
+  max-width: calc(100% + 16px);
+  margin-inline: -8px;
+  padding: 0 8px 0 28px;
+  border-radius: var(--radius-xs);
+  transition: background-color 200ms var(--ease-out);
 }
-.pdoc:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px var(--accent-strong), 0 4px 10px rgba(166, 61, 34, 0.12); }
-.pdoc:active { transform: scale(var(--press)); }
-.pdoc-icon { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--text-accent); }
-.pdoc-txt { flex: 1; min-width: 0; display: grid; line-height: 1.3; }
-.pdoc-txt b { font-size: 14px; font-weight: var(--weight-semibold); }
-.pdoc-txt small { font-size: 12.5px; color: var(--text-muted); }
-.pdoc-open { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: var(--weight-medium); color: var(--text-accent); }
-.pmsg--pip.is-thinking .pdoc { display: none; }
-.flow-demo:not(.is-ready) .flow-log { -webkit-mask-image: none; mask-image: none; }
+.flow-ideas li::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: calc(0.85em - 2.5px);
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+}
+/* the idea Pip is reading */
+.flow-ideas li.is-lit { background-color: var(--accent-soft); }
 
-/* A phone: the note and the chat take turns */
-@container (max-width: 700px) {
-  .flow-demo.is-ready .flow-a { grid-template-columns: minmax(0, 1fr); }
-  .flow-demo.is-ready .flow-chat { grid-column: 1; box-shadow: none; }
-  .flow-demo.is-at-0 .flow-chat,
-  .flow-demo.is-at-1 .flow-note { display: none; }
-  .flow-note-title { font-size: 24px; }
-  .flow-rough { font-size: 15.5px; }
+/* The plan: rows are one height, so as many as fit are shown */
+.flow-grid { flex: 1 1 auto; min-height: 0; container: flowtable / inline-size; }
+.flow-tblbox {
+  --row-h: 54px;
+  --head-h: 36px;
+  --ghost-h: 30px;
+  position: relative;
+  height: calc(var(--head-h) + var(--flow-rows, 6) * var(--row-h) + var(--ghost-h) + 2px);
+  max-height: 100%;
 }
-/* …and with room to spare, the chat box waits under the note */
-@container flowpanel (max-width: 700px) and (min-height: 390px) {
-  .flow-demo.is-at-0 .flow-chat { display: flex; align-self: end; background: transparent; }
-  .flow-demo.is-at-0 .flow-log { display: none; }
-}
-
-/* Steps 3 and 4: the plan. Rows are one height, so as many as fit are
-   shown (script sets --flow-rows), then the next one fades under "N more". */
-.flow-b { --row-h: 56px; --head-h: 36px; --ghost-h: 30px; min-width: 0; }
-.flow-sheet { display: flex; flex-direction: column; gap: 12px; padding: clamp(18px, 3cqi, 28px) clamp(16px, 3.4cqi, 34px) clamp(14px, 2.4cqi, 22px); }
-.flow-demo.is-ready .flow-sheet { height: 100%; }
-.flow-sheet-top { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.flow-sheet-title { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: var(--weight-semibold); line-height: 1.3; letter-spacing: -0.01em; }
-.flow-sheet-title .i { color: var(--text-secondary); }
-.flow-grid { flex: 1 1 auto; min-height: 0; }
-.flow-tblbox { position: relative; height: calc(var(--head-h) + var(--flow-rows, 6) * var(--row-h) + var(--ghost-h) + 2px); max-height: 100%; }
 .flow-tbl {
   height: 100%;
   overflow: hidden;
@@ -3589,7 +3493,7 @@ html.has-takeover { overflow: hidden; }
 }
 .flow-tr {
   display: grid;
-  grid-template-columns: 74px 106px minmax(132px, 0.8fr) minmax(0, 2fr) 68px;
+  grid-template-columns: 74px 100px minmax(120px, 0.8fr) minmax(0, 2fr) 64px;
   align-items: center;
   height: var(--row-h);
   box-shadow: inset 0 -1px 0 var(--border-light);
@@ -3605,11 +3509,10 @@ html.has-takeover { overflow: hidden; }
 }
 .flow-th > * { display: flex; align-items: center; height: 100%; }
 .flow-th > .c-ph { justify-content: center; }
-/* The column Pip is filling in at this step: a coral wash on its head */
-.flow-demo.is-at-2 .flow-th > .c-cap,
-.flow-demo.is-at-3 .flow-th > .c-ph { background: var(--accent-soft-strong); color: var(--text-primary); }
+/* The column Pip is filling: a coral wash on its head */
+.flow-tbl.is-writing .flow-th > .c-cap,
+.flow-tbl.is-picking .flow-th > .c-ph { background: var(--accent-soft-strong); color: var(--text-primary); }
 .flow-tr .c-day { font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.flow-th .c-day { font-weight: var(--weight-semibold); }
 .flow-tr:not(.flow-th) .c-where { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); }
 .flow-tr:not(.flow-th) .c-post { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--weight-medium); }
 .flow-tr:not(.flow-th) .c-cap {
@@ -3619,17 +3522,28 @@ html.has-takeover { overflow: hidden; }
   overflow: hidden;
   font-size: 13.5px;
   line-height: 1.38;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 /* A gap: a blank line where the caption goes, a dashed frame for the photo */
 .flow-tr:not(.flow-th) .c-cap:empty { display: block; }
 .flow-tr:not(.flow-th) .c-cap:empty::before { content: ""; display: block; width: min(68%, 220px); border-top: 1.5px dashed var(--border); }
-.c-ph { display: flex; justify-content: center; }
+/* A caption Pip wrote is yours to change: click in and type */
+.flow-tr .c-cap[contenteditable] { outline: none; cursor: text; border-radius: 6px; caret-color: var(--accent-strong); }
+.flow-tr .c-cap[contenteditable]:hover { background: var(--bg-hover); }
+.flow-tr:not(.flow-th) .c-cap[contenteditable]:focus {
+  display: block;
+  max-height: 2.8em;
+  overflow-y: auto;
+  scrollbar-width: none;
+  background: var(--surface-pip);
+  box-shadow: inset 0 0 0 1.5px var(--accent-strong);
+}
+.flow-tr .c-ph { display: flex; justify-content: center; }
 .flow-thumb { display: block; width: 42px; height: 42px; border-radius: 8px; overflow: hidden; background: var(--bg-tertiary); }
 .flow-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .c-ph.is-empty .flow-thumb { background: transparent; outline: 1.5px dashed var(--border); outline-offset: -1.5px; }
 .c-ph.is-empty img { opacity: 0; transform: scale(0.9); }
-/* The row Pip is writing holds a wash */
+/* The row Pip is filling holds a wash */
 .flow-tr.is-filling { background-color: var(--accent-soft); }
 .flow-more {
   position: absolute;
@@ -3649,12 +3563,11 @@ html.has-takeover { overflow: hidden; }
   transform: translateX(-50%);
 }
 
-/* A phone: Day | Post | Photo, the caption under the post in smaller type */
-@container (max-width: 640px) {
-  .flow-b { --row-h: 60px; --head-h: 32px; --ghost-h: 26px; }
-  .flow-sheet-title { font-size: 16.5px; }
+/* A narrow file: Day | Post | Photo, the caption under the post in smaller type */
+@container flowtable (max-width: 560px) {
+  .flow-tblbox { --row-h: 60px; --head-h: 32px; --ghost-h: 26px; }
   .flow-tr {
-    grid-template-columns: 62px minmax(0, 1fr) 52px;
+    grid-template-columns: 62px minmax(0, 1fr) 54px;
     grid-template-rows: auto auto;
     grid-template-areas: "day post ph" "day cap ph";
     align-content: center;
@@ -3668,51 +3581,19 @@ html.has-takeover { overflow: hidden; }
   .flow-tr .c-post { grid-area: post; font-size: 13.5px; }
   .flow-tr:not(.flow-th) .c-post { align-self: end; line-height: 1.3; }
   .flow-tr .c-cap { grid-area: cap; }
-  .flow-tr:not(.flow-th) .c-cap { align-self: start; font-size: 12px; line-height: 1.32; }
+  .flow-tr:not(.flow-th) .c-cap { align-self: start; font-size: 12.5px; line-height: 1.32; }
   .flow-tr:not(.flow-th) .c-cap:empty { padding-top: 7px; }
   .flow-tr .c-ph { grid-area: ph; }
   .flow-thumb { width: 40px; height: 40px; }
 }
-
-/* Put a state back at once: nothing plays backwards */
-.flow-demo.is-instant *,
-.flow-demo.is-instant *::before,
-.flow-demo.is-instant *::after { transition: none !important; animation: none !important; }
+/* Without script: the note, then the finished plan under it */
+.flow-stage:not(.is-ready) .flow-file--plan { margin-top: 28px; }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* the caret blinks once the jotting stops, never while it types */
-  .flow-demo.is-at-0:not(.is-jotting) .flow-caret { animation: caret-blink 1.1s steps(1, end) infinite; }
+  .flow-stage .pp-tab.is-new { animation: pp-rise 240ms var(--ease-out); }
   .flow-tr { transition: background-color 700ms var(--ease-out); }
   .flow-thumb img { transition: opacity 280ms var(--ease-out), transform 280ms var(--ease-out); }
-  /* The plan opens: its rows one by one */
-  .flow-b.is-arriving .flow-tr { animation: pip-arrive 180ms var(--ease-out) both; animation-delay: calc(var(--n, 0) * 60ms); }
   .flow-th > * { transition: background-color 400ms var(--ease-out); }
-  .is-pre .pmsg.is-answered .pdoc { animation: pip-arrive var(--dur-quick) var(--ease-out) 160ms both; }
-}
-
-/* A short phone: slimmer chrome, so the table keeps room for its rows */
-@media (max-width: 719px) and (max-height: 700px) {
-  .flow-try { padding-block: 10px; }
-  .flow-try .try-btn,
-  .flow-pip .try-go,
-  .flow-pip .try-back { height: 32px; padding: 0 12px; font-size: 13.5px; }
-  .flow-try .demo-try-label { font-size: 13.5px; }
-  .flow-pip { padding-block: 10px; }
-  .flow-msg { font-size: 13.5px; }
-  .flow-b { --row-h: 52px; --head-h: 28px; --ghost-h: 22px; }
-  .flow-sheet { gap: 8px; padding: 10px 12px; }
-  .flow-sheet-top { flex-wrap: nowrap; }
-  .flow-sheet-title { font-size: 15px; }
-  .flow-tr:not(.flow-th) .c-cap { font-size: 11.5px; line-height: 1.28; }
-  .flow-tr:not(.flow-th) .c-post { font-size: 13px; line-height: 1.25; }
-  .flow-thumb { width: 38px; height: 38px; }
-  .flow-note { padding: 18px 20px; }
-  .flow-note-title { margin: 4px 0 10px; font-size: 22px; }
-  .flow-rough { font-size: 15px; }
-}
-/* The narrowest phones: the demo takes a little of the gutter, so "Try it"
-   and Next step share their row */
-@media (max-width: 359px) {
-  .flow-wrap { margin-inline: -8px; }
-  .flow-sheet-title .i { display: none; }
+  /* The plan opens: its rows one by one */
+  .flow-tbl.is-arriving .flow-tr { animation: pip-arrive 180ms var(--ease-out) both; animation-delay: calc(var(--n, 0) * 60ms); }
 }

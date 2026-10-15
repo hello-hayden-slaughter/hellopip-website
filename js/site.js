@@ -2234,25 +2234,22 @@
 
 
   /* ── flow ──────────────────────────────────────────────────────────────────
-     From a few ideas to a month of posts: one whole job in four steps, which
-     the visitor drives from the strip. Step 1 plays whenever it shows (when
-     the demo first comes into view, on clicking it, on Start again): the
-     ideas are jotted into the note one by one. The other step buttons jump
-     straight to that step as it ends (step 4 already filled in). Next step,
-     the one brick button, plays the move into the next step: the question
-     types into the chat box and Pip reads the note and answers (2); the plan
-     arrives as a table, the columns Pip added washed coral (3); Pip writes
-     each caption and picks each photo, row by row (4). On the last step it
-     gives way to Start again. CSS holds the demo at one height; Pip's line
-     keeps the height of its tallest message for the panel on screen, and the
-     table shows as many whole rows as fit, the next fading under "N more".
-     The dates are next month's Mondays, Wednesdays and Fridays. Under reduced
-     motion each step is simply its end state. */
+     From a few ideas to a month of posts, on Pip's page: one job, start to
+     finish, in your own files. The Social ideas note is yours to write in.
+     Ask Pip (the move in the pop-over, or in your own words) and Pip reads
+     the note, idea by idea, and makes the plan as a new table, which opens in
+     its own tab beside the note. On the table Pip writes the captions, then
+     picks the photos, each row by row in reading order, the faded row under
+     the last whole one going last. A caption is underlined as Pip's until
+     you change it, and then it's yours. Each change has Undo, newest first.
+     Up to two ideas the visitor adds get early slots of their own. The
+     play-through types the ideas in, asks Pip in the pop-over, has the
+     captions written, and hands over. The dates are next month's Mondays,
+     Wednesdays and Fridays. */
 
   function flow() {
-    var root = $("#flow-demo");
+    var root = $("[data-flow]");
     if (!root) return;
-    var wrap = root.parentNode;
     var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     var DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     var TOTAL = 12; // three posts a week, four weeks
@@ -2274,402 +2271,483 @@
     });
     $$("[data-flow-month]", root).forEach(function (n) { n.textContent = month; });
 
-    var LINES = [
-      "Jot your ideas down any old way. Then ask me to turn them into a plan.",
-      "Just ask, in your own words. I'll read your note first.",
-      "Twelve captions, written in your voice. Next, I'll pick a photo for each one from your folders.",
-      "Done. Twelve posts for " + month + ", with captions and photos. Change anything you like."
-    ];
-    // What Pip's doing while steps 3 and 4 play
-    var WORKING = ["Writing the captions in your voice…", "Picking photos from your folders…"];
-
-    var stepBtns = $$("[data-flow-to]", root);
-    var nextBtn = $("[data-flow-next]", root);
-    var againBtn = $("[data-flow-again]", root);
-    var pip = $("[data-flow-pip]", root);
-    var msg = $("[data-flow-msg]", root);
-    var faceHolder = $("[data-flow-face]", root);
-    var panelA = $('[data-flow-panel="a"]', root);
-    var panelB = $('[data-flow-panel="b"]', root);
-    var note = $("[data-flow-note]", root);
-    var ideas = $$(".flow-rough li", root);
-    var IDEAS = ideas.map(function (li) { return li.textContent; });
-    var caret = $(".flow-caret", note);
-    var chat = $("[data-flow-chat]", root);
-    var said = $$("[data-step]", chat); // the question, then Pip's answer
-    var box = composer(chat);
-    var openDoc = $("[data-flow-open]", chat);
-    var grid = $(".flow-grid", panelB);
-    var table = $("[data-flow-table]", panelB);
-    var head = $(".flow-th", panelB);
-    var rows = $$(".flow-tr:not(.flow-th)", panelB);
+    var ideasBox = $("[data-flow-ideas]", root);
+    var list = $("ul", ideasBox);
+    var IDEAS = $$("li", list).map(function (li) { return li.textContent; });
+    var tabs = { note: $('[data-flow-tab="note"]', root), plan: $('[data-flow-tab="plan"]', root) };
+    var files = { note: $('[data-flow-file="note"]', root), plan: $('[data-flow-file="plan"]', root) };
+    var grid = $(".flow-grid", root);
+    var box = $(".flow-tblbox", root);
+    var table = $("[data-flow-table]", root);
+    var rows = $$(".flow-tr:not(.flow-th)", table);
     var caps = rows.map(function (r) { return $(".c-cap", r); });
-    var CAPS = caps.map(function (c) { return c.textContent; });
-    var photos = rows.map(function (r) { return $(".c-ph", r); });
-    var more = $("[data-flow-more]", panelB);
+    var pics = rows.map(function (r) { return $(".c-ph", r); });
+    var more = $("[data-flow-more]", root);
+    var compose = $("[data-pp-compose]", root);
+    var input = $("input", compose);
+    var send = $("button", compose);
+    var QUESTION = "Can you turn these into a plan for " + month + "?";
+    var END = "<b>Your turn:</b> ask Pip to pick the photos, or change a caption.";
 
-    var at = 0, run = 0, busy = false, shown = 6, swapping = null, touched = false;
-    var pipH = [0, 0]; // Pip's line at its tallest: for the note and chat, and for the table
+    function norm(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, ""); }
+
+    // The plan Pip makes from the five ideas, as the page has it
+    var PLAN = rows.map(function (r) {
+      var img = $("img", r);
+      return { where: $(".c-where", r).textContent, post: $(".c-post", r).textContent, cap: $(".c-cap", r).textContent, src: img.getAttribute("src"), alt: img.getAttribute("alt") };
+    });
+    var KNOWN = IDEAS.map(norm);
+
+    var plan = null;   // the rows Pip planned, once there's a plan
+    var capBy = [];    // each row's caption: null (a gap), "pip" or "you"
+    var picked = [];   // each row's photo: picked or not
+    var cur = "note";  // the file on show
+    var history = [];  // what Undo takes back, newest last
+    var busy = null;   // Pip's change in flight: { finish(go) }
+    var gen = 0;       // a newer change, or Play it again, stops an older one's timers
+    var shown = 6;     // whole rows in view
+    var arrive = 0, jotting = false, pp;
 
     table.setAttribute("aria-label", month + " posts");
-    [head].concat(rows).forEach(function (r, i) { r.style.setProperty("--n", i); });
-    root.classList.add("is-ready");
-    wrap.classList.add("is-ready");
+    $$(".flow-tr", table).forEach(function (r, i) { r.style.setProperty("--n", i); });
 
-    function instantly(fn) {
-      root.classList.add("is-instant");
-      fn();
-      void root.offsetWidth;
-      root.classList.remove("is-instant");
+    function wait(ms, fn) {
+      var g = gen;
+      setTimeout(function () { if (g === gen) fn(); }, reduced() ? 0 : ms);
+    }
+    function thinking(on) { setThinking(pp.face, on); }
+
+    // Finish Pip's change in flight at once, so the next one starts clean
+    function settle() {
+      if (!busy) return;
+      var b = busy;
+      busy = null;
+      gen++;
+      b.finish(false);
     }
 
-    function tried() { touched = true; root.classList.add("is-tried"); }
-
-    // A phone shows the note and the chat in turn, not side by side
-    function oneAtATime() { return getComputedStyle(note).display === "none" || getComputedStyle(chat).display === "none"; }
-
-    function fadeIn(node) {
-      if (reduced() || !node.animate) return;
-      node.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 150, easing: EASE_OUT });
+    /* The note's ideas as written now, one a line */
+    function ideasNow() {
+      var items = $$("li", ideasBox);
+      var lines = items.length ? items.map(function (li) { return li.textContent; }) : ideasBox.innerText.split("\n");
+      return lines.map(function (t) { return t.trim(); }).filter(function (t) { return norm(t); });
     }
-
-    /* The whole demo in view, under the sticky header, with a little air */
-    function intoView() {
-      var r = root.getBoundingClientRect();
-      var top = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0) + 12;
-      if (r.top >= top - 1 && r.bottom <= window.innerHeight - 11) return;
-      window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
+    // An idea as a post's name: no shouting, a capital to start
+    function postName(t) {
+      var x = t.replace(/[!?.,;:]+/g, " ").replace(/\s+/g, " ").trim();
+      if (x.length > 48) x = x.slice(0, 48).replace(/\s+\S*$/, "");
+      return x.charAt(0).toUpperCase() + x.slice(1);
     }
-
-    /* The note: the first n ideas written, the next one started and empty
-       (its caret waiting), the rest not yet there */
-    function jotTo(n) {
-      ideas.forEach(function (li, i) {
-        li.hidden = i > n || (i === n && n >= ideas.length);
-        li.textContent = i < n ? IDEAS[i] : "";
+    // The plan: the five ideas' posts, with up to two of the visitor's own
+    // ideas in the early slots, where they show
+    function makeRows() {
+      var mine = ideasNow().filter(function (t) { return KNOWN.indexOf(norm(t)) < 0; }).slice(0, 2);
+      var out = PLAN.slice();
+      mine.forEach(function (t, k) {
+        var post = postName(t);
+        out.splice(1 + k * 2, 0, { where: k ? "Facebook" : "Instagram", post: post, cap: post + ". More on this soon.", src: null, mine: true });
       });
-      ideas[Math.min(n, ideas.length - 1)].appendChild(caret);
-      root.classList.remove("is-jotting");
+      return out.slice(0, rows.length);
     }
 
-    /* The chat: empty (step 1), or the question and Pip's answer (step 2) */
-    function chatTo(answered) {
-      said.forEach(function (s) { s.classList.remove("is-shown", "is-thinking", "is-answered"); });
-      chat.classList.toggle("is-pre", !answered);
-      box.reset();
-      ideas.forEach(function (li) { li.classList.remove("is-lit"); });
+    /* The table: a caption is a gap, Pip's (underlined) or yours; a photo
+       is a dashed frame until it's picked */
+    function setCap(i, by, text) {
+      var c = caps[i];
+      capBy[i] = by;
+      c.textContent = "";
+      if (!by) { c.removeAttribute("contenteditable"); return; }
+      c.appendChild(el("span", "pp-edit" + (by === "you" ? " is-yours" : ""), text));
+      c.setAttribute("contenteditable", "true");
+      c.setAttribute("spellcheck", "false");
     }
-
-    /* The table: its gaps, then the captions written (step 3), then the
-       photos picked (step 4) */
-    function tableTo(captioned, pictured) {
+    function setPic(i, on) {
+      picked[i] = on;
+      pics[i].classList.toggle("is-empty", !on || !plan || !plan[i].src);
+    }
+    function paintPlan() {
       rows.forEach(function (r, i) {
+        var e = plan[i], img = $("img", r);
+        $(".c-where", r).textContent = e.where;
+        $(".c-post", r).textContent = e.post;
+        img.hidden = !e.src;
+        if (e.src && img.getAttribute("src") !== e.src) { img.src = e.src; img.alt = e.alt; }
         r.classList.remove("is-filling");
-        caps[i].textContent = captioned ? CAPS[i] : "";
-        photos[i].classList.toggle("is-empty", !pictured);
+        setCap(i, null);
+        setPic(i, false);
       });
-      panelB.classList.remove("is-arriving");
     }
 
-    /* As many whole rows as the table's room takes, then "N more" */
+    /* As many whole rows as the file has room for, then "N more" */
     function fitRows() {
-      if (panelB.hidden) return;
-      var cs = getComputedStyle(panelB);
-      var rowH = parseFloat(cs.getPropertyValue("--row-h")) || 56;
+      if (files.plan.hidden) return;
+      var cs = getComputedStyle(box);
+      var rowH = parseFloat(cs.getPropertyValue("--row-h")) || 54;
       var headH = parseFloat(cs.getPropertyValue("--head-h")) || 36;
       var ghostH = parseFloat(cs.getPropertyValue("--ghost-h")) || 30;
-      shown = Math.max(1, Math.min(6, Math.floor((grid.clientHeight - headH - ghostH - 2) / rowH)));
-      root.style.setProperty("--flow-rows", shown);
+      shown = Math.max(1, Math.min(rows.length - 1, Math.floor((grid.clientHeight - headH - ghostH - 2) / rowH)));
+      box.style.setProperty("--flow-rows", shown);
       more.textContent = (TOTAL - shown) + " more";
     }
+    // The rows to fill one by one: those in view, then the faded one under
+    // them last of all. Rows out of sight are filled at the end, at once.
+    function inView(todo) { return todo.filter(function (i) { return i <= shown; }); }
 
-    /* Change panel in place: the old leaves in 100ms, the new arrives in 150ms */
-    function showPanel(n, animate) {
-      var to = n < 2 ? panelA : panelB;
-      var from = to === panelA ? panelB : panelA;
-      if (swapping) { swapping.cancel(); swapping = null; }
-      if (from.hidden) { to.hidden = false; fitRows(); return; }
-      if (!animate || reduced() || !from.animate) { from.hidden = true; to.hidden = false; fitRows(); return; }
-      var out = from.animate(
-        [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(2px)" }],
-        { duration: 100, easing: EASE_OUT, fill: "forwards" }
-      );
-      swapping = out;
-      out.onfinish = function () {
-        swapping = null;
-        from.hidden = true;
-        out.cancel();
-        to.hidden = false;
-        fitRows();
-        to.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 150, easing: EASE_OUT });
-      };
-    }
-
-    /* Pip's line: what Pip says at a step, or the dots and what Pip's doing */
-    function setPip(n) {
-      msg.classList.remove("is-busy");
-      setThinking(faceHolder, false);
-      swapText(msg, LINES[n]);
-      pip.style.minHeight = pipH[n < 2 ? 0 : 1] + "px";
-    }
-    function setBusy(text) {
-      setThinking(faceHolder, true);
-      msg.textContent = "";
-      msg.classList.add("is-busy");
-      msg.appendChild(dots());
-      msg.appendChild(el("span", "", text));
-    }
-
-    // The tallest thing Pip's line says on each panel, at this width
-    function fitPip() {
-      var probe = pip.cloneNode(true);
-      probe.removeAttribute("data-flow-pip");
-      probe.setAttribute("aria-hidden", "true");
-      probe.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;min-height:0;width:" + pip.getBoundingClientRect().width + "px";
-      var pm = $(".flow-msg", probe);
-      pm.removeAttribute("aria-live");
-      root.appendChild(probe);
-      function h(text, working) {
-        pm.className = "flow-msg";
-        pm.textContent = "";
-        if (working) { pm.classList.add("is-busy"); pm.appendChild(dots()); pm.appendChild(el("span", "", text)); }
-        else pm.textContent = text;
-        return probe.getBoundingClientRect().height;
-      }
-      pipH[0] = Math.ceil(Math.max(h(LINES[0]), h(LINES[1])));
-      pipH[1] = Math.ceil(Math.max(h(LINES[2]), h(WORKING[0], true), h(WORKING[1], true), h(LINES[3])));
-      probe.remove();
-      pip.style.minHeight = pipH[at < 2 ? 0 : 1] + "px";
-    }
-
-    /* The strip: which step is on; Next step, or Start again on the last */
-    function paint(n) {
-      at = n;
-      [0, 1, 2, 3].forEach(function (i) { root.classList.toggle("is-at-" + i, i === n); });
-      stepBtns.forEach(function (b, i) { b.setAttribute("aria-pressed", i === n ? "true" : "false"); });
-      var last = n === 3;
-      var hadFocus = document.activeElement === (last ? nextBtn : againBtn);
-      nextBtn.hidden = last;
-      againBtn.hidden = !last;
-      if (hadFocus) (last ? againBtn : nextBtn).focus({ preventScroll: true });
-    }
-
-    /* Straight to a step, as it ends */
-    function jump(n) {
-      var was = at;
-      run++;
-      busy = false;
-      paint(n);
-      instantly(function () {
-        jotTo(ideas.length);
-        chatTo(n >= 1);
-        tableTo(n >= 2, n === 3);
+    /* The file on show, its tab, and Pip's moves for it */
+    function show(which, opening) {
+      cur = which;
+      ["note", "plan"].forEach(function (k) {
+        tabs[k].setAttribute("aria-selected", k === which ? "true" : "false");
+        files[k].hidden = k !== which;
       });
-      showPanel(n, true);
-      if (n < 2 && was < 2 && was !== n && oneAtATime()) fadeIn(n === 0 ? note : chat);
-      setPip(n);
-    }
-
-    function sleeper(id) {
-      return function (ms) {
-        return new Promise(function (resolve, reject) {
-          setTimeout(function () { if (id === run) resolve(); else reject(CANCELLED); }, ms);
-        });
-      };
-    }
-
-    /* Step 1: the ideas jotted into the note, one by one, a caret leading */
-    function playJot(sleep) {
-      var was = at;
-      paint(0);
-      instantly(function () { jotTo(0); chatTo(false); tableTo(false, false); });
-      showPanel(0, true);
-      if (was === 1 && oneAtATime()) fadeIn(note);
-      setPip(0);
-      root.classList.add("is-jotting");
-      var i = 0;
-      function idea() {
-        if (i >= ideas.length) return Promise.resolve();
-        var li = ideas[i], text = IDEAS[i], k = 0;
-        li.hidden = false;
-        li.appendChild(caret);
-        function key() {
-          if (k >= text.length) return Promise.resolve();
-          k += 1;
-          li.textContent = text.slice(0, k);
-          li.appendChild(caret);
-          return sleep(text.charAt(k - 1) === " " ? 22 : 11 + Math.random() * 7).then(key);
-        }
-        i += 1;
-        return key().then(function () { return i < ideas.length ? sleep(140).then(idea) : null; });
+      pp.scope(which);
+      $$(".pp-move", root).forEach(function (m) { m.hidden = m.getAttribute("data-for") !== which; });
+      if (which === "plan") fitRows();
+      if (opening && !reduced()) {
+        var a = ++arrive;
+        table.classList.remove("is-arriving");
+        tabs.plan.classList.remove("is-new");
+        void table.offsetWidth;
+        table.classList.add("is-arriving");
+        tabs.plan.classList.add("is-new");
+        setTimeout(function () { if (a === arrive) { table.classList.remove("is-arriving"); tabs.plan.classList.remove("is-new"); } }, 900);
       }
-      return sleep(260)
-        .then(idea)
-        .then(function () { root.classList.remove("is-jotting"); });
     }
 
-    /* 1 → 2: the question types into the chat box and goes; Pip reads the
-       note, each idea washing in turn, and answers */
-    function playAsk(sleep) {
-      var q = said[0], a = said[1];
-      paint(1);
-      instantly(function () { jotTo(ideas.length); chatTo(false); tableTo(false, false); });
-      showPanel(1, true);
-      if (oneAtATime()) fadeIn(chat);
-      setPip(1);
+    function level() {
+      if (!plan) return 1;
+      if (picked.some(Boolean)) return 4;
+      if (capBy.some(Boolean)) return 3;
+      return 2;
+    }
+    function hintNow() {
+      if (!plan) return null; // the page's own: add an idea, or ask Pip to plan it
+      var c = capBy.some(Boolean), p = picked.some(Boolean);
+      if (c && p) return "<b>Done:</b> a month of posts. Change anything you like.";
+      if (c) return "<b>Underlined:</b> Pip's captions. Change any and it's yours.";
+      if (p) return "<b>Your turn:</b> ask Pip to write the captions.";
+      return "<b>New tab:</b> the plan Pip made. Ask Pip to write the captions.";
+    }
+
+    /* Pip reads the note, an idea at a time, and makes the plan: a new
+       table, opened in a tab of its own beside the note */
+    function makePlan(then) {
+      show("note");
+      pp.hot("plan");
+      if (!ideasNow().length) { pp.say("Jot down a few ideas first, then ask me."); return; }
+      var items = $$("li", ideasBox).filter(function (li) { return norm(li.textContent); });
       var i = 0;
+      pp.step(2);
+      pp.say("Reading Social ideas…", true);
+      pp.showUndo(false);
+      thinking(true);
+      function finish(go) {
+        items.forEach(function (li) { li.classList.remove("is-lit"); });
+        plan = makeRows();
+        paintPlan();
+        history.push({ kind: "plan" });
+        tabs.plan.hidden = false;
+        show("plan", true);
+        thinking(false);
+        pp.step(2);
+        var mine = plan.filter(function (e) { return e.mine; }).length;
+        pp.say("Made a plan in a new table, " + month + " posts: three posts a week." + (mine > 1 ? " Your new ideas are in it too." : mine ? " Your new idea is in it too." : ""));
+        pp.showUndo(true);
+        pp.hint(hintNow());
+        if (go && then) then();
+      }
+      busy = { finish: finish };
       function read() {
-        if (i >= ideas.length) return sleep(420);
-        ideas[i++].classList.add("is-lit");
-        return sleep(260).then(read);
+        items.forEach(function (li, k) { li.classList.toggle("is-lit", k === i); });
+        if (i < items.length) { i++; wait(240, read); }
+        else wait(160, function () { busy = null; finish(true); });
       }
-      return sleep(450)
-        .then(function () { return box.type(q.textContent, sleep); })
-        .then(function () { return sleep(380); })
-        .then(function () { box.send(); q.classList.add("is-shown"); return sleep(520); })
-        .then(function () { a.classList.add("is-shown", "is-thinking"); setThinking(faceHolder, true); return sleep(300); })
-        .then(read)
-        .then(function () {
-          a.classList.remove("is-thinking");
-          a.classList.add("is-answered");
-          ideas.forEach(function (li) { li.classList.remove("is-lit"); });
-          setThinking(faceHolder, false);
+      wait(450, read);
+    }
+
+    /* Pip writes each caption into its row, word by word */
+    function writeCaptions(then) {
+      var todo = rows.map(function (r, i) { return i; }).filter(function (i) { return !capBy[i]; });
+      pp.hot("captions");
+      if (!todo.length) { pp.say("The captions are written. Change any you like."); return; }
+      var all = todo.length === rows.length, queue = inView(todo);
+      pp.say("Writing the captions in your voice…", true);
+      pp.showUndo(false);
+      thinking(true);
+      table.classList.add("is-writing");
+      function finish(go) {
+        table.classList.remove("is-writing");
+        todo.forEach(function (i) { rows[i].classList.remove("is-filling"); setCap(i, "pip", plan[i].cap); });
+        history.push({ kind: "captions", rows: todo });
+        thinking(false);
+        pp.step(3);
+        pp.say((all ? "Wrote a caption for each post" : "Wrote the missing captions") + ", in your voice. Change any you like.");
+        pp.showUndo(true);
+        pp.hint(hintNow());
+        if (go && then) then();
+      }
+      busy = { finish: finish };
+      function next() {
+        if (!queue.length) { wait(260, function () { busy = null; finish(true); }); return; }
+        var i = queue.shift(), words = plan[i].cap.split(" "), k = 0;
+        var span = el("span", "pp-edit");
+        caps[i].textContent = "";
+        caps[i].appendChild(span);
+        rows[i].classList.add("is-filling");
+        wait(90, function word() {
+          span.textContent = words.slice(0, ++k).join(" ");
+          if (k < words.length) wait(34, word);
+          else wait(150, function () { rows[i].classList.remove("is-filling"); next(); });
         });
-    }
-
-    /* The rows to fill one by one: those in view, then the faded one under
-       them last of all, so nothing out at the edge catches the eye first.
-       Rows out of sight are filled at the end. */
-    function inOrder(each) {
-      var upto = Math.min(rows.length, shown + 1);
-      function go(i) {
-        if (i < upto) return each(i).then(function () { return go(i + 1); });
-        return Promise.resolve();
       }
-      return go(0);
+      wait(600, next);
     }
 
-    /* 2 → 3: the plan opens, row by row, and each caption is written into
-       its row in turn */
-    function playCaptions(sleep) {
-      paint(2);
-      instantly(function () { tableTo(false, false); });
-      void panelB.offsetWidth;
-      panelB.classList.add("is-arriving");
-      showPanel(2, true);
-      setBusy(WORKING[0]);
-      pip.style.minHeight = pipH[1] + "px";
-      function write(i) {
-        var words = CAPS[i].split(" "), k = 0;
-        function word() {
-          if (k >= words.length) return Promise.resolve();
-          k += 1;
-          caps[i].textContent = words.slice(0, k).join(" ");
-          return sleep(34).then(word);
+    /* Pip picks a photo from your folders for each row in turn */
+    function pickPhotos(then) {
+      var todo = rows.map(function (r, i) { return i; }).filter(function (i) { return !picked[i]; });
+      pp.hot("photos");
+      if (!todo.length) { pp.say("Every post has its photo. Change any caption you like."); return; }
+      var queue = inView(todo);
+      pp.say("Picking photos from your folders…", true);
+      pp.showUndo(false);
+      thinking(true);
+      table.classList.add("is-picking");
+      function finish(go) {
+        table.classList.remove("is-picking");
+        todo.forEach(function (i) { rows[i].classList.remove("is-filling"); setPic(i, true); });
+        history.push({ kind: "photos", rows: todo });
+        thinking(false);
+        pp.step(4);
+        var none = todo.filter(function (i) { return !plan[i].src; }).map(function (i) { return "“" + plan[i].post + "”"; });
+        pp.say(none.length
+          ? "Picked photos from your folders. There wasn't one for " + none.join(" or ") + ", so " + (none.length > 1 ? "those are" : "that one's") + " yours to add."
+          : "Picked a photo for each post from your folders.");
+        pp.showUndo(true);
+        pp.hint(hintNow());
+        if (go && then) then();
+      }
+      busy = { finish: finish };
+      function next() {
+        if (!queue.length) { wait(260, function () { busy = null; finish(true); }); return; }
+        var i = queue.shift();
+        rows[i].classList.add("is-filling");
+        wait(160, function () {
+          setPic(i, true);
+          wait(220, function () { rows[i].classList.remove("is-filling"); next(); });
+        });
+      }
+      wait(500, next);
+    }
+
+    /* A move, from the pop-over or in words. The table's moves need a plan
+       first, so Pip makes one and carries on. */
+    function run(kind, then) {
+      settle();
+      if (kind === "plan") {
+        if (plan) { show("plan"); pp.say("Your plan's already here, in " + month + " posts."); return; }
+        makePlan(then);
+        return;
+      }
+      if (!plan) { makePlan(function () { run(kind, then); }); return; }
+      if (cur !== "plan") show("plan");
+      if (kind === "captions") writeCaptions(then); else pickPhotos(then);
+    }
+    function moveFrom(words) {
+      var w = words.toLowerCase();
+      if (/photo|picture|image|\bpics?\b/.test(w)) return "photos";
+      if (/caption/.test(w)) return "captions";
+      if (/plan|schedul|calendar|organi[sz]e|turn (these|them|this|it)|month|posts|table/.test(w)) return "plan";
+      if (/write|words|copy|text/.test(w)) return "captions";
+      return null;
+    }
+    function ask(words, then) {
+      var m = moveFrom(words);
+      if (m) run(m, then);
+      else pp.say("In this sample I can plan your posts, write the captions and pick the photos. On your Mac, ask me anything.");
+    }
+
+    /* Undo takes back Pip's newest change. A caption you've changed stays. */
+    function undo() {
+      settle();
+      var h = history.pop();
+      if (!h) return;
+      pp.hot(null);
+      if (h.kind === "plan") {
+        plan = null;
+        tabs.plan.hidden = true;
+        show("note");
+        pp.say("Took the plan away. Your note is just as you wrote it.");
+      } else if (h.kind === "captions") {
+        var kept = 0;
+        h.rows.forEach(function (i) { if (capBy[i] === "pip") setCap(i, null); else if (capBy[i]) kept++; });
+        show("plan");
+        pp.say(kept ? "Took my captions out. Yours stay." : "Took the captions out.");
+      } else {
+        h.rows.forEach(function (i) { setPic(i, false); });
+        show("plan");
+        pp.say("Took the photos out.");
+      }
+      pp.showUndo(history.length > 0);
+      pp.resetSteps();
+      pp.step(level());
+      pp.hint(hintNow());
+    }
+
+    // Writing in a caption makes it yours
+    table.addEventListener("input", function (e) {
+      var i = caps.indexOf(e.target.closest ? e.target.closest(".c-cap") : null);
+      if (i < 0 || capBy[i] === "you") return;
+      capBy[i] = "you";
+      $$(".pp-edit", caps[i]).forEach(function (s) { s.classList.add("is-yours"); });
+      pp.hint("<b>Yours now.</b> Change another caption, or ask Pip.");
+      if (pp.isOpen()) { pp.say("Your change stays. I'll learn from how you wrote it."); pp.showUndo(false); }
+    });
+    // A caption is one line: Return finishes it
+    table.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && caps.indexOf(e.target) > -1) { e.preventDefault(); e.target.blur(); }
+    });
+    // Pasted words come in as plain text, in the note and in a caption
+    root.addEventListener("paste", function (e) {
+      var host = e.target.closest ? e.target.closest("[contenteditable]") : null;
+      if (!host || !e.clipboardData) return;
+      e.preventDefault();
+      var text = e.clipboardData.getData("text/plain");
+      document.execCommand("insertText", false, caps.indexOf(host) > -1 ? text.replace(/\s+/g, " ") : text);
+    });
+    ideasBox.addEventListener("input", function () { pp.stop(); pp.step(1); });
+    input.addEventListener("input", function () { pp.stop(); });
+    ["note", "plan"].forEach(function (k) {
+      tabs[k].addEventListener("click", function () {
+        pp.stop();
+        if (cur === k) return;
+        settle();
+        show(k);
+        pp.hot(null);
+      });
+    });
+
+    /* Back to the start: the note empty, no plan, Pip closed */
+    function reset() {
+      gen++;
+      busy = null;
+      history = [];
+      plan = null;
+      capBy = [];
+      picked = [];
+      thinking(false);
+      table.classList.remove("is-writing", "is-picking");
+      tabs.plan.hidden = true;
+      show("note");
+      ideasBox.textContent = "";
+      list = el("ul");
+      ideasBox.appendChild(list);
+      input.value = "";
+      compose.classList.remove("is-typing");
+      pp.close();
+      pp.resetSteps();
+      pp.hint();
+    }
+
+    /* The play-through: you jot the ideas down, ask Pip in the pop-over, Pip
+       makes the plan, and the captions get written. Then it's your turn. */
+    function play() {
+      pp.start(function () {
+        reset();
+        pp.hideHint();
+        var caret = el("i", "pp-caret"), i = 0;
+        jotting = true;
+        function idea() {
+          var li = el("li"), text = IDEAS[i], n = 0;
+          list.appendChild(li);
+          (function key() {
+            n = Math.min(text.length, n + 2);
+            li.textContent = text.slice(0, n);
+            li.appendChild(caret);
+            pp.step(1);
+            if (n < text.length) pp.later(key, 26);
+            else if (++i < IDEAS.length) pp.later(idea, 170);
+            else pp.later(askPip, 600);
+          })();
         }
-        rows[i].classList.add("is-filling");
-        return sleep(90)
-          .then(word)
-          .then(function () { return sleep(150); })
-          .then(function () { rows[i].classList.remove("is-filling"); });
-      }
-      return sleep(900)
-        .then(function () { panelB.classList.remove("is-arriving"); return inOrder(write); })
-        .then(function () {
-          rows.forEach(function (r, i) { caps[i].textContent = CAPS[i]; });
-          return sleep(260);
-        })
-        .then(function () { setPip(2); });
-    }
-
-    /* 3 → 4: a photo from the folders drops into each row in turn */
-    function playPhotos(sleep) {
-      paint(3);
-      instantly(function () { tableTo(true, false); });
-      showPanel(3, false);
-      setBusy(WORKING[1]);
-      pip.style.minHeight = pipH[1] + "px";
-      function pick(i) {
-        rows[i].classList.add("is-filling");
-        return sleep(160)
-          .then(function () { photos[i].classList.remove("is-empty"); return sleep(220); })
-          .then(function () { rows[i].classList.remove("is-filling"); });
-      }
-      return sleep(420)
-        .then(function () { return inOrder(pick); })
-        .then(function () {
-          photos.forEach(function (ph) { ph.classList.remove("is-empty"); });
-          return sleep(260);
-        })
-        .then(function () { setPip(3); });
-    }
-
-    function play(n) {
-      if (reduced()) { jump(n); return; }
-      var id = ++run;
-      var sleep = sleeper(id);
-      busy = true;
-      var moves = [playJot, playAsk, playCaptions, playPhotos];
-      moves[n](sleep)
-        .then(function () { if (id === run) busy = false; })
-        .catch(function (err) { if (err !== CANCELLED) throw err; });
-    }
-
-    stepBtns.forEach(function (b, i) {
-      b.addEventListener("click", function () {
-        tried();
-        if (i === 0) { play(0); intoView(); return; } // step 1 always jots afresh
-        if (i === at && !busy) return;
-        jump(i);
-        intoView();
+        function askPip() {
+          jotting = false;
+          caret.remove();
+          pp.moveTo(pp.face, 26, 26);
+          pp.later(function () { pp.tap(); pp.open(); }, 850);
+          pp.later(function () { pp.moveTo(input, 48, 16); }, 1350);
+          pp.later(function () { pp.tap(); compose.classList.add("is-typing"); typeQ(1); }, 2150);
+        }
+        function typeQ(n) {
+          input.value = QUESTION.slice(0, n);
+          input.scrollLeft = input.scrollWidth;
+          if (n < QUESTION.length) { pp.later(function () { typeQ(n + 1); }, 32); return; }
+          pp.later(function () { pp.moveTo(send); }, 250);
+          pp.later(function () {
+            pp.tap();
+            input.value = "";
+            compose.classList.remove("is-typing");
+            ask(QUESTION, carryOn);
+            // then watch the note as Pip reads it
+            pp.later(function () { pp.moveTo(list, list.getBoundingClientRect().width * 0.55, 44); }, 500);
+          }, 1000);
+        }
+        function carryOn() {
+          if (!pp.auto) return;
+          var move = $('[data-move="captions"]', root);
+          pp.later(function () { pp.moveTo(move, 70, 19); }, 700);
+          pp.later(function () { pp.tap(); run("captions", finish); }, 1500);
+          pp.later(function () { pp.moveTo(caps[1], caps[1].getBoundingClientRect().width * 0.5, 16); }, 2000);
+        }
+        function finish() {
+          if (!pp.auto) return;
+          pp.later(function () {
+            pp.hint(END);
+            pp.done();
+            pp.face.classList.remove("is-nudging"); // Pip's already open
+          }, 700);
+        }
+        pp.later(idea, 350);
       });
-    });
-    function next() {
-      tried();
-      var n = at;
-      if (n >= 3) return;
-      if (busy) jump(n); // finish this step at once, then move on
-      play(n + 1);
-      intoView();
     }
-    nextBtn.addEventListener("click", next);
-    // Opening the plan Pip made is the next step
-    openDoc.addEventListener("click", function () { if (at === 1) next(); });
-    againBtn.addEventListener("click", function () {
-      tried();
-      play(0);
-      intoView();
-    });
 
+    pp = pipPage(root, {
+      play: play,
+      onReplay: play,
+      onMove: function (move) { run(move); },
+      onUndo: undo,
+      onAsk: function (words) { ask(words); },
+      onOpen: function () { pp.scope(cur); },
+      onStop: function () {
+        var c = $(".pp-caret", root);
+        if (c) c.remove();
+        // stopped part-way through the ideas: put them all in at once
+        if (jotting) {
+          jotting = false;
+          list.textContent = "";
+          IDEAS.forEach(function (t) { list.appendChild(el("li", "", t)); });
+        }
+        // …or through the question: it's there to send
+        if (input.value && QUESTION.indexOf(input.value) === 0) input.value = QUESTION;
+        compose.classList.remove("is-typing");
+        pp.hint(hintNow());
+        pp.done();
+        if (pp.isOpen()) pp.face.classList.remove("is-nudging");
+      }
+    });
+    // Any key in the stage takes over from the play-through too
+    root.addEventListener("keydown", function () { pp.stop(); }, true);
+
+    root.classList.add("is-ready");
+    tabs.plan.hidden = true;
+    show("note");
+
+    if ("ResizeObserver" in window) new ResizeObserver(fitRows).observe(grid);
+    else window.addEventListener("resize", fitRows);
     // Warm the photos before anyone asks for them
-    onceVisible(wrap, function () {
-      photos.forEach(function (p) { var img = $("img", p); if (img) { var pre = new Image(); pre.src = img.currentSrc || img.src; } });
+    onceVisible(root, function () {
+      rows.forEach(function (r) { var img = $("img", r); if (img) { var pre = new Image(); pre.src = img.currentSrc || img.src; } });
     }, 0);
-
-    panelB.hidden = true;
-    paint(0);
-    instantly(function () { jotTo(reduced() ? ideas.length : 0); chatTo(false); tableTo(false, false); });
-    setPip(0);
-    fitPip();
-    // The first time the demo comes into view, the ideas are jotted down
-    if (!reduced()) {
-      onceVisible(root, function () {
-        setTimeout(function () { if (!touched && at === 0 && !busy) play(0); }, 450);
-      }, 0.35);
-    }
-
-    var queued = false;
-    function refit() {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(function () {
-        queued = false;
-        fitPip();
-        fitRows();
-      });
-    }
-    window.addEventListener("resize", refit);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
   }
 
 
