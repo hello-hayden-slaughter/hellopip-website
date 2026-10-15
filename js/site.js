@@ -991,6 +991,8 @@
     var stage = $("[data-takeover-stage]", dlg);
     var waitText = $("[data-takeover-wait-text]", dlg);
     var closeBtn = $("[data-takeover-close]", dlg);
+    var note = $("[data-takeover-note]", dlg);
+    var noteOk = $("[data-takeover-note-ok]", dlg);
     if (!src || !go || !shot || !window.matchMedia) return;
     var origin;
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
@@ -1092,9 +1094,32 @@
         );
         dlg.animate([{ backgroundColor: "rgba(0,0,0,0)" }, { backgroundColor: "rgba(0, 0, 0, 0.32)" }], { duration: 560, easing: EASE_OUT });
       }
-      closeBtn.focus({ preventScroll: true });
+      // The first time, a word on what's different here (no live AI), while
+      // Pip loads behind it
+      if (note && !noteSeen()) {
+        note.hidden = false;
+        noteOk.focus({ preventScroll: true });
+      } else {
+        closeBtn.focus({ preventScroll: true });
+      }
       document.addEventListener("keydown", onKey);
     }
+
+    var NOTE_KEY = "pip-site:demo-note-seen";
+    var noteShown = false;
+    function noteSeen() {
+      if (noteShown) return true;
+      try { return window.localStorage.getItem(NOTE_KEY) === "1"; } catch (e) { return false; }
+    }
+    function dismissNote() {
+      if (!note || note.hidden) return false;
+      note.hidden = true;
+      noteShown = true;
+      try { window.localStorage.setItem(NOTE_KEY, "1"); } catch (e) { /* private window: shown once per visit */ }
+      closeBtn.focus({ preventScroll: true });
+      return true;
+    }
+    if (noteOk) noteOk.addEventListener("click", dismissNote);
 
     function close() {
       if (!isOpen) return;
@@ -1117,7 +1142,11 @@
       anim.onfinish = function () { anim.cancel(); anim = null; done(); };
     }
 
-    function onKey(e) { if (e.key === "Escape") { e.preventDefault(); close(); } }
+    function onKey(e) {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      if (!dismissNote()) close();
+    }
 
     go.addEventListener("click", open);
     closeBtn.addEventListener("click", close);
@@ -2371,71 +2400,147 @@
     var root = $("[data-signup]");
     if (!root) return;
     var form = $("[data-signup-form]", root);
+    var more = $("[data-signup-more]", root);
     var done = $("[data-signup-done]", root);
     var error = $("[data-signup-error]", root);
+    var moreError = $("[data-signup-more-error]", root);
     var btn = $("[data-signup-btn]", root);
+    var moreBtn = $("[data-signup-more-btn]", root);
+    var skip = $("[data-signup-skip]", root);
+    var saved = $("[data-signup-saved]", root);
+    var levelSay = $("[data-ai-level-text]", root);
     var thanks = $("[data-signup-thanks]", root);
     var next = $("[data-signup-next]", root);
     var endpoint = form.getAttribute("data-endpoint");
+    var moreEndpoint = endpoint ? endpoint.replace(/join_waitlist$/, "waitlist_more") : "";
     var key = form.getAttribute("data-key");
-    var busy = false;
+    // The review copy can't reach the database, so it plays the replies
+    var preview = form.hasAttribute("data-preview");
+    var busy = false, code = null, who = null;
+    var LEVELS = ["Never tried it", "Tried it once or twice", "Use it now and then", "Use it most weeks", "Use it every day"];
+    var ENDS = levelSay ? levelSay.innerHTML : "";
     // form.name is the form's own name, so reach the fields through elements
     var f = function (n) { return form.elements.namedItem(n); };
+    var m = function (n) { return more.elements.namedItem(n); };
 
-    function fail(text, withEmail) {
-      error.textContent = text;
+    function post(url, body) {
+      if (preview) {
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            resolve({ ok: true, status: 200, json: function () { return Promise.resolve("preview"); } });
+          }, 650);
+        });
+      }
+      return fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: key },
+        body: JSON.stringify(body)
+      });
+    }
+
+    function failIn(box, text, withEmail) {
+      box.textContent = text;
       if (withEmail) {
-        error.appendChild(document.createTextNode(" "));
+        box.appendChild(document.createTextNode(" "));
         var a = el("a", "", CONTACT);
         a.href = "mailto:" + CONTACT;
-        error.appendChild(a);
-        error.appendChild(document.createTextNode(" and I'll add you myself."));
+        box.appendChild(a);
+        box.appendChild(document.createTextNode(" and I'll add you myself."));
       }
-      error.hidden = false;
+      box.hidden = false;
     }
-    function finish(name, email) {
-      var first = name.split(/\s+/)[0];
-      thanks.textContent = "Thanks, " + first + ". You're on the list.";
-      next.textContent = "I'll email you at " + email + " when your place is ready. Keep an eye out for an email from Hayden at Pip.";
+    function busyOn(b, text) { busy = true; b.setAttribute("aria-busy", "true"); b.dataset.label = b.textContent; b.textContent = text; }
+    function busyOff(b) { busy = false; b.removeAttribute("aria-busy"); if (b.dataset.label) b.textContent = b.dataset.label; }
+    function first(name) { return name.split(/\s+/)[0]; }
+
+    // Step 2: the place is saved; three optional questions
+    function askMore() {
+      saved.textContent = "You're on the list, " + first(who.name) + ".";
       form.hidden = true;
+      more.hidden = false;
+      more.focus({ preventScroll: true });
+    }
+    // Done, with or without the answers
+    function finish(answered) {
+      thanks.textContent = answered ? "Thanks, " + first(who.name) + ". That really helps." : "Thanks, " + first(who.name) + ". You're on the list.";
+      next.textContent = "I'll email you at " + who.email + " when your place is ready. Keep an eye out for an email from Hayden at Pip.";
+      form.hidden = true;
+      more.hidden = true;
       done.hidden = false;
       done.focus({ preventScroll: true });
     }
 
+    // Step 1: name and email, and the place is saved
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (busy) return;
       error.hidden = true;
       var name = f("name").value.trim();
       var email = f("email").value.trim();
-      var about = f("about").value.trim();
       f("name").setAttribute("aria-invalid", name ? "false" : "true");
       var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       f("email").setAttribute("aria-invalid", emailOk ? "false" : "true");
-      if (!name) { fail("Please add your name."); f("name").focus(); return; }
-      if (!emailOk) { fail("That email doesn't look quite right."); f("email").focus(); return; }
-      if (f("website").value) { finish(name, email); return; } // a bot filled the hidden field
-      if (!endpoint || !window.fetch) { fail("Sorry, sign-ups aren't working here yet. Email me at", true); return; }
-      busy = true;
-      btn.setAttribute("aria-busy", "true");
-      btn.textContent = "Saving…";
+      if (!name) { failIn(error, "Please add your name."); f("name").focus(); return; }
+      if (!emailOk) { failIn(error, "That email doesn't look quite right."); f("email").focus(); return; }
+      who = { name: name, email: email };
+      if (f("website").value) { finish(false); return; } // a bot filled the hidden field
+      if (!endpoint || (!preview && !window.fetch)) { failIn(error, "Sorry, sign-ups aren't working here yet. Email me at", true); return; }
+      busyOn(btn, "Saving…");
       // join_waitlist answers the same for a new email and one already on the
-      // list, so nobody can use the form to check who has signed up
-      fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: key },
-        body: JSON.stringify({ p_name: name, p_email: email, p_about: about || null })
-      }).then(function (r) {
-        if (r.ok) finish(name, email);
-        else if (r.status === 400) fail("That didn't look quite right. Check your name and email, or email me at", true);
-        else fail("Sorry, that didn't save. Try again, or email me at", true);
+      // list (a code either way), so nobody can use the form to check who has
+      // signed up
+      post(endpoint, { p_name: name, p_email: email }).then(function (r) {
+        if (!r.ok) {
+          if (r.status === 400) failIn(error, "That didn't look quite right. Check your name and email, or email me at", true);
+          else failIn(error, "Sorry, that didn't save. Try again, or email me at", true);
+          return;
+        }
+        return r.json().then(function (c) { code = c; }, function () { code = null; }).then(askMore);
       }, function () {
-        fail("Sorry, that didn't send. Check your connection and try again, or email me at", true);
-      }).then(function () {
-        busy = false;
-        btn.removeAttribute("aria-busy");
-        btn.textContent = "Save my place";
+        failIn(error, "Sorry, that didn't send. Check your connection and try again, or email me at", true);
+      }).then(function () { busyOff(btn); });
+    });
+
+    // The scale says what the number means once one is picked
+    if (levelSay) {
+      more.addEventListener("change", function (e) {
+        if (e.target.name !== "ai_level") return;
+        levelSay.textContent = LEVELS[+e.target.value - 1];
+        levelSay.classList.add("is-chosen");
       });
+    }
+
+    function picked(name) {
+      var on = $('input[name="' + name + '"]:checked', more);
+      return on ? on.value : null;
+    }
+
+    more.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (busy) return;
+      moreError.hidden = true;
+      var about = m("about").value.trim();
+      var level = picked("ai_level");
+      var pays = picked("ai_pays");
+      if (!about && !level && !pays) { finish(false); return; }
+      if (!code) { finish(false); return; }
+      busyOn(moreBtn, "Sending…");
+      post(moreEndpoint, { p_token: code, p_about: about || null, p_ai_level: level ? +level : null, p_ai_pays: pays })
+        .then(function (r) {
+          if (r.ok) finish(true);
+          else failIn(moreError, "Sorry, those didn't save. Your place is saved either way, so you can skip them.");
+        }, function () {
+          failIn(moreError, "Sorry, those didn't send. Your place is saved either way, so you can skip them.");
+        })
+        .then(function () { busyOff(moreBtn); });
+    });
+    skip.addEventListener("click", function () { if (!busy) finish(false); });
+
+    // Back to the start if the page is shown again from the cache
+    window.addEventListener("pageshow", function (e) {
+      if (!e.persisted) return;
+      form.hidden = false; more.hidden = true; done.hidden = true;
+      if (levelSay) { levelSay.innerHTML = ENDS; levelSay.classList.remove("is-chosen"); }
     });
   }
 

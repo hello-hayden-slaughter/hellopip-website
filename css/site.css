@@ -2626,7 +2626,7 @@ small { font-size: inherit; }
 .credits th { padding: 0 0 10px; font-size: 13px; font-weight: var(--weight-medium); color: var(--text-muted); text-align: left; }
 .credits th:last-child, .credits td:last-child { text-align: right; }
 .credits td { padding: 11px 0; box-shadow: inset 0 1px 0 var(--border-light); }
-.credits td:last-child { font-size: 18px; font-weight: var(--weight-semibold); }
+.credits td:last-child { padding-left: 16px; font-size: 18px; font-weight: var(--weight-semibold); white-space: nowrap; }
 .credits-sum { margin-top: 18px; font-size: 15px; line-height: 1.55; color: var(--text-secondary); }
 .credits-sum b { color: var(--text-primary); font-weight: var(--weight-semibold); }
 @media (max-width: 899px) {
@@ -2753,6 +2753,25 @@ small { font-size: inherit; }
 .join-btn { width: 100%; }
 .join-btn[aria-busy="true"] { opacity: 0.7; }
 .join-small { font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+/* The second step: three optional questions once the place is saved */
+.join-more:focus { outline: none; }
+.join-saved { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; padding: 6px 12px 6px 10px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--sage) 16%, transparent); font-size: 14px; font-weight: var(--weight-medium); color: var(--text-primary); }
+.join-saved .i { color: var(--sage-dark); }
+.join-more-why { margin-top: -6px; font-size: 15px; line-height: 1.55; color: var(--text-secondary); }
+.join-q { margin: 0; padding: 0; border: 0; min-width: 0; }
+.join-q legend { padding: 0; margin-bottom: 8px; font-size: 14.5px; font-weight: var(--weight-medium); }
+.join-scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.join-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.join-pill { position: relative; display: block; }
+.join-pill input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; }
+.join-pill span { display: flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px; border-radius: var(--radius-full); background: var(--bg-primary); box-shadow: inset 0 0 0 1px var(--border); font-size: 15px; font-weight: var(--weight-medium); color: var(--text-primary); white-space: nowrap; transition: background-color var(--transition-fast), box-shadow var(--transition-fast); }
+.join-pill:hover span { box-shadow: inset 0 0 0 1px var(--accent-strong); }
+.join-pill input:checked + span { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent-strong); }
+.join-pill input:focus-visible + span { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.join-scale-ends { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 13px; color: var(--text-muted); }
+.join-scale-ends.is-chosen { justify-content: center; color: var(--text-primary); font-weight: var(--weight-medium); }
+.join-more-btns { display: flex; gap: 10px; }
+.join-more-btns .btn { flex: 1; }
 .join-done { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .join-done:focus { outline: none; }
 .join-done p { font-size: 16px; line-height: 1.55; color: var(--text-secondary); }
@@ -3161,6 +3180,38 @@ small { font-size: inherit; }
 .takeover.is-ready .takeover-poster,
 .takeover.is-ready .takeover-wait { opacity: 0; visibility: hidden; transition: opacity 420ms var(--ease-out), visibility 0s linear 420ms; }
 html.has-takeover { overflow: hidden; }
+/* The first time: what's different about this Pip (no live AI), over the stage */
+.takeover-note {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--bg-primary) 62%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+}
+.takeover-note[hidden] { display: none; }
+.takeover-note-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 440px;
+  padding: 28px 28px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-pip);
+  box-shadow: var(--shadow-lg), var(--win-ring);
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.takeover-note-h { margin-top: 2px; font-size: 22px; line-height: 1.25; font-weight: var(--weight-semibold); letter-spacing: -0.01em; color: var(--text-primary); }
+.takeover-note-ok { margin-top: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  .takeover-note:not([hidden]) .takeover-note-card { animation: intro-rise 320ms var(--ease-out) 260ms both; }
+}
 @media (max-width: 1023px) {
   .takeover-small { display: none; }
 }

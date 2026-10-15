@@ -150,15 +150,44 @@
           <input id="join-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="join-email-why">
           <p class="field-hint" id="join-email-why">So I can send your invite and check in. Nothing else, and never a mailing list.</p>
         </div>
-        <div class="field">
-          <label for="join-about">What do you do? <span class="field-opt">Optional</span></label>
-          <input id="join-about" name="about" type="text" maxlength="300" placeholder="I run a small lampshade studio" aria-describedby="join-about-why">
-          <p class="field-hint" id="join-about-why">Helps me make sure Pip suits you.</p>
-        </div>
         <div class="field-trap" aria-hidden="true"><label for="join-site">Leave this empty</label><input id="join-site" name="website" type="text" tabindex="-1" autocomplete="off"></div>
         <p class="join-error" data-signup-error role="alert" hidden></p>
         <button type="submit" class="btn btn--primary join-btn" data-signup-btn>Save my place</button>
         <p class="join-small">Early access is for people in the UK. I'll only use your details to contact you about Pip's early access, and you can ask me to delete them any time. More in the <a href="privacy-policy.html">privacy policy</a>.</p>
+      </form>
+      <form class="join-form join-more" data-signup-more hidden novalidate tabindex="-1" aria-labelledby="join-more-h">
+        <p class="join-saved"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-check"/></svg><span data-signup-saved>You're on the list.</span></p>
+        <h2 class="join-h" id="join-more-h">Three quick questions</h2>
+        <p class="join-more-why">They help me make sure Pip reaches the right people and gets used in the right way, and that you get the right kind of help from me, whatever that looks like. All optional.</p>
+        <div class="field">
+          <label for="join-about">What do you do?</label>
+          <input id="join-about" name="about" type="text" maxlength="300" placeholder="I run a small lampshade studio">
+        </div>
+        <fieldset class="field join-q">
+          <legend>How comfortable are you with AI?</legend>
+          <div class="join-scale">
+            <label class="join-pill"><input type="radio" name="ai_level" value="1" aria-label="1: Never tried it"><span>1</span></label>
+            <label class="join-pill"><input type="radio" name="ai_level" value="2" aria-label="2: Tried it once or twice"><span>2</span></label>
+            <label class="join-pill"><input type="radio" name="ai_level" value="3" aria-label="3: Use it now and then"><span>3</span></label>
+            <label class="join-pill"><input type="radio" name="ai_level" value="4" aria-label="4: Use it most weeks"><span>4</span></label>
+            <label class="join-pill"><input type="radio" name="ai_level" value="5" aria-label="5: Use it every day"><span>5</span></label>
+          </div>
+          <p class="join-scale-ends" data-ai-level-text aria-hidden="true"><span>Never tried it</span><span>Use it every day</span></p>
+        </fieldset>
+        <fieldset class="field join-q">
+          <legend>Do you pay for an AI at the moment?</legend>
+          <div class="join-chips">
+            <label class="join-pill"><input type="radio" name="ai_pays" value="none"><span>No</span></label>
+            <label class="join-pill"><input type="radio" name="ai_pays" value="chatgpt"><span>ChatGPT</span></label>
+            <label class="join-pill"><input type="radio" name="ai_pays" value="claude"><span>Claude</span></label>
+            <label class="join-pill"><input type="radio" name="ai_pays" value="other"><span>Another one</span></label>
+          </div>
+        </fieldset>
+        <p class="join-error" data-signup-more-error role="alert" hidden></p>
+        <div class="join-more-btns">
+          <button type="submit" class="btn btn--primary" data-signup-more-btn>Send</button>
+          <button type="button" class="btn btn--secondary" data-signup-skip>Skip</button>
+        </div>
       </form>
       <div class="join-done" data-signup-done hidden tabindex="-1">
         <span class="join-done-face"><svg class="pf pf-48" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
@@ -205,7 +234,7 @@
       <a href="privacy-policy.html">Privacy policy</a>
       <a href="mailto:hello@haydenslaughter.co.uk">Contact</a>
     </div>
-    <p class="footer-small">© <span data-date="year">2026</span> Hayden Slaughter. Claude is a trademark of Anthropic. Pip is independent and isn't made or endorsed by Anthropic.</p>
+    <p class="footer-small">© <span data-date="year">2026</span> Little Big Creative Limited. Claude is a trademark of Anthropic. Pip is independent and isn't made or endorsed by Anthropic.</p>
   </div>
 </footer>
 </body>
