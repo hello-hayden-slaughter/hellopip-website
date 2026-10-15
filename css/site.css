@@ -1462,7 +1462,8 @@ small { font-size: inherit; }
    never covers it; on a narrow one the pop-over sits under the file.
      .pp-steps   the four steps (li.is-on once done)
      .pp         the stage: a calm desk the file sits on
-     .pp-doc     the file: .pp-crumb, .pp-title, .pp-body (the writing)
+     .pp-doc     the file: .pp-tabs > .pp-tab (files open in tabs), .pp-crumb,
+                 .pp-title, .pp-body (the writing)
      .pp-edit    a bit Pip changed; .is-yours once the visitor has changed it
      .pp-face    Pip's face; .pp-ask the "Ask Pip" pill beside a selection
      .pp-pop     the pop-over: .pp-scope, .pp-moves > .pp-move, .pp-says,
@@ -1500,6 +1501,14 @@ small { font-size: inherit; }
   transition: transform 360ms var(--ease-out), max-width 360ms var(--ease-out);
 }
 .pp-crumb { margin-bottom: 18px; font-size: 13px; color: var(--text-muted); }
+/* Files open in tabs along the top of the page, as in the app; on a phone, two columns */
+.pp-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: -8px -10px 16px; padding: 0 0 8px; box-shadow: inset 0 -1px 0 var(--border-light); }
+.pp-tab { display: inline-flex; align-items: center; gap: 7px; min-width: 0; height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; font-size: 13.5px; font-weight: var(--weight-medium); color: var(--text-secondary); white-space: nowrap; transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast); }
+.pp-tab .i { color: var(--text-muted); }
+.pp-tab span { overflow: hidden; text-overflow: ellipsis; }
+.pp-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+.pp-tab[aria-selected="true"] { background: var(--accent-soft); color: var(--text-primary); box-shadow: inset 0 0 0 1.5px var(--accent-strong); }
+.pp-tab[aria-selected="true"] .i { color: var(--text-accent); }
 .pp-title { margin-bottom: 14px; font-size: 30px; line-height: 1.15; font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); }
 .pp-body { min-height: 150px; font-size: 17px; line-height: 1.7; color: var(--text-primary); outline: none; caret-color: var(--accent-strong); }
 .pp-body p { margin: 0 0 14px; }
@@ -1547,6 +1556,8 @@ small { font-size: inherit; }
 .pp-replay .i { color: var(--text-muted); }
 .pp-pointer { position: absolute; left: 0; top: 0; z-index: 9; width: 22px; height: 22px; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25)); transition: transform 700ms var(--ease-out), opacity var(--dur-quick) var(--ease-out); }
 @container (max-width: 640px) {
+  .pp-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-inline: -6px; }
+  .pp-tab { padding: 0 10px; }
   .pp-doc { min-height: 320px; padding: 18px 18px 84px; transform: none !important; max-width: none !important; }
   .pp-title { font-size: 25px; }
   .pp-body { font-size: 16px; }
