@@ -52,12 +52,6 @@
     return svg;
   }
 
-  /* Swap a small face between idle and thinking, in place */
-  function setThinking(holder, on) {
-    var use = holder && holder.querySelector("use");
-    if (use) use.setAttribute("href", on ? "#pip-think" : "#pip-face");
-  }
-
   function dots() {
     var wrap = el("span", "dots");
     wrap.setAttribute("aria-hidden", "true");
@@ -714,114 +708,153 @@
   }
 
   /* ── Pip on your page ───────────────────────────────────────────────────────
-     The one pattern every demo uses, as in the app: your file in the middle
-     (you can write in it), Pip's face in its corner, and Pip's pop-over
-     rising from the face with "How Pip can help". Pip changes only what you
-     pick, underlined as Pip's edit, with Undo, until you change it and it's
-     yours. The four steps above the stage light up as the visitor does each
-     thing. A play-through runs once, the first time the stage is well on
-     screen; any click in the stage takes over. Each demo brings its own
-     moves and what they do; this is the chrome they share. */
+     The one pattern every demo uses, as in the app with Pip docked to the
+     side: your file on the left (you can work in it) and Pip's panel on the
+     right, always open: "Whole note | Selection", the "How Pip can help" card
+     with Pip's line and its moves, the conversation under it, and "Ask Pip
+     about this note…". Picking a move or asking puts your words in the
+     conversation, then Pip's reply, with Undo. Pip changes only what you
+     pick, underlined as Pip's edit, until you change it and it's yours. A
+     demo may have a play-through (opts.play): it runs once, the first time
+     the stage is well on screen, and any click in the stage takes over. */
   function pipPage(root, opts) {
     opts = opts || {};
-    var face = $("[data-pp-face]", root);
     var pop = $("[data-pp-pop]", root);
     var doc = $("[data-pp-doc]", root);
-    var says = $("[data-pp-says]", root);
-    var saysText = $("[data-pp-says-text]", root);
-    var undoBtn = $("[data-pp-undo]", root);
+    var thread = $("[data-pp-thread]", root);
+    var leadEl = $("[data-pp-lead]", root);
     var hintEl = $("[data-pp-hint]", root);
     var pointer = $("[data-pp-pointer]", root);
     var replay = $("[data-pp-replay]", root);
     var compose = $("[data-pp-compose]", root);
-    var scopes = $$("[data-pp-scope]", root);
-    var steps = $$("[data-pp-steps] li", root.parentNode);
-    var moves = $$("[data-move]", root);
-    var api = { root: root, doc: doc, face: face, pop: pop, auto: false };
+    var wholeEl = $("[data-pp-whole]", root);
+    var api = { root: root, doc: doc, pop: pop, auto: false, isBusy: false };
     var HINT = hintEl ? hintEl.innerHTML : "";
-    // the file's own width, read once before any inline width is set on it
-    var FULL = parseFloat(getComputedStyle(doc).maxWidth) || 0;
+    var cur = null; // the Pip message being written
 
-    api.step = function (n) { steps.forEach(function (li, i) { if (i < n) li.classList.add("is-on"); }); };
-    api.resetSteps = function () { steps.forEach(function (li) { li.classList.remove("is-on"); }); };
+    pop.hidden = false;
     api.hint = function (html) { if (!hintEl) return; hintEl.innerHTML = html == null ? HINT : html; hintEl.style.opacity = ""; };
     api.hideHint = function () { if (hintEl) hintEl.style.opacity = "0"; };
-    api.scope = function (which) { scopes.forEach(function (sc) { sc.classList.toggle("is-on", sc.getAttribute("data-pp-scope") === which); }); };
-    api.isOpen = function () { return pop && !pop.hidden; };
-    api.hot = function (move) { moves.forEach(function (m) { m.classList.toggle("is-on", m.getAttribute("data-move") === move); }); };
+    api.scope = function (which) { $$("[data-pp-scope]", root).forEach(function (sc) { sc.classList.toggle("is-on", sc.getAttribute("data-pp-scope") === which); }); };
+    api.hot = function (move) { $$("[data-move]", root).forEach(function (m) { m.classList.toggle("is-on", m.getAttribute("data-move") === move); }); };
+    api.lead = function (text) { if (leadEl) leadEl.textContent = text; };
+    // What "Whole …" names: the note, the table, the photo
+    api.whole = function (label) {
+      if (wholeEl) wholeEl.textContent = label;
+      var input = compose && $("input", compose), what = label.replace(/^Whole /, "");
+      if (input) { input.placeholder = "Ask Pip about this " + what + "…"; input.setAttribute("aria-label", "Ask Pip about this " + what); }
+    };
+    // While Pip works, its moves and its box wait, as in the app
+    api.busy = function (on) {
+      api.isBusy = !!on;
+      pop.classList.toggle("is-busy", api.isBusy);
+      $$(".pp-move", pop).forEach(function (m) { m.setAttribute("aria-disabled", on ? "true" : "false"); });
+    };
 
-    // On a wide stage the file narrows if it must, then slides aside, so Pip
-    // never covers the words it changed
-    function makeRoom() {
-      doc.style.transform = ""; doc.style.maxWidth = "";
-      if (root.clientWidth <= 640 || pop.hidden) return;
-      // Worked out, not measured, so the file's own animation can't fool it:
-      // where it sits centred at its width, and where it fits left of Pip
-      var cs = getComputedStyle(root);
-      var padL = parseFloat(cs.paddingLeft) || 0, padR = parseFloat(cs.paddingRight) || 0;
-      var inner = root.clientWidth - padL - padR;
-      var popLeft = pop.offsetLeft; // layout, not the rise animation's scaled box
-      var full = Math.min(FULL || inner, inner);
-      var width = Math.min(full, popLeft - 16 - 16);
-      if (width < full) doc.style.maxWidth = Math.round(width) + "px";
-      var centredLeft = padL + (inner - width) / 2;
-      var fitLeft = Math.max(16, popLeft - 16 - width);
-      if (fitLeft < centredLeft) doc.style.transform = "translateX(" + Math.round(fitLeft - centredLeft) + "px)";
+    /* The conversation under the card */
+    function scrollDown() { thread.scrollTop = thread.scrollHeight; }
+    api.clear = function () { $$(".pp-msg", thread).forEach(function (m) { m.remove(); }); cur = null; api.hot(null); };
+    // A new ask: Undo moves on to the newest change, so older ones go
+    api.you = function (text) {
+      $$(".pp-undo", thread).forEach(function (b) { b.hidden = true; });
+      thread.appendChild(el("p", "pp-msg pp-msg--you", text));
+      cur = null;
+      scrollDown();
+    };
+    function pipMsg() {
+      if (!cur) {
+        cur = el("div", "pp-msg pp-msg--pip");
+        cur.appendChild(el("p", "pp-says-text"));
+        thread.appendChild(cur);
+      }
+      return cur;
     }
-    api.open = function (scope) {
-      pop.hidden = false;
-      face.setAttribute("aria-expanded", "true");
-      face.classList.remove("is-nudging");
-      says.hidden = true;
-      undoBtn.hidden = true;
-      api.hot(null);
-      if (scope) api.scope(scope);
-      makeRoom();
-      if (opts.onOpen) opts.onOpen();
-    };
-    api.close = function () {
-      if (pop.hidden) return;
-      pop.hidden = true;
-      face.setAttribute("aria-expanded", "false");
-      doc.style.transform = ""; doc.style.maxWidth = "";
-      if (opts.onClose) opts.onClose();
-    };
     api.say = function (text, working) {
-      says.hidden = false;
-      saysText.textContent = "";
-      if (working) saysText.appendChild(dots());
-      saysText.appendChild(document.createTextNode(text));
+      var t = pipMsg().firstChild;
+      t.textContent = "";
+      if (working) {
+        var w = el("span", "is-busy");
+        w.appendChild(dots());
+        w.appendChild(document.createTextNode(text));
+        t.appendChild(w);
+      } else t.textContent = text;
+      scrollDown();
     };
-    api.showUndo = function (on) { undoBtn.hidden = !on; };
+    // The next thing Pip says starts a message of its own
+    api.next = function () { cur = null; };
+    api.showUndo = function (on) {
+      if (!cur) return;
+      if (on) $$(".pp-undo", thread).forEach(function (x) { x.hidden = true; });
+      var b = $(".pp-undo", cur);
+      if (on && !b) {
+        b = el("button", "try-back pp-undo");
+        b.type = "button";
+        b.appendChild(icon("undo", 14));
+        b.appendChild(document.createTextNode("Undo"));
+        b.addEventListener("click", function () {
+          if (api.isBusy) return;
+          api.stop();
+          b.hidden = true;
+          cur = null;
+          if (opts.onUndo) opts.onUndo();
+        });
+        cur.appendChild(b);
+      }
+      if (b) b.hidden = !on;
+      scrollDown();
+    };
+    api.setMoves = function (list) {
+      var box = $(".pp-moves", root);
+      box.textContent = "";
+      list.forEach(function (m) {
+        var b = el("button", "pp-move");
+        b.type = "button";
+        b.setAttribute("data-move", m.move);
+        var i = el("span", "pp-move-i"); i.appendChild(icon(m.icon || "pen-line", 16)); b.appendChild(i);
+        b.appendChild(el("span", "pp-move-label", m.label));
+        if (m.where) b.appendChild(el("span", "pp-move-where", m.where));
+        box.appendChild(b);
+      });
+    };
 
-    face.addEventListener("click", function () { if (api.isOpen()) api.close(); else api.open(); });
-    $("[data-pp-close]", root).addEventListener("click", function () { api.close(); face.focus({ preventScroll: true }); });
-    root.addEventListener("keydown", function (e) { if (e.key === "Escape" && api.isOpen()) { api.close(); face.focus({ preventScroll: true }); } });
-    moves.forEach(function (m) {
-      // keep the page's selection when a move is pressed
-      m.addEventListener("mousedown", function (e) { e.preventDefault(); });
-      m.addEventListener("click", function () { api.stop(); if (opts.onMove) opts.onMove(m.getAttribute("data-move")); });
+    // A move (any, including ones set later): your words go in, then Pip acts
+    pop.addEventListener("mousedown", function (e) { if (e.target.closest(".pp-move")) e.preventDefault(); }); // keep the page's selection
+    pop.addEventListener("click", function (e) {
+      var m = e.target.closest(".pp-move");
+      if (!m || api.isBusy) return;
+      api.stop();
+      api.you($(".pp-move-label", m) ? $(".pp-move-label", m).textContent : m.textContent);
+      if (opts.onMove) opts.onMove(m.getAttribute("data-move"));
     });
-    undoBtn.addEventListener("click", function () { if (opts.onUndo) opts.onUndo(); });
     if (compose) compose.addEventListener("submit", function (e) {
       e.preventDefault();
       var input = $("input", compose), words = input.value.trim();
-      if (!words) return;
+      if (!words || api.isBusy) return;
       input.value = "";
       api.stop();
+      api.you(words);
       if (opts.onAsk) opts.onAsk(words);
     });
-    var resizeT = null;
-    window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(function () { if (api.isOpen()) makeRoom(); }, 120); });
 
     /* The play-through's pointer and its timers: one run at a time */
     var timers = [];
     api.later = function (fn, ms) { timers.push(setTimeout(fn, ms)); };
-    api.moveTo = function (el, dx, dy) {
-      if (!pointer || !el) return;
-      var r = el.getBoundingClientRect(), b = root.getBoundingClientRect();
+    function place(x, y, drag) {
+      if (!pointer) return;
+      pointer.classList.toggle("is-dragging", !!drag);
       pointer.style.opacity = "1";
-      pointer.style.transform = "translate(" + Math.round(r.left - b.left + (dx == null ? r.width / 2 : dx)) + "px," + Math.round(r.top - b.top + (dy == null ? r.height / 2 : dy)) + "px)";
+      pointer.style.transform = "translate(" + Math.round(x) + "px," + Math.round(y) + "px)";
+    }
+    api.moveTo = function (target, dx, dy) {
+      if (!target) return;
+      var r = target.getBoundingClientRect(), b = root.getBoundingClientRect();
+      place(r.left - b.left + (dx == null ? r.width / 2 : dx), r.top - b.top + (dy == null ? r.height / 2 : dy));
+    };
+    // To a point in the text (a collapsed Range), dragging or not
+    api.pointAt = function (range, drag) {
+      var r = range.getBoundingClientRect(), b = root.getBoundingClientRect();
+      if (!r.width && !r.height) { var rs = range.getClientRects(); if (rs.length) r = rs[rs.length - 1]; }
+      place(r.right - b.left, r.top - b.top + r.height * 0.6, drag);
     };
     api.tap = function () { if (!pointer) return; pointer.classList.remove("is-tapping"); void pointer.offsetWidth; pointer.classList.add("is-tapping"); };
     api.stop = function () {
@@ -834,7 +867,6 @@
     api.done = function () {
       api.auto = false;
       if (pointer) pointer.style.opacity = "0";
-      face.classList.add("is-nudging");
       if (replay) replay.hidden = false;
     };
     api.start = function (play) {
@@ -844,182 +876,254 @@
       play();
     };
     root.addEventListener("pointerdown", function (e) { if (api.auto && !e.target.closest("[data-pp-replay]")) api.stop(); }, true);
+    root.addEventListener("keydown", function () { if (api.auto) api.stop(); }, true);
     if (replay) replay.addEventListener("click", function () { if (opts.onReplay) opts.onReplay(); });
+    // A first nudge toward Pip's moves, once in view, until the visitor acts
+    if (opts.nudge && !reduced()) onceVisible(root, function () {
+      setTimeout(function () {
+        var first = $(".pp-move", pop);
+        if (first && !api.touched) first.classList.add("is-nudge");
+      }, 900);
+    }, 0.6);
+    root.addEventListener("pointerdown", function () { $$(".pp-move.is-nudge", pop).forEach(function (m) { m.classList.remove("is-nudge"); }); });
     if (!reduced() && opts.play) {
-      onceVisible(root, function () { setTimeout(function () { if (!api.touched) opts.play(); }, 500); }, 0.45);
-    } else if (replay) replay.hidden = false;
+      onceVisible(root, function () { setTimeout(function () { if (!api.touched) opts.play(); }, 700); }, 0.5);
+    } else if (replay && opts.play) replay.hidden = false;
     root.addEventListener("pointerdown", function () { api.touched = true; });
     return api;
   }
 
   /* ── Help with the bit you're stuck on ───────────────────────────────────
-     A note you write in. Select words (or not, for the whole note), ask Pip,
-     and only that bit changes, underlined until you change it. The first
-     paragraph's rough words have Pip's real rewrites; anything else the
-     visitor writes or picks is tidied, shortened, extended or listed by rule. */
+     A note you write in, with Pip docked beside it. Select words to work on
+     just those (the panel says "Selection"), or nothing for the whole note.
+     Pip's answers to the note's own lines are written by hand, version by
+     version (tidied, shorter, fuller, as a list, and each from the others),
+     so every move reads like real help. Anything else the visitor writes is
+     tidied, trimmed of filler, given a line from the notes, or listed; when
+     there's nothing worth changing, Pip says so and leaves it. Undo steps
+     back through the versions and says where it landed. */
   function helpDemo() {
     var root = $("[data-help]");
     if (!root) return;
     var body = $("[data-help-body]", root);
-    var ask = $("[data-pp-ask]", root);
     var ROUGH = "new sage lamp in the shop!! linen shade on an oak base, looks lovely on a desk. £105. made to order so 2 weeks ish";
     var REST = "Photos to follow once the sun comes out.";
-    var CANNED = {
-      tidy: "Our new sage lamp is in the shop: a linen shade on an oak base that looks lovely on a desk. £105, made to order in about two weeks.",
-      "short": "New in: a sage linen lamp on an oak base. £105, made to order.",
-      more: "Our new sage lamp is in the shop. The linen shade is made by hand in my studio in Hove and sits on a solid oak base, so it looks lovely on a desk or a bedside table. It's £105, made to order in about two weeks, with free UK delivery.",
-      list: ["Sage linen shade on an oak base", "Looks lovely on a desk", "£105", "Made to order, in about two weeks"]
+    var V = {
+      rough: ROUGH,
+      tidy: "Our new sage lamp is in the shop: a linen shade on an oak base that looks lovely on a desk. It's £105, made to order in about two weeks.",
+      "short": "New in the shop: our sage linen lamp on an oak base, £105. Made to order in about two weeks.",
+      shorter: "Sage linen lamp on an oak base, £105. Made to order in two weeks.",
+      more: "Our new sage lamp is in the shop. The linen shade is cut and stitched by hand in my studio in Hove, and it sits on a solid oak base, so it looks lovely on a desk or a bedside table. It's £105, made to order in about two weeks, with free UK delivery.",
+      list: ["New in the shop: the sage lamp", "Linen shade on an oak base", "Looks lovely on a desk", "£105, made to order in about two weeks"],
+      listMore: ["Linen shade, cut and stitched by hand in Hove", "Solid oak base", "Looks lovely on a desk or a bedside table", "£105, with free UK delivery", "Made to order in about two weeks"],
+      listShort: ["Sage linen lamp on an oak base", "£105", "Made to order in about two weeks"],
+      p2: REST,
+      p2short: "Photos coming soon.",
+      p2more: "Photos to follow once the sun comes out. I'll take them on the oak desk by the window, so you can see how the linen glows.",
+      p2list: ["Photos to follow once the sun comes out", "Taken on the oak desk by the window", "So you can see how the linen glows"]
     };
-    var DONE_PICKED = {
-      tidy: "Tidied the bit you picked. The rest is just as you wrote it.",
-      "short": "Shortened the bit you picked. Nothing else changed.",
-      more: "Added what your notes say: made in Hove, free UK delivery.",
-      list: "Made the bit you picked into a list."
+    // Where each version goes for each move; null: nothing worth changing
+    var NEXT = {
+      rough:     { tidy: "tidy", "short": "short", more: "more", list: "list" },
+      tidy:      { tidy: null, "short": "short", more: "more", list: "list" },
+      "short":   { tidy: null, "short": "shorter", more: "more", list: "listShort" },
+      shorter:   { tidy: null, "short": null, more: "more", list: "listShort" },
+      more:      { tidy: null, "short": "short", more: null, list: "listMore" },
+      list:      { tidy: null, "short": "listShort", more: "listMore", list: null },
+      listMore:  { tidy: null, "short": "listShort", more: null, list: null },
+      listShort: { tidy: null, "short": null, more: "listMore", list: null },
+      p2:        { tidy: null, "short": "p2short", more: "p2more", list: null },
+      p2short:   { tidy: null, "short": null, more: "p2more", list: null },
+      p2more:    { tidy: null, "short": "p2", more: null, list: "p2list" },
+      p2list:    { tidy: null, "short": "p2short", more: null, list: null }
     };
-    var DONE_ALL = {
-      tidy: "Tidied each paragraph. Change anything you like.",
-      "short": "Shortened each paragraph. Change anything you like.",
-      more: "Added what your notes say. Change anything you like.",
-      list: "Made each paragraph into a list."
+    var DONE = {
+      tidy: "Tidied it: capitals, full stops, and the price and timing made clear. Same facts, in your words.",
+      "short": "Shorter, with every fact kept: the lamp, the oak base, £105 and the two weeks.",
+      shorter: "Down to the bare facts.",
+      more: "Added what your notes say: made by hand in Hove, and free UK delivery.",
+      list: "Made it a list, one fact a line.",
+      listMore: "A list, with what your notes add: made in Hove, free UK delivery.",
+      listShort: "A short list: just the facts a buyer needs.",
+      p2short: "Shortened it.",
+      p2more: "Added how you'll take the photos, from your notes.",
+      p2list: "Made it a list.",
+      p2: "Made it shorter."
     };
-    var WORKING = { tidy: "Tidying it up", "short": "Shortening it", more: "Checking your notes", list: "Making it a list" };
+    var SAME = {
+      tidy: "That reads well already, so I've left it.",
+      "short": "That's about as short as it goes without losing a fact, so I've left it.",
+      more: "That's everything your notes say about it, so I've left it.",
+      list: "That's one thought, or a list already, so I've left it."
+    };
+    var WORKING = { tidy: "Tidying it up", "short": "Making it shorter", more: "Checking your notes", list: "Making it a list" };
     var picked = null, history = [], pp;
 
-    function sentenceCase(t) { return t.replace(/(^|[.!?]\s+)([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); }); }
-    function tidy(t) {
-      var x = t.trim().replace(/\s+/g, " ").replace(/!+/g, ".").replace(/\s+ish\b/gi, "").replace(/\s*,\s*/g, ", ").replace(/\.\s*\./g, ".");
-      x = sentenceCase(x);
-      return /[.!?]$/.test(x) ? x : x + ".";
-    }
-    function isRough(t) {
-      var a = t.toLowerCase().replace(/\s+/g, " ").trim();
-      return a.length > 30 && (ROUGH.indexOf(a) >= 0 || a.indexOf(ROUGH.slice(0, 30)) >= 0);
-    }
-    function rewrite(kind, text) {
-      if (isRough(text)) return CANNED[kind];
-      if (kind === "tidy") return tidy(text);
-      if (kind === "short") {
-        var w = tidy(text).split(" ");
-        return w.length <= 10 ? tidy(text) : w.slice(0, 10).join(" ").replace(/[,;:.]$/, "") + ".";
+    function norm(t) { return t.replace(/[•]/g, " ").replace(/\s+/g, " ").trim().toLowerCase(); }
+    function textOf(v) { return Array.isArray(v) ? v.join(" ") : v; }
+    function words(t) { return norm(t).split(" ").filter(Boolean); }
+    // Which version this is, allowing a few words the visitor changed (kept
+    // as swaps, so Pip's next version keeps them too)
+    function versionOf(text) {
+      var now = words(text);
+      for (var k in V) {
+        var was = words(textOf(V[k]));
+        if (was.length !== now.length) continue;
+        var swaps = [];
+        for (var i = 0; i < was.length && swaps.length <= 3; i++) if (was[i] !== now[i]) swaps.push([was[i], now[i]]);
+        if (swaps.length <= 3) return { k: k, swaps: swaps };
       }
-      if (kind === "more") return tidy(text) + " It's made by hand in the studio in Hove, with free UK delivery.";
-      var parts = tidy(text).split(/(?:[.;:]\s+|,\s+)/).map(function (x) { return x.replace(/\.$/, "").trim(); }).filter(Boolean);
-      return parts.length > 1 ? parts : [tidy(text).replace(/\.$/, "")];
-    }
-    function kindFrom(words) {
-      var w = words.toLowerCase();
-      if (/list|bullet|points/.test(w)) return "list";
-      if (/short|cut|trim|fewer|brief|concise|\d+\s*words/.test(w)) return "short";
-      if (/more|expand|longer|detail|add/.test(w)) return "more";
-      if (/tid|clean|fix|polish|grammar|better|improve|rewrite/.test(w)) return "tidy";
       return null;
     }
+    function keep(out, swaps) {
+      if (!swaps.length) return out;
+      function one(line) {
+        swaps.forEach(function (sw) {
+          var from = sw[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          line = line.replace(new RegExp("\\b" + from + "\\b", "gi"), sw[1]);
+        });
+        return line;
+      }
+      return Array.isArray(out) ? out.map(one) : one(out);
+    }
 
-    // The bit picked, kept visible while Pip's pop-over has the focus
+    /* For words Pip has no hand-written answer to */
+    function sentenceCase(t) { return t.replace(/(^|[.!?]\s+)([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); }); }
+    function tidyText(t) {
+      var x = t.trim().replace(/\s+/g, " ").replace(/!+/g, ".").replace(/\s+ish\b/gi, "").replace(/\bi\b/g, "I")
+        .replace(/\bdont\b/gi, "don't").replace(/\bim\b/gi, "I'm").replace(/\bu\b/g, "you").replace(/\s*,\s*/g, ", ").replace(/\.\s*\./g, ".");
+      x = sentenceCase(x);
+      return /[.!?:]$/.test(x) ? x : x + ".";
+    }
+    var FILLER = /\b(really|very|just|actually|basically|honestly|literally|quite|pretty much|kind of|sort of|a bit|i think|i guess|you know|in order)\b\s*/gi;
+    function shortText(t) {
+      var x = tidyText(t).replace(/\([^)]*\)\s*/g, "").replace(FILLER, "").replace(/\s+([,.])/g, "$1").replace(/\s+/g, " ").trim();
+      x = sentenceCase(x);
+      return x.length <= t.trim().length * 0.9 ? x : null;
+    }
+    function moreText(t) {
+      var w = t.toLowerCase(), line;
+      if (/workshop|class|course/.test(w)) line = "Workshops run on Sundays and take about two hours, with everything you need provided.";
+      else if (/£|price|cost|deliver|post/.test(w)) line = "Delivery is free anywhere in the UK.";
+      else if (/lamp|shade|linen|scallop|drum/.test(w)) line = "Every shade is made by hand in the studio in Hove.";
+      else line = "It's all made by hand in the studio in Hove, with free UK delivery.";
+      return tidyText(t) + " " + line;
+    }
+    function listText(t) {
+      var parts = tidyText(t).split(/(?:[.;:!?]\s+|,\s+(?:and\s+)?)/).map(function (x) { return x.replace(/[.]$/, "").trim(); }).filter(Boolean);
+      return parts.length > 1 ? parts.map(function (x) { return x.charAt(0).toUpperCase() + x.slice(1); }) : null;
+    }
+    // One bit of text and a move: what it becomes (null: leave it), and what to say
+    function answer(kind, text) {
+      var v = versionOf(text);
+      if (v) {
+        var to = NEXT[v.k][kind];
+        return to ? { out: keep(V[to], v.swaps), say: DONE[to] } : { out: null, say: SAME[kind] };
+      }
+      var out = kind === "tidy" ? tidyText(text) : kind === "short" ? shortText(text) : kind === "more" ? moreText(text) : listText(text);
+      if (out && !Array.isArray(out) && norm(out) === norm(text)) out = null;
+      var SAY = { tidy: "Tidied it: capitals and full stops, same words.", "short": "Took out the filler words. Same meaning.", more: "Added a line from your notes.", list: "Made it a list." };
+      return { out: out, say: out ? SAY[kind] : SAME[kind] };
+    }
+
+    // The bit picked, kept visible while you're in Pip's panel
     function showPicked(range) {
       if (!window.CSS || !CSS.highlights || typeof Highlight === "undefined") return;
       if (range) CSS.highlights.set("pp-picked", new Highlight(range)); else CSS.highlights.delete("pp-picked");
     }
-    function onSelection() {
+    function pick(r) {
+      picked = r ? r.cloneRange() : null;
+      pp.scope(picked ? "sel" : "all");
+      showPicked(picked);
+    }
+    document.addEventListener("selectionchange", function () {
       if (pp.auto) return;
       var sel = window.getSelection();
       if (!sel.rangeCount) return;
       var r = sel.getRangeAt(0);
-      if (!body.contains(r.commonAncestorContainer)) return;
-      if (r.collapsed || !r.toString().trim()) {
-        if (pp.isOpen()) return; // a click in the pop-over keeps what was picked
-        picked = null; ask.hidden = true;
-        return;
+      if (!body.contains(r.commonAncestorContainer)) return; // a click in Pip's panel keeps what was picked
+      pick(r.collapsed || !r.toString().trim() ? null : r);
+    });
+    $$("[data-pp-scope]", root).forEach(function (sc) {
+      sc.setAttribute("role", "button");
+      sc.tabIndex = 0;
+      sc.addEventListener("click", function () {
+        if (sc.getAttribute("data-pp-scope") === "all") { window.getSelection().removeAllRanges(); pick(null); }
+        else if (!picked) pp.hint("<b>Selection:</b> select some words in the note first.");
+      });
+    });
+
+    function snapshot() { return body.innerHTML; }
+    function paragraphs() {
+      return $$("p", body).filter(function (p) { return p.textContent.trim(); }).map(function (p) { var r = document.createRange(); r.selectNodeContents(p); return r; });
+    }
+    function fill(span, out, then) {
+      if (Array.isArray(out)) {
+        out.forEach(function (line, k) { if (k) span.appendChild(el("br")); span.appendChild(document.createTextNode("•  " + line)); });
+        return then();
       }
-      pick(r);
+      if (reduced()) { span.textContent = out; return then(); }
+      var words = out.split(" "), n = 0;
+      (function word() {
+        n++; span.textContent = words.slice(0, n).join(" ");
+        if (n < words.length) setTimeout(word, 60); else then();
+      })();
     }
-    function pick(r) {
-      picked = r.cloneRange();
-      pp.step(2);
-      var rr = r.getBoundingClientRect(), b = root.getBoundingClientRect();
-      ask.style.left = Math.round(Math.max(8, Math.min(root.clientWidth - 120, rr.right - b.left - 40))) + "px";
-      ask.style.top = Math.round(Math.max(8, rr.top - b.top - 42)) + "px";
-      if (!pp.isOpen()) ask.hidden = false;
-    }
-    document.addEventListener("selectionchange", onSelection);
-    ask.addEventListener("mousedown", function (e) { e.preventDefault(); });
-    ask.addEventListener("click", function () { openFor(true); });
-
-    function openFor(useSelection) {
-      if (!useSelection) picked = null;
-      pp.open();
-    }
-
-    // Pip changes only the picked bit, or each paragraph for the whole note, in place
+    // Pip changes only what's picked (or each paragraph, for the whole note), in place
     function run(kind, then) {
-      var had = !!(picked && !picked.collapsed && picked.toString().trim());
-      var targets = [];
-      if (had) targets.push(picked);
-      else $$("p", body).forEach(function (p) { if (p.textContent.trim()) { var r = document.createRange(); r.selectNodeContents(p); targets.push(r); } });
+      var targets = picked && !picked.collapsed && picked.toString().trim() ? [picked] : paragraphs();
       pp.hot(kind);
       if (!targets.length) { pp.say("Write something first, then ask me."); return; }
       pp.say(WORKING[kind] + "…", true);
-      pp.showUndo(false);
+      pp.busy(true);
+      var before = snapshot();
       setTimeout(function () {
-        var made = [];
-        targets.forEach(function (range) {
-          var text = range.toString();
+        var plans = targets.map(function (range) { return { range: range, a: answer(kind, range.toString()) }; });
+        var changing = plans.filter(function (p) { return p.a.out; });
+        var said = (changing[0] || plans[0]).a.say;
+        if (!changing.length) { pp.busy(false); pp.say(said); pick(null); window.getSelection().removeAllRanges(); if (then) then(); return; }
+        history.push(before);
+        var spans = changing.map(function (p) {
           var span = el("span", "pp-edit");
-          var original = range.cloneContents();
-          range.deleteContents();
-          range.insertNode(span);
-          made.push({ span: span, out: rewrite(kind, text), original: original, same: rewrite(kind, text) === text.trim() });
+          p.range.deleteContents();
+          p.range.insertNode(span);
+          return { span: span, out: p.a.out };
         });
-        history.push(made);
-        picked = null; showPicked(null);
+        pick(null);
         window.getSelection().removeAllRanges();
         var i = 0;
         (function next() {
-          if (i >= made.length) {
-            pp.step(3);
-            var unchanged = made.every(function (m) { return m.same; });
-            pp.say(unchanged ? "That reads well already, so I've left it as it is." : had ? DONE_PICKED[kind] : DONE_ALL[kind]);
+          if (i >= spans.length) {
+            pp.busy(false);
+            pp.say(said);
             pp.showUndo(true);
             pp.hint("<b>Underlined:</b> Pip's edit. Change any word and it's yours.");
             if (then) then();
             return;
           }
-          var m = made[i++];
-          if (Array.isArray(m.out) || reduced()) {
-            if (Array.isArray(m.out)) m.out.forEach(function (line, k) { if (k) m.span.appendChild(el("br")); m.span.appendChild(document.createTextNode("•  " + line)); });
-            else m.span.textContent = m.out;
-            return next();
-          }
-          var words = m.out.split(" "), n = 0;
-          (function word() {
-            n++; m.span.textContent = words.slice(0, n).join(" ");
-            if (n < words.length) setTimeout(word, 28); else next();
-          })();
+          var sp = spans[i++];
+          fill(sp.span, sp.out, next);
         })();
-      }, reduced() ? 0 : 700);
+      }, reduced() ? 0 : 1300);
     }
     function undo() {
-      var made = history.pop();
-      if (!made) return;
-      made.forEach(function (m) { if (m.span.isConnected) m.span.replaceWith(m.original); });
-      pp.say("Put back as you wrote it.");
-      pp.showUndo(!!history.length);
+      if (!history.length || pp.isBusy) return;
+      body.innerHTML = history.pop();
+      pick(null);
+      pp.say(history.length ? "Back to the version before that." : "Back to how you wrote it.");
+      if (history.length) pp.showUndo(true);
       pp.hint();
     }
 
     // Typing over Pip's words makes them yours
     body.addEventListener("input", function () {
-      pp.stop();
-      pp.step(1);
       var n = window.getSelection().anchorNode;
       var host = n && (n.nodeType === 1 ? n : n.parentNode);
       var span = host && host.closest ? host.closest(".pp-edit") : null;
       if (span && !span.classList.contains("is-yours")) {
         span.classList.add("is-yours");
-        pp.step(4);
         pp.hint("<b>Yours now.</b> Keep writing, or pick another bit and ask Pip.");
-        if (pp.isOpen()) { pp.say("Your change stays. I'll learn from how you wrote it."); pp.showUndo(false); }
-      } else if (history.length) pp.step(4);
+      }
     });
 
     function reset() {
@@ -1027,13 +1131,13 @@
       var p1 = el("p"); p1.setAttribute("data-help-p1", "");
       body.appendChild(p1);
       body.appendChild(el("p", "", REST));
-      history = []; picked = null; showPicked(null); ask.hidden = true;
-      pp.close(); pp.resetSteps(); pp.hint();
+      history = []; pick(null); pp.clear(); pp.hint();
       return p1;
     }
 
-    /* The play-through: you write, you pick, Pip helps, you change one of
-       Pip's words and they're yours */
+    /* The play-through, at reading pace: you write; you drag across the line
+       to pick it; you ask Pip; Pip tidies just that; you click into Pip's
+       words, the caret appears, and you change one; it's yours */
     function play() {
       pp.start(function () {
         var p1 = reset();
@@ -1042,42 +1146,79 @@
         p1.appendChild(caret);
         var n = 0;
         (function type() {
-          n = Math.min(ROUGH.length, n + 2);
+          n++;
           p1.textContent = ROUGH.slice(0, n);
           p1.appendChild(caret);
-          pp.step(1);
-          if (n < ROUGH.length) pp.later(type, 22); else pp.later(choose, 500);
+          var ch = ROUGH.charAt(n - 1);
+          if (n < ROUGH.length) pp.later(type, /[.!,]/.test(ch) ? 320 : ch === " " ? 100 : 58);
+          else pp.later(drag, 1000);
         })();
-        function choose() {
+        // Drag across the line, the highlight following the pointer
+        function drag() {
           caret.remove();
-          var r = document.createRange(); r.selectNodeContents(p1);
-          pick(r); showPicked(r);
-          pp.later(function () { pp.moveTo(ask, 30, 16); }, 300);
-          pp.later(function () { pp.tap(); openFor(true); }, 1200);
-          pp.later(function () { pp.moveTo($('[data-move="tidy"]', root), 60, 20); }, 1700);
-          pp.later(function () { pp.tap(); run("tidy", carryOn); }, 2500);
-        }
-        function carryOn() {
-          if (!pp.auto) return;
-          var span = $(".pp-edit", body);
-          pp.later(function () { pp.moveTo(span, span.getBoundingClientRect().width * 0.55, 12); }, 600);
+          var text = p1.firstChild, len = text.length;
+          var at = document.createRange(); at.setStart(text, 0); at.collapse(true);
+          pp.pointAt(at);
           pp.later(function () {
             pp.tap();
-            var text = span.textContent, at = text.indexOf("lovely");
-            if (at < 0) return finish();
-            var before = text.slice(0, at), after = text.slice(at + 6), word = "gorgeous", k = 0;
-            (function typeWord() {
-              if (!pp.auto) return;
-              k++;
-              span.textContent = before + word.slice(0, k) + after;
-              if (k === 1) { span.classList.add("is-yours"); pp.step(4); pp.showUndo(false); }
-              if (k < word.length) pp.later(typeWord, 90); else finish();
+            var k = 0;
+            (function grow() {
+              k = Math.min(len, k + 3);
+              var r = document.createRange(); r.setStart(text, 0); r.setEnd(text, k);
+              showPicked(r);
+              var end = document.createRange(); end.setStart(text, k); end.collapse(true);
+              pp.pointAt(end, true);
+              if (k < len) pp.later(grow, 45);
+              else pp.later(function () { pick(r); pp.later(ask, 900); }, 300);
             })();
-          }, 1500);
+          }, 1100);
+        }
+        function ask() {
+          var move = $('[data-move="tidy"]', root);
+          pp.moveTo(move, 70, 19);
+          pp.later(function () {
+            pp.tap();
+            pp.you("Tidy it up");
+            run("tidy", function () { pp.later(changeAWord, 1800); });
+          }, 1100);
+        }
+        // Click into Pip's words: the caret appears; one word changes; it's yours
+        function changeAWord() {
+          if (!pp.auto) return;
+          var span = $(".pp-edit", body), full = span.textContent, word = "lovely", at = full.indexOf(word);
+          if (at < 0) return finish();
+          var before = full.slice(0, at + word.length), after = full.slice(at + word.length);
+          span.textContent = before + after;
+          var r = document.createRange(); r.setStart(span.firstChild, at + word.length); r.collapse(true);
+          pp.pointAt(r);
+          pp.later(function () {
+            pp.tap();
+            var c = el("i", "pp-caret"), typed = "", gone = 0, swap = "gorgeous";
+            function draw() {
+              span.textContent = "";
+              span.appendChild(document.createTextNode(full.slice(0, at + word.length - gone) + typed));
+              span.appendChild(c);
+              span.appendChild(document.createTextNode(after));
+            }
+            draw();
+            pp.later(function back() {
+              if (!pp.auto) return;
+              gone++; draw();
+              if (gone === 1) { span.classList.add("is-yours"); pp.showUndo(false); }
+              if (gone < word.length) pp.later(back, 120);
+              else pp.later(function typeOn() {
+                if (!pp.auto) return;
+                typed = swap.slice(0, typed.length + 1); draw();
+                if (typed.length < swap.length) pp.later(typeOn, 120);
+                else { pp.hint("<b>Yours now.</b> Your change stays, and Pip learns from how you wrote it."); pp.later(finish, 2600); }
+              }, 300);
+            }, 900);
+          }, 1100);
         }
         function finish() {
-          pp.later(function () { pp.say("Your change stays. I'll learn from how you wrote it."); }, 300);
-          pp.later(function () { pp.close(); pp.hint(); pp.done(); }, 3200);
+          var c = $(".pp-caret", body); if (c) c.remove();
+          pp.hint();
+          pp.done();
         }
       });
     }
@@ -1088,20 +1229,22 @@
       onMove: function (kind) { run(kind); },
       onUndo: undo,
       onAsk: function (words) {
-        var k = kindFrom(words);
+        var w = words.toLowerCase();
+        var k = /list|bullet|points/.test(w) ? "list" : /short|cut|trim|fewer|brief|concise|\d+\s*words/.test(w) ? "short"
+          : /more|expand|longer|detail|add/.test(w) ? "more" : /tid|clean|fix|polish|grammar|better|improve|rewrite/.test(w) ? "tidy" : null;
         if (k) run(k);
         else pp.say("In this sample I can tidy it up, make it shorter, say more or make it a list. On your Mac, ask me anything.");
       },
-      onOpen: function () { ask.hidden = true; pp.scope(picked ? "sel" : "all"); showPicked(picked); },
-      onClose: function () { showPicked(null); },
       onStop: function () {
-        var c = $(".pp-caret", body); if (c) c.remove();
+        $$(".pp-caret", body).forEach(function (c) { c.remove(); });
         var p1 = $("[data-help-p1]", body);
         // stopped part-way through typing: finish the rough line at once
         if (p1 && ROUGH.indexOf(p1.textContent) === 0 && p1.textContent.length < ROUGH.length) p1.textContent = ROUGH;
+        if (!picked) showPicked(null);
         pp.hint(); pp.done();
       }
     });
+    pp.scope("all");
   }
 
 
@@ -1598,21 +1741,15 @@
   }
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
-     "Help with everything you make." Pip on your page (pipPage), with six
-     files open in tabs along the top of the file. Opening one shows it as it
-     is and opens Pip's pop-over with what Pip can do for that file. A move
-     plays the job in the file itself while Pip's reply says what's happening
-     now, then what was done, with Undo. The newsletter's draft and the costs'
-     prices are yours to change: typing in Pip's draft makes it yours, and a
-     new price redoes the sums. Opening another file, at any moment, stops
-     whatever is playing and shows that file fresh.
-     The play-through runs once: it drafts the newsletter, works out what the
-     costs keep, then changes the slim lamp's price.
-     The file is one height for every file and every moment (CSS). On a wide
-     stage it's one width too, the room beside Pip's pop-over, whether Pip is
-     open or not, so opening Pip only slides it aside; on a phone Pip's
-     pop-over keeps the room of its tallest reply under the file. Under
-     reduced motion a job lands at once. */
+     "Help with everything you make." Pip on your page (pipPage): six files
+     open in tabs along the top of the file, Pip's panel docked beside it.
+     Opening a file shows it as it is, and Pip's card says what Pip can do
+     for it. A move plays the job in the file itself while Pip says what's
+     happening, then what was done, with Undo. The newsletter's draft and the
+     costs' prices are yours to change: typing in Pip's draft makes it yours,
+     and a new price redoes the sums. Opening another file, at any moment,
+     stops whatever is playing and shows that file fresh. Nothing plays on
+     its own: the visitor drives it. Under reduced motion a job lands at once. */
 
   function jobs() {
     var root = $("[data-jobs]");
@@ -1627,16 +1764,10 @@
     ];
     // The idea(s) each paragraph is written from ("Speak soon." is the sign-off)
     var NL_FROM = [[4], [0], [1, 2], [3], []];
-    var WORD_MS = 34, PARA_MS = 140;
+    var WORD_MS = 70, PARA_MS = 320;
 
-    var doc = $("[data-pp-doc]", root);
-    var pop = $("[data-pp-pop]", root);
-    var says = $("[data-pp-says]", root);
-    var saysText = $("[data-pp-says-text]", root);
-    var undoBtn = $("[data-pp-undo]", root);
     var tabs = $$("[data-file]", root);
     var surfs = $$(".surf", root);
-    var moveBtns = $$(".pp-move", root);
 
     var note = $("#nl");
     var nlText = $("#nl-text");
@@ -1679,10 +1810,8 @@
     var pp;
     var cur = 0;         // the open file
     var busy = null;     // the move playing now: { move, snap, then }
-    var hist = [];       // what Undo puts back, newest last
-    var said = null;     // what Pip last said about the open file, shown again when the pop-over reopens
-    var hotMove = null;
-    var typing = false;  // the play-through is typing a price
+    var hist = [];       // what Undo puts back, newest last: { move, snap }
+    var made = false;    // a one-move file's job is done (and maybe yours now)
 
     /* ── timing: one run at a time ────────────────────────────────────────── */
 
@@ -1711,12 +1840,10 @@
     /* ── Pip's side: what it says, and the move it's on ───────────────────── */
 
     function reply(text, working, undo) {
-      said = { text: text, working: !!working, undo: !!undo };
       pp.say(text, working);
       pp.showUndo(!!undo);
     }
     function working(text) { reply(text, true, false); }
-    function hot(move) { hotMove = move; pp.hot(move); }
 
     /* ── 0 · The newsletter ─────────────────────────────────────────────────
        Pip reads the ideas, washing each in turn; then writes the newsletter
@@ -1852,13 +1979,13 @@
       var n = window.getSelection().anchorNode;
       var host = n && (n.nodeType === 1 ? n : n.parentNode);
       var span = host && host.closest ? host.closest(".pp-edit") : null;
-      pp.step(4);
       measureNote();
       if (span && !span.classList.contains("is-yours")) {
         span.classList.add("is-yours");
         pp.hint("<b>Yours now.</b> Keep writing, or open another file.");
+        // your words stay: Undo would take them too
         hist = [];
-        reply("Your change stays. I'll learn from how you wrote it.", false, false);
+        pp.showUndo(false);
       }
     });
 
@@ -1880,16 +2007,16 @@
       working("Cropping it square…");
       tool("crop");
       add("is-framing");
-      later(function () { add("is-cropped"); }, 800);
-      later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 1700);
-      later(function () { working("Taking out the clutter…"); tool("remove"); add("is-selecting"); }, 2000);
-      later(function () { add("is-filled"); }, 3200);
-      later(function () { working("Brightening it…"); tool("bright"); add("is-bright"); }, 3800);
-      later(function () { working("Cutting the lamp out…"); tool("cut"); add("is-tracing"); }, 5000);
-      later(function () { add("is-cut"); }, 6300);
-      later(function () { working("Setting it on a clean backdrop…"); tool("backdrop"); }, 7300);
-      later(function () { add("is-backdrop"); }, 7500);
-      later(function () { photoEnd(); done(); }, 8800);
+      later(function () { add("is-cropped"); }, 1000);
+      later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 2100);
+      later(function () { working("Taking out the clutter…"); tool("remove"); add("is-selecting"); }, 2600);
+      later(function () { add("is-filled"); }, 4000);
+      later(function () { working("Brightening it…"); tool("bright"); add("is-bright"); }, 4800);
+      later(function () { working("Cutting the lamp out…"); tool("cut"); add("is-tracing"); }, 6200);
+      later(function () { add("is-cut"); }, 7700);
+      later(function () { working("Setting it on a clean backdrop…"); tool("backdrop"); }, 8700);
+      later(function () { add("is-backdrop"); }, 8900);
+      later(function () { photoEnd(); done(); }, 10200);
     }
     function photoEnd() {
       photo.classList.remove("is-framing", "is-selecting", "is-tracing");
@@ -2013,9 +2140,7 @@
     function priceCell(t) { return t && t.closest ? t.closest("td.c-price") : null; }
     costs.addEventListener("input", function (e) {
       if (!priceCell(e.target)) return;
-      pp.stop();
       sums(true);
-      pp.step(4);
       heads.cost.classList.remove("is-pips");
       heads.marg.classList.remove("is-pips");
       if (has.marg) pp.hint("<b>Your spreadsheet:</b> change a price and the sums keep up.");
@@ -2058,6 +2183,7 @@
       if (!has.marg || m == null) return;
       var t = cap(r.say) + " keeps " + m + "% now.";
       if (has.low) t += m < 50 ? " That's under 50%, so it's highlighted." : " That's over 50%, so it isn't highlighted.";
+      pp.next();
       reply(t, false, hist.length > 0);
     }
     costs.addEventListener("focusout", function (e) {
@@ -2071,31 +2197,6 @@
       sums(false);
       if (changed) priceSaid(r);
     });
-    // The play-through types a new price in, then the sums follow
-    function typePrice(r, text, done) {
-      typing = true;
-      r.price.classList.add("is-typing");
-      var k = 0;
-      (function next() {
-        k++;
-        r.price.textContent = text.slice(0, k);
-        if (k < text.length) { pp.later(next, 150); return; }
-        typed(r, text);
-        done();
-      })();
-    }
-    function typed(r, text) {
-      typing = false;
-      r.price.textContent = text;
-      r.good = text;
-      r.price.classList.remove("is-typing");
-      heads.cost.classList.remove("is-pips");
-      heads.marg.classList.remove("is-pips");
-      sums(true);
-      pp.step(4);
-      priceSaid(r);
-    }
-
     /* ── 3 · The deck ───────────────────────────────────────────────────────
        The steps note steps aside, a slide is dealt for each step, then the
        step photos go in. */
@@ -2192,66 +2293,100 @@
 
     /* ── the files: what Pip can do in each, and the words that ask for it ── */
 
+    // Undo on the costs names what it takes out
+    function costsUndo(snap) {
+      var cols = [];
+      if (has.cost && !snap.cost) cols.push("Cost to make");
+      if (has.marg && !snap.marg) cols.unshift("Margin");
+      var c = cols.length ? "the " + cols.join(" and ") + " column" + (cols.length > 1 ? "s" : "") + " out" : "";
+      if (has.low && !snap.low) return "Took the highlighting off" + (c ? ", and " + c : "") + ".";
+      return c ? "Took " + c + "." : "Put the table back as it was.";
+    }
+
     var FILES = [
-      { scope: "note", reset: nlReset,
+      { whole: "Whole note", reset: nlReset,
+        lead: "Five rough ideas for this month's newsletter. Want me to draft it from them, in your words?",
         can: "draft this newsletter from your ideas",
         ask: [[/draft|write|newsletter|idea|email|turn|word/, "draft"]],
-        moves: { draft: { play: nlPlay, end: nlEnd,
-          done: "Drafted from your ideas, in your words. The dates and prices are the bit to check.",
+        moves: { draft: { label: "Draft it from my ideas", icon: "pen-line", where: "In the note",
+          play: nlPlay, end: nlEnd,
+          done: "Drafted it from your ideas, in your words. The dates and prices are the bit to check.",
+          again: "It's drafted, just there. Change any word you like.",
+          undo: "Took the draft out. Your ideas are back as you wrote them.",
           hint: "<b>Underlined:</b> Pip's draft. Change any word and it's yours." } } },
-      { scope: "photo", reset: photoReset,
+      { whole: "Whole photo", reset: photoReset,
+        lead: "A quick snap of the sage lamp on your desk. Want me to make it a product shot for the shop?",
         can: "make this photo a product shot",
         ask: [[/product|shot|photo|picture|tidy|crop|bright|light|clean|clutter|backdrop|background|cut|shop|edit/, "shot"]],
-        moves: { shot: { play: photoPlay, end: photoEnd,
-          done: "There's your product shot: square, bright and on a clean backdrop, ready for the shop." } } },
-      { scope: "table", reset: costsReset, stack: true, snap: costsSnap, restore: costsSet,
+        moves: { shot: { label: "Make it a product shot", icon: "image", where: "In the photo",
+          play: photoPlay, end: photoEnd,
+          done: "There's your product shot: square, bright and on a clean backdrop, ready for the shop.",
+          again: "That's your product shot. Undo puts your photo back.",
+          undo: "Back to your photo as you took it." } } },
+      { whole: "Whole table", reset: costsReset, stack: true, snap: costsSnap, restore: costsSet,
+        lead: "Your prices, and what goes into each shade. I can work out what each costs to make, what you keep, and flag the ones that keep too little.",
         can: "work out costs and margins, and flag the low ones",
         hint: "<b>Your spreadsheet:</b> click a price and change it.",
         ask: [[/under|flag|low|highlight|colou?r|50/, "low"], [/margin|keep|profit|earn|left over|percent|%|make on/, "margin"], [/\bcosts?\b|to make|add (it |them )?up|\bsum|total|spend/, "cost"]],
         moves: {
-          cost: { play: costPlay, end: costEnd,
+          cost: { label: "Add up what each costs", icon: "calculator", where: "In the table",
+            play: costPlay, end: costEnd,
             done: "Added Cost to make: materials, your time and postage together.",
             already: function () { return has.cost && "Cost to make is already in, after Postage."; },
+            undo: costsUndo,
             hint: "<b>Your spreadsheet:</b> change a price and the sums keep up." },
-          margin: { play: marginPlay, end: marginEnd, done: marginDone,
+          margin: { label: "What do I keep on each?", icon: "percent", where: "In the table",
+            play: marginPlay, end: marginEnd, done: marginDone,
             already: function () { return has.marg && "Margin is already in, at the end of the table."; },
+            undo: costsUndo,
             hint: "<b>Your spreadsheet:</b> change a price and the sums keep up." },
-          low: { play: lowPlay, end: lowEnd, done: lowDone,
+          low: { label: "Flag anything under 50%", icon: "highlighter", where: "In the table",
+            play: lowPlay, end: lowEnd, done: lowDone,
             already: function () { return has.low && "Anything under 50% is already highlighted."; },
+            undo: costsUndo,
             hint: "<b>Your spreadsheet:</b> change a price and the sums keep up." }
         } },
-      { scope: "note", reset: deckReset,
+      { whole: "Whole note", reset: deckReset,
+        lead: "The five steps for Sunday's drum workshop. Want them as slides, with your step photos in?",
         can: "make these steps into slides",
         ask: [[/slide|deck|present|keynote|powerpoint|show/, "slides"]],
-        moves: { slides: { play: deckPlay, end: deckEnd,
-          done: "Six slides, one for each step, with your photos in." } } },
-      { scope: "canvas", reset: cvReset,
+        moves: { slides: { label: "Make it into slides", icon: "presentation", where: "New deck",
+          play: deckPlay, end: deckEnd,
+          done: "Six slides, one for each step, with your photos in.",
+          again: "The slides are made. Undo takes you back to the steps.",
+          undo: "Back to your steps note." } } },
+      { whole: "Whole canvas", reset: cvReset,
+        lead: "Fabrics, shapes and notes for spring, in no order yet, and one price missing. Want me to sort it and fill the gap?",
         can: "sort this canvas and fill in what's missing",
         ask: [[/sort|tidy|organi[sz]e|group|gap|fill|price|missing|arrange|mess/, "sort"]],
-        moves: { sort: { play: cvPlay, end: cvEnd,
-          done: "Sorted into fabrics, shapes and notes. The 60cm scallop had no price, so I've pencilled in £400 to match your sizes." } } },
-      { scope: "table", reset: dashReset,
+        moves: { sort: { label: "Sort it and fill the gaps", icon: "shapes", where: "In the canvas",
+          play: cvPlay, end: cvEnd,
+          done: "Sorted into fabrics, shapes and notes. The 60cm scallop had no price, so I've pencilled in £400 to match your sizes.",
+          again: "It's sorted. Undo puts it back as it was.",
+          undo: "Put the canvas back as it was." } } },
+      { whole: "Whole table", reset: dashReset,
+        lead: "Nine months of sales, shades and workshops. Want me to chart it and pull out what stands out?",
         can: "chart this and make a dashboard",
         ask: [[/chart|graph|dashboard|total|trend|best|plot|visual|sales|month|year/, "dash"]],
-        moves: { dash: { play: dashPlay, end: dashEnd,
-          done: "One you might have missed: workshops made 43% of sales this year, up from 22% last year." } } }
+        moves: { dash: { label: "Make it a dashboard", icon: "bar-chart", where: "New dashboard",
+          play: dashPlay, end: dashEnd,
+          done: "One you might have missed: workshops made 43% of sales this year, up from 22% last year.",
+          again: "The dashboard's made. Undo takes you back to the table.",
+          undo: "Back to your table." } } }
     ];
 
     /* ── moves: Pip works in the file ─────────────────────────────────────── */
 
-    function press(move, then) {
+    function press(move) {
       var f = FILES[cur], m = f.moves[move];
-      if (!m) return;
-      if (busy && busy.move === move) return;
-      if (busy) land(true);
-      pp.step(2);
-      hot(move);
-      var already = m.already && m.already();
+      if (!m || busy) return;
+      pp.hot(move);
+      var already = m.already ? m.already() : (made && m.again);
       if (already) { reply(already, false, hist.length > 0); return; }
-      // A one-move file runs from its before, every time
-      if (!f.stack) { instantly(f.reset); hist = []; }
-      busy = { move: move, snap: f.snap ? f.snap() : null, then: then };
-      pp.showUndo(false);
+      // A one-move file runs from its before
+      if (!f.stack) instantly(f.reset);
+      busy = { move: move, snap: f.snap ? f.snap() : null };
+      pp.busy(true);
       if (reduced()) { land(true); return; }
       m.play(function () { land(false); });
     }
@@ -2262,51 +2397,56 @@
       if (!b) return;
       var f = FILES[cur], m = f.moves[b.move];
       busy = null;
+      pp.busy(false);
       if (now) { stopAll(); instantly(function () { m.end(b.snap); }); }
-      hist.push(b.snap);
-      pp.step(3);
-      hot(b.move);
+      hist.push({ move: b.move, snap: b.snap });
+      if (!f.stack) made = true;
       reply(typeof m.done === "function" ? m.done() : m.done, false, true);
       pp.hint(m.hint || f.hint || null);
       measureNote();
-      if (b.then) b.then();
     }
 
+    // Undo takes back the newest change and says what it took
     function undo() {
       var f = FILES[cur];
       if (busy || !hist.length) return;
-      var snap = hist.pop();
-      instantly(function () { if (f.restore) f.restore(snap); else f.reset(); });
-      hot(null);
-      pp.step(4);
-      reply("Put back as it was.", false, hist.length > 0);
+      var h = hist.pop(), m = f.moves[h.move];
+      var text = typeof m.undo === "function" ? m.undo(h.snap) : m.undo;
+      instantly(function () { if (f.restore) f.restore(h.snap); else f.reset(); });
+      if (!f.stack) made = false;
+      pp.hot(null);
+      reply(text, false, hist.length > 0);
       pp.hint(f.hint || null);
     }
 
     function ask(words) {
       var f = FILES[cur], w = words.toLowerCase();
+      if (busy) return;
       for (var i = 0; i < f.ask.length; i++) {
         if (f.ask[i][0].test(w)) { press(f.ask[i][1]); return; }
       }
-      pp.step(2);
-      hot(null);
-      reply("In this sample I can " + f.can + ". On your Mac, ask me anything.", false, hist.length > 0 && !busy);
+      pp.hot(null);
+      reply("In this sample I can " + f.can + ". On your Mac, ask me anything.", false, false);
     }
 
-    /* ── files: opening one shows it fresh, with Pip's moves for it ───────── */
+    /* ── files: opening one shows it fresh, with Pip's card for it ────────── */
 
     function show(i) {
-      var was = cur;
+      var was = cur, f = FILES[i];
       cur = i;
       tabs.forEach(function (t, k) {
         t.setAttribute("aria-selected", k === i ? "true" : "false");
         t.tabIndex = k === i ? 0 : -1;
       });
-      moveBtns.forEach(function (b) { b.hidden = +b.getAttribute("data-for") !== i; });
       surfs.forEach(function (s, k) { s.hidden = k !== i; });
       if (i !== was && !reduced() && surfs[i].animate) {
         surfs[i].animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: EASE_OUT });
       }
+      pp.whole(f.whole);
+      pp.scope("all");
+      pp.lead(f.lead);
+      pp.setMoves(Object.keys(f.moves).map(function (k) { var m = f.moves[k]; return { move: k, label: m.label, icon: m.icon, where: m.where }; }));
+      pp.clear();
       measureNote();
     }
     // Every file starts fresh: whatever is playing stops, at once
@@ -2314,84 +2454,30 @@
       stopAll();
       var was = cur;
       instantly(function () { FILES[was].reset(); if (i !== was) FILES[i].reset(); });
-      busy = null; hist = []; said = null; hotMove = null;
+      busy = null; hist = []; made = false;
+      pp.busy(false);
       show(i);
     }
     function pick(i) {
-      if (i !== cur) {
-        fresh(i);
-        pp.resetSteps();
-        if (pp.auto) pp.hideHint(); else pp.hint(FILES[i].hint || null);
-        pp.open();
-      } else if (!pp.isOpen()) pp.open();
-      pp.step(1);
+      if (i === cur) return;
+      fresh(i);
+      pp.hint(FILES[i].hint || null);
     }
     tabs.forEach(function (t, i) {
-      t.addEventListener("click", function () { pp.stop(); pick(i); });
+      t.addEventListener("click", function () { pick(i); });
       t.addEventListener("keydown", function (e) {
         var to = e.key === "ArrowRight" ? (i + 1) % tabs.length : e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
         if (to === null) return;
         e.preventDefault();
-        pp.stop();
         tabs[to].focus();
         pick(to);
       });
     });
+    var selScope = $('[data-pp-scope="sel"]', root);
+    if (selScope) selScope.addEventListener("click", function () {
+      pp.hint("<b>Selection:</b> on your Mac, pick part of a file and Pip works on just that.");
+    });
 
-    /* ── room: the file's width on a wide stage, Pip's on a phone ─────────── */
-
-    // On a wide stage the file keeps the width it has beside Pip's pop-over,
-    // open or shut, so opening Pip only slides it aside (pipPage's own
-    // narrowing, while Pip is open, never goes below this). Measured from the
-    // pop-over's place, not its rise, which scales it.
-    function fitDoc() {
-      if (root.clientWidth <= 640) { doc.style.width = ""; return; }
-      var cs = getComputedStyle(root);
-      var inner = root.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
-      var full = Math.min(parseFloat(cs.getPropertyValue("--doc-cap")) || inner, inner);
-      var shut = pop.hidden;
-      if (shut) { pop.style.visibility = "hidden"; pop.hidden = false; }
-      var popLeft = pop.offsetLeft;
-      if (shut) { pop.hidden = true; pop.style.visibility = ""; }
-      doc.style.width = Math.round(Math.min(full, popLeft - 16 - 16)) + "px";
-    }
-    // On a phone the pop-over sits under the file and keeps the room of the
-    // tallest it gets, for any file, so the stage never changes height
-    function fitPop() {
-      pop.style.minHeight = "";
-      if (root.clientWidth > 640) return;
-      var keep = {
-        hidden: pop.hidden, vis: pop.style.visibility, says: says.hidden, undo: undoBtn.hidden,
-        kids: Array.prototype.slice.call(saysText.childNodes), moves: moveBtns.map(function (b) { return b.hidden; })
-      };
-      pop.style.visibility = "hidden";
-      pop.hidden = false;
-      says.hidden = false;
-      undoBtn.hidden = false;
-      var h = 0;
-      FILES.forEach(function (f, i) {
-        moveBtns.forEach(function (b) { b.hidden = +b.getAttribute("data-for") !== i; });
-        var lines = ["In this sample I can " + f.can + ". On your Mac, ask me anything.", "Your change stays. I'll learn from how you wrote it."];
-        Object.keys(f.moves).forEach(function (k) {
-          var m = f.moves[k];
-          lines.push(typeof m.done === "function" ? m.done() : m.done);
-        });
-        if (f.stack) lines.push(lowDone(), cap(lamp.say) + " keeps 33% now. That's under 50%, so it's highlighted.");
-        lines.forEach(function (t) {
-          saysText.textContent = t;
-          h = Math.max(h, pop.offsetHeight);
-        });
-      });
-      saysText.textContent = "";
-      keep.kids.forEach(function (k) { saysText.appendChild(k); });
-      moveBtns.forEach(function (b, k) { b.hidden = keep.moves[k]; });
-      says.hidden = keep.says;
-      undoBtn.hidden = keep.undo;
-      pop.hidden = keep.hidden;
-      pop.style.visibility = keep.vis;
-      // and the gap above "Ask Pip anything…", which takes up the slack
-      pop.style.minHeight = Math.ceil(h + 12) + "px";
-    }
     // Six tabs that don't fit on one line go three and three, never one on
     // its own; narrower than that, in two columns, as on a phone
     var tabList = $(".pp-tabs", root);
@@ -2404,68 +2490,9 @@
       if (line(w) <= tabList.clientWidth) return;
       tabList.classList.add(Math.max(line(w.slice(0, 3)), line(w.slice(3))) <= tabList.clientWidth ? "is-split" : "is-grid");
     }
-    function fit() { fitDoc(); fitTabs(); fitPop(); measureNote(); }
+    function fit() { fitTabs(); measureNote(); }
 
-    /* ── the play-through: draft the newsletter, then the costs ───────────── */
-
-    function moveEl(move) { return $('[data-move="' + move + '"]', root); }
-    function resetAll() {
-      stopAll();
-      instantly(function () { FILES.forEach(function (f) { f.reset(); }); });
-      busy = null; hist = []; said = null; hotMove = null; typing = false;
-      show(0);
-      pp.close();
-      pp.resetSteps();
-    }
-    function play() {
-      pp.start(function () {
-        resetAll();
-        pp.hideHint();
-        pp.later(function () { pp.moveTo(tabs[0], 46, 18); }, 250);
-        pp.later(function () { pp.tap(); pick(0); }, 1050);
-        pp.later(function () { pp.moveTo(moveEl("draft"), 76, 20); }, 1600);
-        pp.later(function () { pp.tap(); press("draft", costsNext); }, 2400);
-      });
-      function costsNext() {
-        if (!pp.auto) return;
-        pp.later(function () { pp.moveTo(tabs[2], 34, 18); }, 700);
-        pp.later(function () { pp.tap(); pick(2); }, 1500);
-        pp.later(function () { pp.moveTo(moveEl("margin"), 90, 20); }, 2100);
-        pp.later(function () { pp.tap(); press("margin", priceNext); }, 2900);
-      }
-      function priceNext() {
-        if (!pp.auto) return;
-        pp.later(function () { pp.moveTo(lamp.price, lamp.price.offsetWidth - 18, 26); }, 800);
-        pp.later(function () { pp.tap(); typePrice(lamp, "£125", end); }, 1600);
-      }
-      function end() {
-        pp.later(function () {
-          pp.hint();
-          pp.done();
-          if (pp.isOpen()) pp.face.classList.remove("is-nudging");
-        }, 1400);
-      }
-    }
-
-    pp = pipPage(root, {
-      play: play,
-      onReplay: play,
-      onMove: function (move) { press(move); },
-      onUndo: undo,
-      onAsk: ask,
-      onOpen: function () {
-        pp.scope(FILES[cur].scope);
-        if (said) { pp.say(said.text, said.working); pp.showUndo(said.undo); }
-        pp.hot(hotMove);
-      },
-      onStop: function () {
-        // stopped part-way through typing a price: it lands at once
-        if (typing) typed(lamp, "£125");
-        pp.hint(FILES[cur].hint || null);
-        pp.done();
-        if (pp.isOpen()) pp.face.classList.remove("is-nudging");
-      }
-    });
+    pp = pipPage(root, { onMove: press, onUndo: undo, onAsk: ask, nudge: true });
 
     root.classList.add("is-ready");
     $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
@@ -2474,14 +2501,11 @@
     show(0);
     sums(false);
     fit();
-    // With no play-through, Pip's moves for the open file are there from the start
-    if (reduced()) pp.open();
 
     var lastW = root.clientWidth, queued = null;
     function refit() {
       clearTimeout(queued);
-      // after pipPage has made room for an open pop-over (120ms)
-      queued = setTimeout(function () { lastW = root.clientWidth; fit(); }, 160);
+      queued = setTimeout(function () { lastW = root.clientWidth; fit(); }, 120);
     }
     if ("ResizeObserver" in window) {
       new ResizeObserver(function () { if (root.clientWidth !== lastW) refit(); }).observe(root);
@@ -2492,17 +2516,17 @@
 
   /* ── flow ──────────────────────────────────────────────────────────────────
      From a few ideas to a month of posts, on Pip's page: one job, start to
-     finish, in your own files. The Social ideas note is yours to write in.
-     Ask Pip (the move in the pop-over, or in your own words) and Pip reads
-     the note, idea by idea, and makes the plan as a new table, which opens in
-     its own tab beside the note. On the table Pip writes the captions, then
-     picks the photos, each row by row in reading order, the faded row under
-     the last whole one going last. A caption is underlined as Pip's until
-     you change it, and then it's yours. Each change has Undo, newest first.
-     Up to two ideas the visitor adds get early slots of their own. The
-     play-through types the ideas in, asks Pip in the pop-over, has the
-     captions written, and hands over. The dates are next month's Mondays,
-     Wednesdays and Fridays. */
+     finish, in your own files, Pip's panel docked beside them. The Social
+     ideas note is yours to write in. Ask Pip (the move in the panel, or in
+     your own words) and Pip reads the note, idea by idea, and makes the plan
+     as a new table, which opens in its own tab beside the note. On the table
+     Pip writes the captions, then picks the photos, each row by row in
+     reading order, the faded row under the last whole one going last. A
+     caption is underlined as Pip's until you change it, and then it's yours.
+     Each change has Undo, newest first. Up to two ideas the visitor adds get
+     early slots of their own. The play-through, at reading pace, types the
+     ideas in, asks Pip in the panel's box, has the captions written, and
+     hands over. The dates are next month's Mondays, Wednesdays and Fridays. */
 
   function flow() {
     var root = $("[data-flow]");
@@ -2572,7 +2596,7 @@
       var g = gen;
       setTimeout(function () { if (g === gen) fn(); }, reduced() ? 0 : ms);
     }
-    function thinking(on) { setThinking(pp.face, on); }
+    function thinking(on) { pp.busy(on); }
 
     // Finish Pip's change in flight at once, so the next one starts clean
     function settle() {
@@ -2650,15 +2674,29 @@
     // them last of all. Rows out of sight are filled at the end, at once.
     function inView(todo) { return todo.filter(function (i) { return i <= shown; }); }
 
-    /* The file on show, its tab, and Pip's moves for it */
+    /* The file on show, its tab, and Pip's card for it: each file starts
+       its own conversation, as in the app */
+    var CARD = {
+      note: { whole: "Whole note", lead: "A few rough ideas for your socials. Want me to turn them into a plan for " + month + ", three posts a week?",
+        moves: [{ move: "plan", label: "Turn these into a plan", icon: "calendar", where: "New table" }] },
+      plan: { whole: "Whole table", lead: "Your " + month + " plan: twelve posts, three a week. Want me to write the captions in your voice, and pick photos from your folders?",
+        moves: [{ move: "captions", label: "Write the captions", icon: "pen-line", where: "In the table" },
+                { move: "photos", label: "Pick the photos", icon: "image", where: "In the table" }] }
+    };
     function show(which, opening) {
+      var was = cur;
       cur = which;
       ["note", "plan"].forEach(function (k) {
         tabs[k].setAttribute("aria-selected", k === which ? "true" : "false");
         files[k].hidden = k !== which;
       });
-      pp.scope(which);
-      $$(".pp-move", root).forEach(function (m) { m.hidden = m.getAttribute("data-for") !== which; });
+      if (which !== was || opening) {
+        pp.whole(CARD[which].whole);
+        pp.scope("all");
+        pp.lead(CARD[which].lead);
+        pp.setMoves(CARD[which].moves);
+        pp.clear();
+      }
       if (which === "plan") fitRows();
       if (opening && !reduced()) {
         var a = ++arrive;
@@ -2671,12 +2709,6 @@
       }
     }
 
-    function level() {
-      if (!plan) return 1;
-      if (picked.some(Boolean)) return 4;
-      if (capBy.some(Boolean)) return 3;
-      return 2;
-    }
     function hintNow() {
       if (!plan) return null; // the page's own: add an idea, or ask Pip to plan it
       var c = capBy.some(Boolean), p = picked.some(Boolean);
@@ -2694,7 +2726,6 @@
       if (!ideasNow().length) { pp.say("Jot down a few ideas first, then ask me."); return; }
       var items = $$("li", ideasBox).filter(function (li) { return norm(li.textContent); });
       var i = 0;
-      pp.step(2);
       pp.say("Reading Social ideas…", true);
       pp.showUndo(false);
       thinking(true);
@@ -2706,7 +2737,6 @@
         tabs.plan.hidden = false;
         show("plan", true);
         thinking(false);
-        pp.step(2);
         var mine = plan.filter(function (e) { return e.mine; }).length;
         pp.say("Made a plan in a new table, " + month + " posts: three posts a week." + (mine > 1 ? " Your new ideas are in it too." : mine ? " Your new idea is in it too." : ""));
         pp.showUndo(true);
@@ -2716,10 +2746,10 @@
       busy = { finish: finish };
       function read() {
         items.forEach(function (li, k) { li.classList.toggle("is-lit", k === i); });
-        if (i < items.length) { i++; wait(240, read); }
-        else wait(160, function () { busy = null; finish(true); });
+        if (i < items.length) { i++; wait(520, read); }
+        else wait(400, function () { busy = null; finish(true); });
       }
-      wait(450, read);
+      wait(700, read);
     }
 
     /* Pip writes each caption into its row, word by word */
@@ -2737,7 +2767,6 @@
         todo.forEach(function (i) { rows[i].classList.remove("is-filling"); setCap(i, "pip", plan[i].cap); });
         history.push({ kind: "captions", rows: todo });
         thinking(false);
-        pp.step(3);
         pp.say((all ? "Wrote a caption for each post" : "Wrote the missing captions") + ", in your voice. Change any you like.");
         pp.showUndo(true);
         pp.hint(hintNow());
@@ -2751,13 +2780,13 @@
         caps[i].textContent = "";
         caps[i].appendChild(span);
         rows[i].classList.add("is-filling");
-        wait(90, function word() {
+        wait(160, function word() {
           span.textContent = words.slice(0, ++k).join(" ");
-          if (k < words.length) wait(34, word);
-          else wait(150, function () { rows[i].classList.remove("is-filling"); next(); });
+          if (k < words.length) wait(80, word);
+          else wait(320, function () { rows[i].classList.remove("is-filling"); next(); });
         });
       }
-      wait(600, next);
+      wait(900, next);
     }
 
     /* Pip picks a photo from your folders for each row in turn */
@@ -2775,7 +2804,6 @@
         todo.forEach(function (i) { rows[i].classList.remove("is-filling"); setPic(i, true); });
         history.push({ kind: "photos", rows: todo });
         thinking(false);
-        pp.step(4);
         var none = todo.filter(function (i) { return !plan[i].src; }).map(function (i) { return "“" + plan[i].post + "”"; });
         pp.say(none.length
           ? "Picked photos from your folders. There wasn't one for " + none.join(" or ") + ", so " + (none.length > 1 ? "those are" : "that one's") + " yours to add."
@@ -2789,12 +2817,12 @@
         if (!queue.length) { wait(260, function () { busy = null; finish(true); }); return; }
         var i = queue.shift();
         rows[i].classList.add("is-filling");
-        wait(160, function () {
+        wait(300, function () {
           setPic(i, true);
-          wait(220, function () { rows[i].classList.remove("is-filling"); next(); });
+          wait(380, function () { rows[i].classList.remove("is-filling"); next(); });
         });
       }
-      wait(500, next);
+      wait(800, next);
     }
 
     /* A move, from the pop-over or in words. The table's moves need a plan
@@ -2802,7 +2830,7 @@
     function run(kind, then) {
       settle();
       if (kind === "plan") {
-        if (plan) { show("plan"); pp.say("Your plan's already here, in " + month + " posts."); return; }
+        if (plan) { pp.say("Your plan's already made: it's in " + month + " posts, the tab beside this note."); return; }
         makePlan(then);
         return;
       }
@@ -2846,8 +2874,6 @@
         pp.say("Took the photos out.");
       }
       pp.showUndo(history.length > 0);
-      pp.resetSteps();
-      pp.step(level());
       pp.hint(hintNow());
     }
 
@@ -2858,7 +2884,6 @@
       capBy[i] = "you";
       $$(".pp-edit", caps[i]).forEach(function (s) { s.classList.add("is-yours"); });
       pp.hint("<b>Yours now.</b> Change another caption, or ask Pip.");
-      if (pp.isOpen()) { pp.say("Your change stays. I'll learn from how you wrote it."); pp.showUndo(false); }
     });
     // A caption is one line: Return finishes it
     table.addEventListener("keydown", function (e) {
@@ -2872,7 +2897,7 @@
       var text = e.clipboardData.getData("text/plain");
       document.execCommand("insertText", false, caps.indexOf(host) > -1 ? text.replace(/\s+/g, " ") : text);
     });
-    ideasBox.addEventListener("input", function () { pp.stop(); pp.step(1); });
+    ideasBox.addEventListener("input", function () { pp.stop(); });
     input.addEventListener("input", function () { pp.stop(); });
     ["note", "plan"].forEach(function (k) {
       tabs[k].addEventListener("click", function () {
@@ -2880,7 +2905,6 @@
         if (cur === k) return;
         settle();
         show(k);
-        pp.hot(null);
       });
     });
 
@@ -2895,19 +2919,18 @@
       thinking(false);
       table.classList.remove("is-writing", "is-picking");
       tabs.plan.hidden = true;
-      show("note");
+      show("note", true);
       ideasBox.textContent = "";
       list = el("ul");
       ideasBox.appendChild(list);
       input.value = "";
       compose.classList.remove("is-typing");
-      pp.close();
-      pp.resetSteps();
       pp.hint();
     }
 
-    /* The play-through: you jot the ideas down, ask Pip in the pop-over, Pip
-       makes the plan, and the captions get written. Then it's your turn. */
+    /* The play-through, at reading pace: you jot the ideas down, ask Pip in
+       the panel's box, Pip makes the plan, and the captions get written.
+       Then it's your turn. */
     function play() {
       pp.start(function () {
         reset();
@@ -2918,53 +2941,55 @@
           var li = el("li"), text = IDEAS[i], n = 0;
           list.appendChild(li);
           (function key() {
-            n = Math.min(text.length, n + 2);
+            n++;
             li.textContent = text.slice(0, n);
             li.appendChild(caret);
-            pp.step(1);
-            if (n < text.length) pp.later(key, 26);
-            else if (++i < IDEAS.length) pp.later(idea, 170);
-            else pp.later(askPip, 600);
+            var ch = text.charAt(n - 1);
+            if (n < text.length) pp.later(key, /[!?,]/.test(ch) ? 320 : ch === " " ? 100 : 58);
+            else if (++i < IDEAS.length) pp.later(idea, 520);
+            else pp.later(askPip, 900);
           })();
         }
         function askPip() {
           jotting = false;
           caret.remove();
-          pp.moveTo(pp.face, 26, 26);
-          pp.later(function () { pp.tap(); pp.open(); }, 850);
-          pp.later(function () { pp.moveTo(input, 48, 16); }, 1350);
-          pp.later(function () { pp.tap(); compose.classList.add("is-typing"); typeQ(1); }, 2150);
+          pp.moveTo(input, 48, 16);
+          pp.later(function () { pp.tap(); compose.classList.add("is-typing"); typeQ(1); }, 1100);
         }
         function typeQ(n) {
           input.value = QUESTION.slice(0, n);
           input.scrollLeft = input.scrollWidth;
-          if (n < QUESTION.length) { pp.later(function () { typeQ(n + 1); }, 32); return; }
-          pp.later(function () { pp.moveTo(send); }, 250);
+          var ch = QUESTION.charAt(n - 1);
+          if (n < QUESTION.length) { pp.later(function () { typeQ(n + 1); }, ch === " " ? 100 : 58); return; }
+          pp.later(function () { pp.moveTo(send); }, 500);
           pp.later(function () {
             pp.tap();
             input.value = "";
             compose.classList.remove("is-typing");
+            pp.you(QUESTION);
             ask(QUESTION, carryOn);
             // then watch the note as Pip reads it
-            pp.later(function () { pp.moveTo(list, list.getBoundingClientRect().width * 0.55, 44); }, 500);
-          }, 1000);
+            pp.later(function () { pp.moveTo(list, list.getBoundingClientRect().width * 0.55, 44); }, 700);
+          }, 1400);
         }
         function carryOn() {
           if (!pp.auto) return;
-          var move = $('[data-move="captions"]', root);
-          pp.later(function () { pp.moveTo(move, 70, 19); }, 700);
-          pp.later(function () { pp.tap(); run("captions", finish); }, 1500);
-          pp.later(function () { pp.moveTo(caps[1], caps[1].getBoundingClientRect().width * 0.5, 16); }, 2000);
+          pp.later(function () { pp.moveTo($('[data-move="captions"]', root), 70, 19); }, 1600);
+          pp.later(function () {
+            pp.tap();
+            pp.you("Write the captions");
+            run("captions", finish);
+          }, 2800);
+          pp.later(function () { pp.moveTo(caps[1], caps[1].getBoundingClientRect().width * 0.5, 16); }, 3500);
         }
         function finish() {
           if (!pp.auto) return;
           pp.later(function () {
             pp.hint(END);
             pp.done();
-            pp.face.classList.remove("is-nudging"); // Pip's already open
-          }, 700);
+          }, 1200);
         }
-        pp.later(idea, 350);
+        pp.later(idea, 600);
       });
     }
 
@@ -2974,7 +2999,6 @@
       onMove: function (move) { run(move); },
       onUndo: undo,
       onAsk: function (words) { ask(words); },
-      onOpen: function () { pp.scope(cur); },
       onStop: function () {
         var c = $(".pp-caret", root);
         if (c) c.remove();
@@ -2989,15 +3013,18 @@
         compose.classList.remove("is-typing");
         pp.hint(hintNow());
         pp.done();
-        if (pp.isOpen()) pp.face.classList.remove("is-nudging");
       }
+    });
+    var selScope = $('[data-pp-scope="sel"]', root);
+    if (selScope) selScope.addEventListener("click", function () {
+      pp.hint("<b>Selection:</b> on your Mac, pick part of a file and Pip works on just that.");
     });
     // Any key in the stage takes over from the play-through too
     root.addEventListener("keydown", function () { pp.stop(); }, true);
 
     root.classList.add("is-ready");
     tabs.plan.hidden = true;
-    show("note");
+    show("note", true);
 
     if ("ResizeObserver" in window) new ResizeObserver(fitRows).observe(grid);
     else window.addEventListener("resize", fitRows);
