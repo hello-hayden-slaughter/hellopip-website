@@ -599,18 +599,20 @@
   function quietly(err) { if (err !== CANCELLED) throw err; }
 
   /* Never lose your work again: the same search in a chat app and in Pip.
-     A button types its words into both boxes. The chat app answers with a
+     Pip's box is a real search box: type anything, or pick one of the three
+     suggestions under it, which types itself into both boxes. The chat app answers with a
      long list of chats that all look alike; Pip opens the one folder and
      lights up the files that match. */
   function findDemo() {
     var root = $("[data-find]");
     if (!root) return;
-    var qs = $$("[data-find-q]", root);
+    var chatQ = $("[data-find-q]", root);
+    var input = $("[data-find-input]", root);
     var chatCount = $("[data-chat-count]", root);
     var chatList = $("[data-chat-list]", root);
     var pipCount = $("[data-pip-count]", root);
     var rows = $$("[data-find-tree] .tree-row", root);
-    var btns = $$("[data-q]", root);
+    var btns = $$(".find-sug[data-q]", root);
     var R = runner();
     var M = D.month, P = D.monthPrev;
     var SEARCHES = [
@@ -636,8 +638,42 @@
       });
       return frag;
     }
-    function show(k, animate) {
-      var S = SEARCHES[k];
+    var STOP = /^(the|a|an|my|our|this|that|these|those|year's|years|of|for|and|to|in|on|with|about)$/;
+    function words(q) {
+      return q.toLowerCase().replace(/[^a-z0-9£' ]/g, " ").split(/\s+/).filter(function (w) { return w.length > 2 && !STOP.test(w); });
+    }
+    function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
+    // Any words: one of the three if they point at it, else the same story
+    // told with the visitor's own word
+    function searchFor(q) {
+      var ws = words(q);
+      if (!ws.length) return null;
+      for (var k = 0; k < SEARCHES.length; k++) {
+        if (ws.indexOf(SEARCHES[k].word) > -1 || (k === 1 && ws.indexOf("drum") > -1)) return SEARCHES[k];
+      }
+      var w = ws.slice().sort(function (a, b) { return b.length - a.length; })[0];
+      var hits = [], folders = [];
+      rows.forEach(function (row) {
+        var node = row.getAttribute("data-node");
+        if (!node) return;
+        // the file's name, its folder, and a few words for what's inside it
+        var hay = (row.textContent + " " + (row.getAttribute("data-in") || "") + " " + (row.getAttribute("data-about") || "")).toLowerCase();
+        if (ws.some(function (x) { return hay.indexOf(x) > -1; })) {
+          hits.push(node);
+          var f = row.getAttribute("data-in");
+          if (folders.indexOf(f) < 0) folders.push(f);
+        }
+      });
+      var n = 6 + (w.length % 7);
+      return {
+        word: w,
+        chats: [cap(w) + " ideas", "Help with my " + w, w + " again", "Rewrite the " + w + " bit", cap(w) + ", but shorter", w + " v2", "Can you check my " + w + "?", cap(w) + " FINAL"],
+        chatCount: n + " chats mention “" + w + "”. Which one was it?",
+        pip: hits,
+        pipCount: hits.length ? hits.length + (hits.length === 1 ? " file, in " : " files, in ") + folders.join(" and ") : "Nothing matches that in this sample. In Pip, every file sits in a folder you can see."
+      };
+    }
+    function show(S, animate) {
       chatList.textContent = "";
       S.chats.forEach(function (t, i) {
         var li = el("li", "fchat" + (animate ? " is-new" : ""));
@@ -648,35 +684,56 @@
       });
       chatCount.textContent = S.chatCount;
       pipCount.textContent = S.pipCount;
-      var folder = S.pip[0].split("/")[0];
+      var near = S.pip.map(function (n) { return n.split("/")[0]; });
       root.classList.add("is-found");
       rows.forEach(function (row) {
         var node = row.getAttribute("data-node"), f = row.getAttribute("data-folder") || row.getAttribute("data-in");
         row.classList.toggle("is-selected", !!node && S.pip.indexOf(node) > -1);
-        row.classList.toggle("is-near", f === folder);
+        row.classList.toggle("is-near", near.indexOf(f) > -1);
       });
     }
-    btns.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        root.classList.add("is-tried");
-        var k = +btn.getAttribute("data-q");
-        btns.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
-        var sleep = R.start();
-        if (reduced()) { qs.forEach(function (q) { q.textContent = SEARCHES[k].q; }); show(k, false); return; }
-        qs.forEach(function (q) { q.textContent = ""; });
-        root.classList.add("is-typing");
-        Promise.all(qs.map(function (q) { return typeInto(q, SEARCHES[k].q, sleep); }))
-          .then(function () { root.classList.remove("is-typing"); return sleep(260); })
-          .then(function () { show(k, true); })
-          .catch(quietly);
-      });
+    function search(q, animate) {
+      var S = searchFor(q);
+      if (q.trim()) chatQ.textContent = q;
+      else chatQ.innerHTML = '<span class="find-ph">Search your chats</span>';
+      if (!S) { root.classList.remove("is-found"); return; }
+      show(S, animate);
+    }
+    function pressed(k) { btns.forEach(function (b, i) { b.setAttribute("aria-pressed", i === k ? "true" : "false"); }); }
+    // A suggestion types itself into both boxes, then both sides answer
+    function suggest(k) {
+      var q = SEARCHES[k].q;
+      pressed(k);
+      var sleep = R.start();
+      if (reduced()) { input.value = q; search(q, false); return; }
+      input.value = ""; chatQ.textContent = "";
+      root.classList.add("is-typing");
+      var i = 0;
+      (function key() {
+        i++;
+        input.value = q.slice(0, i);
+        chatQ.textContent = q.slice(0, i);
+        if (i < q.length) return sleep(q.charAt(i - 1) === " " ? 70 : 45).then(key).catch(quietly);
+        root.classList.remove("is-typing");
+        sleep(260).then(function () { show(SEARCHES[k], true); }).catch(quietly);
+      })();
+    }
+    btns.forEach(function (btn, k) { btn.addEventListener("click", function () { root.classList.add("is-tried"); suggest(k); }); });
+    var typed = null;
+    input.addEventListener("input", function () {
+      R.cancel();
+      pressed(-1);
+      root.classList.add("is-tried");
+      root.classList.remove("is-typing");
+      clearTimeout(typed);
+      chatQ.textContent = input.value;
+      typed = setTimeout(function () { search(input.value, true); }, 250);
     });
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); clearTimeout(typed); search(input.value, true); } });
+    // The first time it's well on screen, the first suggestion plays
+    if (!reduced()) onceVisible(root, function () { setTimeout(function () { if (!root.classList.contains("is-tried")) suggest(0); }, 600); }, 0.45);
   }
 
-  /* Help with the bit you're stuck on: four ways to rewrite the highlighted
-     part. Each replaces it in place (never crossed out), typed in, while the
-     rest of the note stays as it was. "Back to my version" puts it back. The
-     note holds the height of its longest version. */
   /* ── Pip on your page ───────────────────────────────────────────────────────
      The one pattern every demo uses, as in the app: your file in the middle
      (you can write in it), Pip's face in its corner, and Pip's pop-over
