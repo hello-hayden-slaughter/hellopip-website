@@ -11,7 +11,7 @@
      reveal     sections arriving on scroll
      scenes     the try-it demos: find, help, like, and the briefed and switch moments
      takeover   "Go on, have a play": the real Pip, full screen, on request
-     jobs       the six one-click jobs
+     jobs       six files, and Pip in each (Pip on your page)
      accordion  questions that open with height and fade
      jumpList   the questions page's group list
      signup     the first-50 sign-up form (download.html)
@@ -1617,24 +1617,25 @@
   }
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
-     "Help with everything you make." A try-it demo with the site's one shape:
-     the strip on top holds the choices (the six jobs), Pip's line under it
-     asks, with the one button to press at the end of that same line, and the
-     work fills the box below.
-     Every job is one step with one yes. Pressing it plays the job with Pip's
-     face thinking and one live line saying what's happening now; then Pip
-     says what was done and View original takes the button's place. View
-     original puts the before back, with the offer. Picking a job, at any
-     moment, stops whatever is playing and shows that job's before, fresh, at
-     once.
-     CSS holds the box at one height for every job; Pip's line keeps room for
-     its tallest message at this width (fitBar), so the window never changes
-     size. Picking, pressing and View original bring the whole window into
-     view. Under reduced motion a job lands on its end at once. */
+     "Help with everything you make." Pip on your page (pipPage), with six
+     files open in tabs along the top of the file. Opening one shows it as it
+     is and opens Pip's pop-over with what Pip can do for that file. A move
+     plays the job in the file itself while Pip's reply says what's happening
+     now, then what was done, with Undo. The newsletter's draft and the costs'
+     prices are yours to change: typing in Pip's draft makes it yours, and a
+     new price redoes the sums. Opening another file, at any moment, stops
+     whatever is playing and shows that file fresh.
+     The play-through runs once: it drafts the newsletter, works out what the
+     costs keep, then changes the slim lamp's price.
+     The file is one height for every file and every moment (CSS). On a wide
+     stage it's one width too, the room beside Pip's pop-over, whether Pip is
+     open or not, so opening Pip only slides it aside; on a phone Pip's
+     pop-over keeps the room of its tallest reply under the file. Under
+     reduced motion a job lands at once. */
 
   function jobs() {
-    var win = $("#jobs-win");
-    if (!win) return;
+    var root = $("[data-jobs]");
+    if (!root) return;
 
     var NL = [
       "Hello, and thank you for such a lovely summer at the studio.",
@@ -1647,14 +1648,14 @@
     var NL_FROM = [[4], [0], [1, 2], [3], []];
     var WORD_MS = 34, PARA_MS = 140;
 
-    var jobBtns = $$(".job", win);
-    var surfs = $$(".surf", win);
-    var title = $("#jobs-title");
-    var pip = $(".jobs-pip", win);
-    var msg = $("#jobs-msg");
-    var faceHolder = $("#jobs-face");
-    var goBtn = $("#jobs-go");
-    var backBtn = $("#jobs-back");
+    var doc = $("[data-pp-doc]", root);
+    var pop = $("[data-pp-pop]", root);
+    var says = $("[data-pp-says]", root);
+    var saysText = $("[data-pp-says-text]", root);
+    var undoBtn = $("[data-pp-undo]", root);
+    var tabs = $$("[data-file]", root);
+    var surfs = $$(".surf", root);
+    var moveBtns = $$(".pp-move", root);
 
     var note = $("#nl");
     var nlText = $("#nl-text");
@@ -1669,8 +1670,16 @@
     var PHOTO_STATES = ["is-framing", "is-cropped", "is-square", "is-selecting", "is-filled", "is-bright", "is-tracing", "is-cut", "is-backdrop"];
 
     var costs = $("#costs");
-    var costRows = $$(".tbl--costs tbody tr", costs);
-    var lowRow = $("[data-low]", costs);
+    var heads = { cost: $("th.c-cost", costs), marg: $("th.c-marg", costs) };
+    var rows = $$(".tbl--costs tbody tr", costs).map(function (tr) {
+      var price = $(".c-price", tr);
+      return {
+        tr: tr, price: price, cost: $("td.c-cost", tr), marg: $("td.c-marg", tr),
+        make: tr.getAttribute("data-parts").split(",").reduce(function (a, b) { return a + +b; }, 0),
+        say: tr.getAttribute("data-say"), was: price.textContent, good: price.textContent
+      };
+    });
+    var lamp = rows[rows.length - 1];
 
     var deck = $("#deck-job");
     var slideEls = $$(".slide", deck);
@@ -1686,248 +1695,71 @@
     var chart = $(".chart", dash);
     var tiles = $$(".tile-v", dash);
 
-    /* ── the jobs ───────────────────────────────────────────────────────────
-       Each: the crumb, what Pip offers and the button that says yes, the live
-       lines while it plays, what Pip says when it's done, and how it plays,
-       ends and goes back to its before. */
+    var pp;
+    var cur = 0;         // the open file
+    var busy = null;     // the move playing now: { move, snap, then }
+    var hist = [];       // what Undo puts back, newest last
+    var said = null;     // what Pip last said about the open file, shown again when the pop-over reopens
+    var hotMove = null;
+    var typing = false;  // the play-through is typing a price
 
-    var JOBS = [
-      { title: "Lume Lighting › Newsletters › Newsletter: " + D.month,
-        offer: "You've jotted down this month's news. Want me to turn it into a first draft, in your words?",
-        go: "Yes, draft it",
-        lines: ["Reading your ideas…", "Writing it in your words…"],
-        done: "Drafted from your ideas, in your words. The dates and prices are the bit to check.",
-        play: nlPlay, end: nlEnd, undo: nlUndo },
-      { title: "Lume Lighting › Photos › sage-slim-lamp.jpg",
-        offer: "Your sage lamp's on a busy desk. Want me to turn it into a product shot for the shop?",
-        go: "Yes, make it",
-        lines: ["Cropping it square…", "Taking out the clutter…", "Brightening it…", "Cutting the lamp out…", "Setting it on a clean backdrop…"],
-        done: "There's your product shot: square, bright and on a clean backdrop, ready for the shop.",
-        play: photoPlay, end: photoEnd, undo: photoUndo },
-      { title: "Lume Lighting › Costs",
-        offer: "Want me to work out what each shade costs to make, and how much you keep?",
-        go: "Yes, work it out",
-        lines: ["Adding a Cost to make column…", "Working out your margins…", "Highlighting anything under 50%…"],
-        done: "The slim lamp makes the least, 33%. Its oak base is £28 of the £70 it costs to make.",
-        play: costsPlay, end: costsEnd, undo: costsUndo },
-      { title: "Lume Lighting › Workshops › Drum workshop steps",
-        offer: "You've got the steps for Sunday. Want them as a slide deck?",
-        go: "Yes, make the deck",
-        lines: ["Making a slide for each step…", "Adding your step photos…"],
-        done: "Six slides, one for each step, with your photos in. Move anything you like.",
-        play: deckPlay, end: deckEnd, undo: deckUndo },
-      { title: "Lume Lighting › Spring collection",
-        offer: "Your spring ideas are all over the place. Want me to sort them and fill in what's missing?",
-        go: "Yes, sort them",
-        lines: ["Sorting your ideas…", "Pricing the 60cm scallop…"],
-        done: "Sorted into fabrics, shapes and notes. The 60cm scallop had no price, so I've pencilled in £400 to match your sizes.",
-        play: cvPlay, end: cvEnd, undo: cvUndo },
-      { title: "Lume Lighting › Sales " + D.salesYear,
-        offer: "This is your sales sheet, month by month. Want a chart of it, and a dashboard you can keep?",
-        go: "Yes, show me",
-        lines: ["Adding up the year…", "Drawing the chart…", "Looking for what stands out…"],
-        done: "One you might have missed: workshops made 43% of sales this year, up from 22% last year.",
-        play: dashPlay, end: dashEnd, undo: dashUndo }
-    ];
+    /* ── timing: one run at a time ────────────────────────────────────────── */
 
-    var cur = 0, shown = 0;
-    var state = "before";          // before, busy or done
-    var timers = [];
-    var run = 0;                   // bumps when a job stops, so late callbacks know
-    var lineNode = null;
-
-    surfs.forEach(function (s, i) { s.hidden = i !== 0; });
-    win.classList.add("is-ready");
-    $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
-    $$(".pair", chart).forEach(function (p, i) { $$("i", p).forEach(function (b) { b.style.setProperty("--n", i); }); });
-    slideEls.forEach(function (s, i) { s.style.setProperty("--n", i); });
-
-    // The do-it button asks to be pressed until the visitor has clicked anything here
-    win.addEventListener("click", function tried() {
-      win.classList.add("is-tried");
-      win.removeEventListener("click", tried);
-    });
-
+    var gen = 0, timers = [];
     function later(fn, ms) {
-      var id = run;
-      timers.push(setTimeout(function () { if (id === run) fn(); }, ms));
+      var id = gen;
+      timers.push(setTimeout(function () { if (id === gen) fn(); }, ms));
     }
-    // Stop whatever is playing: every pending moment and every moving thing
+    // Stop every pending moment of the job playing
     function stopAll() {
-      run++;
+      gen++;
       timers.forEach(clearTimeout);
       timers = [];
     }
-
-    /* Put a job's before back at once: no transition plays backwards */
+    // Put a state in place at once: no transition plays
     function instantly(fn) {
-      win.classList.add("is-instant");
+      root.classList.add("is-instant");
       fn();
-      void win.offsetWidth;
-      win.classList.remove("is-instant");
+      void root.offsetWidth;
+      root.classList.remove("is-instant");
     }
-
-    /* The whole window in view, under the sticky header, with a little air */
-    function bringIntoView() {
-      var r = win.getBoundingClientRect();
-      var head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0;
-      var top = head + 12;
-      if (r.top >= top - 1 && r.bottom <= window.innerHeight - 11) return;
-      window.scrollTo({ top: Math.round(window.scrollY + r.top - top), behavior: reduced() ? "auto" : "smooth" });
-    }
-
-    /* The stage: the old file goes at once and the new one rises in */
-    function showSurf(next) {
-      if (next === shown) return;
-      surfs[shown].hidden = true;
-      shown = next;
-      var to = surfs[next];
-      to.hidden = false;
-      if (!reduced() && to.animate) {
-        to.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: EASE_OUT });
-      }
-    }
-
-    /* Pip's line: the offer, then the dots and one live line per moment of
-       the job, then what was done. A change still on its way is dropped for
-       the newer one, so a quick pick or press never lands an old message. */
     function settle(node) {
       if (node.getAnimations) node.getAnimations().forEach(function (a) { a.cancel(); });
     }
-    function say(text) {
-      settle(msg);
-      msg.classList.remove("is-busy");
-      lineNode = null;
-      setThinking(faceHolder, false);
-      swapText(msg, text);
-    }
-    function setBusy(text) {
-      settle(msg);
-      setThinking(faceHolder, true);
-      msg.textContent = "";
-      msg.classList.add("is-busy");
-      msg.appendChild(dots());
-      lineNode = el("span", "", text);
-      msg.appendChild(lineNode);
-    }
-    function line(text) { if (lineNode) swapText(lineNode, text); }
 
-    // A job's before: its file as it was, Pip's offer, and the do-it button
-    function before() {
-      var j = JOBS[cur];
-      state = "before";
-      jobBtns.forEach(function (b, i) { b.setAttribute("aria-pressed", i === cur ? "true" : "false"); });
-      settle(title);
-      swapText(title, j.title);
-      pip.classList.remove("is-working");
-      say(j.offer);
-      goBtn.textContent = j.go;
-      goBtn.hidden = false;
-      backBtn.hidden = true;
-    }
+    /* ── Pip's side: what it says, and the move it's on ───────────────────── */
 
-    // Yes: the do-it button keeps its place, unseen, while Pip works
-    function play() {
-      var j = JOBS[cur];
-      if (state !== "before") return;
-      stopAll();
-      state = "busy";
-      pip.classList.add("is-working");
-      setBusy(j.lines[0]);
-      if (reduced()) { j.end(); finish(); return; }
-      j.play();
+    function reply(text, working, undo) {
+      said = { text: text, working: !!working, undo: !!undo };
+      pp.say(text, working);
+      pp.showUndo(!!undo);
     }
-
-    // Done: what Pip did, and View original where the button was
-    function finish() {
-      var hadFocus = document.activeElement === goBtn || document.activeElement === document.body;
-      state = "done";
-      pip.classList.remove("is-working");
-      say(JOBS[cur].done);
-      goBtn.hidden = true;
-      backBtn.hidden = false;
-      if (hadFocus) backBtn.focus({ preventScroll: true });
-    }
-
-    // Every pick starts fresh: whatever is playing stops, and the job shows its before
-    function pick(i) {
-      var was = cur;
-      stopAll();
-      instantly(function () { JOBS[was].undo(); JOBS[i].undo(); });
-      cur = i;
-      showSurf(i);
-      before();
-    }
-
-    /* Pip's line keeps room for its tallest message at this width (every
-       offer with its button, every live line, everything Pip says when it's
-       done with View original), so nothing Pip says can make the window grow */
-    function fitBar() {
-      pip.style.minHeight = "";
-      var kids = Array.prototype.slice.call(msg.childNodes);
-      var busyMsg = msg.classList.contains("is-busy");
-      var working = pip.classList.contains("is-working");
-      var goText = goBtn.textContent, goHidden = goBtn.hidden, backHidden = backBtn.hidden;
-      var h = 0;
-      function take() { h = Math.max(h, pip.getBoundingClientRect().height); }
-      JOBS.forEach(function (j) {
-        goBtn.textContent = j.go;
-        goBtn.hidden = false;
-        backBtn.hidden = true;
-        msg.classList.remove("is-busy");
-        pip.classList.remove("is-working");
-        msg.textContent = j.offer;
-        take();
-        msg.classList.add("is-busy");
-        pip.classList.add("is-working");
-        j.lines.forEach(function (t) {
-          msg.textContent = "";
-          msg.appendChild(dots());
-          msg.appendChild(el("span", "", t));
-          take();
-        });
-        msg.classList.remove("is-busy");
-        pip.classList.remove("is-working");
-        goBtn.hidden = true;
-        backBtn.hidden = false;
-        msg.textContent = j.done;
-        take();
-      });
-      msg.textContent = "";
-      kids.forEach(function (k) { msg.appendChild(k); });
-      msg.classList.toggle("is-busy", busyMsg);
-      pip.classList.toggle("is-working", working);
-      goBtn.textContent = goText;
-      goBtn.hidden = goHidden;
-      backBtn.hidden = backHidden;
-      pip.style.minHeight = Math.ceil(h) + "px";
-      measureNote();
-    }
+    function working(text) { reply(text, true, false); }
+    function hot(move) { hotMove = move; pp.hot(move); }
 
     /* ── 0 · The newsletter ─────────────────────────────────────────────────
        Pip reads the ideas, washing each in turn; then writes the newsletter
-       under the title, word by word. While a paragraph writes, the idea it
-       comes from holds a wash; when it's written, that idea folds away, and
-       "Some ideas" goes with the last of them. The note follows the writing
-       point if it runs past the stage. */
+       under the title, word by word, underlined as Pip's draft. While a
+       paragraph writes, the idea it comes from holds a wash; when it's
+       written, that idea folds away, and "Some ideas" goes with the last of
+       them. The note follows the writing point if it runs past the file.
+       Then it's yours: type in it and the underline goes. */
 
     function topIn(node) {
       var y = 0;
       while (node && node !== note) { y += node.offsetTop; node = node.offsetParent; }
       return y;
     }
-
     function noteEnd() {
       var end = topIn(nlText) + nlText.offsetHeight;
       if (!ideasBox.hidden) end = Math.max(end, topIn(ideasBox) + ideasBox.offsetHeight);
       return end;
     }
-
-    // Only a note longer than the stage gets the fade at its foot
+    // Only a note longer than the file gets the fade at its foot
     function measureNote() {
+      if (note.hidden) return;
       note.classList.toggle("is-long", noteEnd() > note.clientHeight - 2);
     }
-
     // The ideas slide down as the newsletter grows above them, never jump
     function pushIdeas(before) {
       if (ideasBox.hidden) return;
@@ -1936,7 +1768,6 @@
         ideasBox.animate([{ transform: "translateY(" + d + "px)" }, { transform: "none" }], { duration: 240, easing: EASE_OUT });
       }
     }
-
     function follow(caret, n) {
       measureNote();
       var view = note.clientHeight - 48;
@@ -1946,39 +1777,44 @@
       var want = Math.min(bottom - view, caretTop - 16);
       if (want > note.scrollTop + 2) note.scrollTo({ top: want, behavior: "smooth" });
     }
-
     note.addEventListener("scroll", function () { note.classList.toggle("is-scrolled", note.scrollTop > 4); }, { passive: true });
 
     // An idea that's been written folds away; the last takes the heading with it
     function fold(lis) {
       var left = ideas.filter(function (li) { return !li.hidden && lis.indexOf(li) < 0; });
       var what = left.length ? lis : [ideasBox];
-      var id = run;
+      var id = gen;
       what.forEach(function (node) {
         var h = node.offsetHeight;
         var anim = node.animate && node.animate(
           [{ height: h + "px", opacity: 1 }, { height: "0px", opacity: 0, paddingTop: "0px", paddingBottom: "0px" }],
           { duration: 300, easing: EASE_OUT }
         );
-        var gone = function () { if (id === run) { node.hidden = true; measureNote(); } };
+        var gone = function () { if (id === gen) { node.hidden = true; measureNote(); } };
         if (anim) anim.onfinish = gone; else gone();
       });
     }
-
-    function nlPara(n) {
+    function nlEditable(on) {
+      if (on) { nlText.setAttribute("contenteditable", "true"); nlText.setAttribute("role", "textbox"); nlText.setAttribute("aria-multiline", "true"); nlText.setAttribute("aria-label", "The newsletter: you can write in it"); }
+      else { nlText.removeAttribute("contenteditable"); nlText.removeAttribute("role"); nlText.removeAttribute("aria-multiline"); nlText.removeAttribute("aria-label"); }
+    }
+    function nlPara(n, done) {
       if (n >= NL.length) {
         if (note.classList.contains("is-long")) note.scrollTo({ top: note.scrollHeight, behavior: "smooth" });
-        finish();
+        nlEditable(true);
+        done();
         return;
       }
       var src = NL_FROM[n].map(function (i) { return ideas[i]; });
       src.forEach(function (li) { li.classList.add("is-lit"); });
       var before = topIn(ideasBox);
       var p = el("p");
+      var span = el("span", "pp-edit");
       var text = document.createTextNode("");
       var caret = el("span", "caret");
       caret.setAttribute("aria-hidden", "true");
-      p.appendChild(text);
+      span.appendChild(text);
+      p.appendChild(span);
       p.appendChild(caret);
       nlText.appendChild(p);
       pushIdeas(before);
@@ -1991,44 +1827,63 @@
         follow(caret, n);
         if (k < words.length) { later(word, WORD_MS); return; }
         if (src.length) fold(src);
-        later(function () { caret.remove(); nlPara(n + 1); }, PARA_MS);
+        later(function () { caret.remove(); nlPara(n + 1, done); }, PARA_MS);
       })();
     }
-
-    function nlPlay() {
+    function nlPlay(done) {
+      working("Reading your ideas…");
       nlText.textContent = "";
       ideas.forEach(function (li, i) { later(function () { li.classList.add("is-lit"); }, 120 + i * 160); });
       later(function () {
         ideas.forEach(function (li) { li.classList.remove("is-lit"); });
-        line(JOBS[0].lines[1]);
+        working("Writing it in your words…");
       }, 1300);
-      later(function () { nlPara(0); }, 1550);
+      later(function () { nlPara(0, done); }, 1550);
     }
-
     function nlEnd() {
+      [ideasBox].concat(ideas).forEach(settle);
       nlText.textContent = "";
-      NL.forEach(function (t) { nlText.appendChild(el("p", "", t)); });
+      NL.forEach(function (t) { var p = el("p"); p.appendChild(el("span", "pp-edit", t)); nlText.appendChild(p); });
       ideas.forEach(function (li) { li.classList.remove("is-lit"); li.hidden = true; });
       ideasBox.hidden = true;
       note.scrollTop = 0;
+      nlEditable(true);
       measureNote();
     }
-
-    function nlUndo() {
-      [ideasBox].concat(ideas).forEach(function (node) {
-        if (node.getAnimations) node.getAnimations().forEach(function (a) { a.cancel(); });
-        node.hidden = false;
-      });
+    function nlReset() {
+      [ideasBox].concat(ideas).forEach(function (node) { settle(node); node.hidden = false; });
+      nlEditable(false);
       nlText.textContent = "";
       ideas.forEach(function (li) { li.classList.remove("is-lit"); });
       note.scrollTop = 0;
       note.classList.remove("is-scrolled");
       measureNote();
     }
+    // Pasted words come in as plain words
+    nlText.addEventListener("paste", function (e) {
+      e.preventDefault();
+      var text = ((e.clipboardData || window.clipboardData).getData("text") || "").replace(/\s+/g, " ");
+      if (document.execCommand) document.execCommand("insertText", false, text);
+    });
+    // Typing over Pip's words makes them yours
+    nlText.addEventListener("input", function () {
+      pp.stop();
+      var n = window.getSelection().anchorNode;
+      var host = n && (n.nodeType === 1 ? n : n.parentNode);
+      var span = host && host.closest ? host.closest(".pp-edit") : null;
+      pp.step(4);
+      measureNote();
+      if (span && !span.classList.contains("is-yours")) {
+        span.classList.add("is-yours");
+        pp.hint("<b>Yours now.</b> Keep writing, or open another file.");
+        hist = [];
+        reply("Your change stays. I'll learn from how you wrote it.", false, false);
+      }
+    });
 
     /* ── 1 · The product shot ───────────────────────────────────────────────
        A dim snapshot of the lamp on a busy desk, made into a product shot by
-       one yes: crop it square (the notepad still in), paint a selection over
+       one move: crop it square (the notepad still in), paint a selection over
        what goes and fill it in, brighten it, trace the lamp's edge and let the
        room fall away to transparency, then set it on a sand backdrop with a
        soft shadow. Each tool lights as it works and keeps a tick once used. */
@@ -2040,104 +1895,272 @@
       });
     }
     function add(c) { photo.classList.add.apply(photo.classList, c.split(" ")); }
-
-    function photoPlay() {
-      var s = JOBS[1].lines;
+    function photoPlay(done) {
+      working("Cropping it square…");
       tool("crop");
       add("is-framing");
       later(function () { add("is-cropped"); }, 800);
       later(function () { add("is-square"); photo.classList.remove("is-framing"); }, 1700);
-      later(function () { line(s[1]); tool("remove"); add("is-selecting"); }, 2000);
+      later(function () { working("Taking out the clutter…"); tool("remove"); add("is-selecting"); }, 2000);
       later(function () { add("is-filled"); }, 3200);
-      later(function () { line(s[2]); tool("bright"); add("is-bright"); }, 3800);
-      later(function () { line(s[3]); tool("cut"); add("is-tracing"); }, 5000);
+      later(function () { working("Brightening it…"); tool("bright"); add("is-bright"); }, 3800);
+      later(function () { working("Cutting the lamp out…"); tool("cut"); add("is-tracing"); }, 5000);
       later(function () { add("is-cut"); }, 6300);
-      later(function () { line(s[4]); tool("backdrop"); }, 7300);
+      later(function () { working("Setting it on a clean backdrop…"); tool("backdrop"); }, 7300);
       later(function () { add("is-backdrop"); }, 7500);
-      later(function () { photoEnd(); finish(); }, 8800);
+      later(function () { photoEnd(); done(); }, 8800);
     }
-
     function photoEnd() {
       photo.classList.remove("is-framing", "is-selecting", "is-tracing");
       add("is-cropped is-square is-filled is-bright is-cut is-backdrop");
       tools.forEach(function (t) { t.classList.remove("is-active"); t.classList.add("is-done"); });
       frame.setAttribute("aria-label", PHOTO_AFTER);
     }
-
-    function photoUndo() {
+    function photoReset() {
       PHOTO_STATES.forEach(function (c) { photo.classList.remove(c); });
       tools.forEach(function (t) { t.classList.remove("is-active", "is-done"); });
       frame.setAttribute("aria-label", PHOTO_BEFORE);
     }
 
     /* ── 2 · The costs ──────────────────────────────────────────────────────
-       One table, and only what Pip's tables do: a formula column (Cost to
-       make), a percent column (Margin), and a conditional format that
-       colours any row whose margin is under 50%. */
+       Your spreadsheet, and only what Pip's tables do: a formula column (Cost
+       to make), a percent column (Margin) and a conditional format that
+       colours any row whose margin is under 50%. Each move adds its part in
+       place, cell by cell, the columns Pip added washed as Pip's until you
+       change a number. The prices are yours to change: the sums follow. */
 
-    function costsPlay() {
-      var s = JOBS[2].lines;
-      later(function () { costs.classList.add("has-cost"); }, 350);
-      costRows.forEach(function (r, i) { later(function () { r.classList.add("is-c"); }, 800 + i * 320); });
-      later(function () { line(s[1]); costs.classList.add("has-marg"); }, 2450);
-      costRows.forEach(function (r, i) { later(function () { r.classList.add("is-m"); }, 2900 + i * 320); });
-      later(function () { line(s[2]); }, 4500);
-      later(function () { costs.classList.add("is-ruled"); lowRow.classList.add("is-low"); }, 4900);
-      later(finish, 6100);
+    var has = { cost: false, marg: false, low: false };
+    function priceOf(r) {
+      var v = parseFloat(r.price.textContent.replace(/[^0-9.]/g, ""));
+      return isNaN(v) ? null : v;
+    }
+    function marginOf(r) {
+      var p = priceOf(r);
+      return p ? Math.round((p - r.make) / p * 100) : null;
+    }
+    function under() { return rows.filter(function (r) { var m = marginOf(r); return m != null && m < 50; }); }
+    // The sums, from the prices as they are now; a margin that changes flashes
+    function sums(flash) {
+      rows.forEach(function (r) {
+        r.cost.textContent = "£" + r.make;
+        var m = marginOf(r), text = m == null ? "–" : m + "%";
+        if (flash && has.marg && r.marg.textContent !== text) {
+          r.marg.classList.remove("is-recalc");
+          void r.marg.offsetWidth;
+          r.marg.classList.add("is-recalc");
+        }
+        r.marg.textContent = text;
+        r.tr.classList.toggle("is-low", has.low && m != null && m < 50);
+      });
+    }
+    function costsSet(h) {
+      has = { cost: !!h.cost, marg: !!h.marg, low: !!h.low };
+      costs.classList.toggle("has-cost", has.cost);
+      costs.classList.toggle("has-marg", has.marg);
+      costs.classList.toggle("is-ruled", has.low);
+      if (!has.cost) heads.cost.classList.remove("is-pips");
+      if (!has.marg) heads.marg.classList.remove("is-pips");
+      rows.forEach(function (r) { r.tr.classList.toggle("is-c", has.cost); r.tr.classList.toggle("is-m", has.marg); });
+      sums(false);
+    }
+    function costsSnap() { return { cost: has.cost, marg: has.marg, low: has.low }; }
+    function costsReset() {
+      rows.forEach(function (r) { r.price.textContent = r.was; r.good = r.was; r.marg.classList.remove("is-recalc"); r.price.classList.remove("is-typing"); });
+      if (costs.contains(document.activeElement)) document.activeElement.blur();
+      heads.cost.classList.remove("is-pips");
+      heads.marg.classList.remove("is-pips");
+      costsSet({});
+    }
+    // Each part lands cell by cell, from t; each returns when it's done
+    function addCost(t) {
+      has.cost = true;
+      later(function () { heads.cost.classList.add("is-pips"); costs.classList.add("has-cost"); sums(false); }, t + 300);
+      rows.forEach(function (r, i) { later(function () { r.tr.classList.add("is-c"); }, t + 650 + i * 250); });
+      return t + 650 + rows.length * 250;
+    }
+    function addMarg(t) {
+      has.marg = true;
+      later(function () { working("Working out your margins…"); heads.marg.classList.add("is-pips"); costs.classList.add("has-marg"); sums(false); }, t);
+      rows.forEach(function (r, i) { later(function () { r.tr.classList.add("is-m"); }, t + 350 + i * 250); });
+      return t + 350 + rows.length * 250;
+    }
+    function addLow(t) {
+      has.low = true;
+      later(function () { working("Highlighting anything under 50%…"); }, t);
+      later(function () { costs.classList.add("is-ruled"); sums(false); }, t + 450);
+      return t + 450;
+    }
+    function costPlay(done) {
+      working("Adding a Cost to make column…");
+      later(done, addCost(0) + 400);
+    }
+    function marginPlay(done) {
+      var t = 0;
+      if (!has.cost) { working("Adding a Cost to make column…"); t = addCost(0) + 150; }
+      later(done, addMarg(t) + 400);
+    }
+    function lowPlay(done) {
+      var t = 0;
+      if (!has.cost) { working("Adding a Cost to make column…"); t = addCost(0) + 150; }
+      if (!has.marg) t = addMarg(t) + 150;
+      later(done, addLow(t) + 700);
+    }
+    // At once, from the table as it was before the move: the columns it adds are marked as Pip's
+    function costsEnd(to, was) {
+      costsSet(to);
+      if (!was.cost) heads.cost.classList.add("is-pips");
+      if (to.marg && !was.marg) heads.marg.classList.add("is-pips");
+    }
+    function costEnd(was) { costsEnd({ cost: true, marg: has.marg, low: has.low }, was || {}); }
+    function marginEnd(was) { costsEnd({ cost: true, marg: true, low: has.low }, was || {}); }
+    function lowEnd(was) { costsEnd({ cost: true, marg: true, low: true }, was || {}); }
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    function marginDone() {
+      var low = null;
+      rows.forEach(function (r) { var m = marginOf(r); if (m != null && (!low || m < low.m)) low = { r: r, m: m }; });
+      if (!low) return "Added Margin: what you keep from each price, after it's made.";
+      return cap(low.r.say) + " keeps the least, " + low.m + "%." + (low.r === lamp ? " Its oak base is £28 of the £" + lamp.make + " it costs to make." : "");
+    }
+    function lowDone() {
+      var u = under();
+      if (!u.length) return "Nothing's under 50% right now. Anything that drops below will be highlighted.";
+      if (u.length === 1) return cap(u[0].say) + " keeps under 50%, so it's highlighted. It updates as your prices change.";
+      return "Highlighted the " + u.length + " that keep under 50%. It updates as your prices change.";
     }
 
-    function costsEnd() {
-      costs.classList.add("has-cost", "has-marg", "is-ruled");
-      costRows.forEach(function (r) { r.classList.add("is-c", "is-m"); });
-      lowRow.classList.add("is-low");
+    // A price you change: the sums follow as you type, and it's yours
+    function priceCell(t) { return t && t.closest ? t.closest("td.c-price") : null; }
+    costs.addEventListener("input", function (e) {
+      if (!priceCell(e.target)) return;
+      pp.stop();
+      sums(true);
+      pp.step(4);
+      heads.cost.classList.remove("is-pips");
+      heads.marg.classList.remove("is-pips");
+      if (has.marg) pp.hint("<b>Your spreadsheet:</b> change a price and the sums keep up.");
+    });
+    // Return keeps the new price; Esc puts the old one back (and leaves Pip open)
+    costs.addEventListener("keydown", function (e) {
+      var td = priceCell(e.target);
+      if (!td) return;
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        td.textContent = rows.filter(function (x) { return x.price === td; })[0].good;
+        sums(false);
+      }
+      if (e.key === "Enter" || e.key === "Escape") { e.preventDefault(); td.blur(); }
+    });
+    costs.addEventListener("paste", function (e) {
+      if (!priceCell(e.target)) return;
+      e.preventDefault();
+      var text = ((e.clipboardData || window.clipboardData).getData("text") || "").replace(/\s+/g, " ").trim();
+      if (document.execCommand) document.execCommand("insertText", false, text);
+    });
+    // Clicked into, a price is picked whole, so what you type replaces it, as in a spreadsheet
+    costs.addEventListener("focusin", function (e) {
+      var td = priceCell(e.target);
+      if (!td) return;
+      setTimeout(function () {
+        if (document.activeElement !== td) return;
+        var r = document.createRange();
+        r.selectNodeContents(td);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+      }, 0);
+    });
+    // Done editing: written as money, or back as it was if it isn't a price;
+    // and if Pip's sums are in, Pip says where that price leaves it
+    function money(v) { return "£" + (v % 1 ? v.toFixed(2) : v); }
+    function priceSaid(r) {
+      var m = marginOf(r);
+      if (!has.marg || m == null) return;
+      var t = cap(r.say) + " keeps " + m + "% now.";
+      if (has.low) t += m < 50 ? " That's under 50%, so it's highlighted." : " That's over 50%, so it isn't highlighted.";
+      reply(t, false, hist.length > 0);
     }
-
-    function costsUndo() {
-      costs.classList.remove("has-cost", "has-marg", "is-ruled");
-      costRows.forEach(function (r) { r.classList.remove("is-c", "is-m", "is-low"); });
+    costs.addEventListener("focusout", function (e) {
+      var td = priceCell(e.target);
+      if (!td) return;
+      var r = rows.filter(function (x) { return x.price === td; })[0];
+      var v = priceOf(r);
+      td.textContent = v ? money(v) : r.good;
+      var changed = td.textContent !== r.good;
+      r.good = td.textContent;
+      sums(false);
+      if (changed) priceSaid(r);
+    });
+    // The play-through types a new price in, then the sums follow
+    function typePrice(r, text, done) {
+      typing = true;
+      r.price.classList.add("is-typing");
+      var k = 0;
+      (function next() {
+        k++;
+        r.price.textContent = text.slice(0, k);
+        if (k < text.length) { pp.later(next, 150); return; }
+        typed(r, text);
+        done();
+      })();
+    }
+    function typed(r, text) {
+      typing = false;
+      r.price.textContent = text;
+      r.good = text;
+      r.price.classList.remove("is-typing");
+      heads.cost.classList.remove("is-pips");
+      heads.marg.classList.remove("is-pips");
+      sums(true);
+      pp.step(4);
+      priceSaid(r);
     }
 
     /* ── 3 · The deck ───────────────────────────────────────────────────────
        The steps note steps aside, a slide is dealt for each step, then the
        step photos go in. */
 
-    function deckPlay() {
+    function deckPlay(done) {
+      working("Making a slide for each step…");
       deck.classList.add("is-dealing");
       slideEls.forEach(function (s, i) { later(function () { s.classList.add("is-dealt"); }, 300 + i * 280); });
-      later(function () { line(JOBS[3].lines[1]); deck.classList.add("has-photos"); }, 300 + slideEls.length * 280 + 250);
-      later(finish, 3600);
+      later(function () { working("Adding your step photos…"); deck.classList.add("has-photos"); }, 300 + slideEls.length * 280 + 250);
+      later(done, 3600);
     }
-
     function deckEnd() {
       deck.classList.add("is-dealing", "has-photos");
       slideEls.forEach(function (s) { s.classList.add("is-dealt"); });
     }
-
-    function deckUndo() {
+    function deckReset() {
       deck.classList.remove("is-dealing", "has-photos");
       slideEls.forEach(function (s) { s.classList.remove("is-dealt"); });
     }
 
     /* ── 4 · The collection ─────────────────────────────────────────────────
        The ideas regroup into fabrics, shapes and notes; then Pip reads the
-       scallop prices and pencils in the one that's missing, in place. */
+       scallop prices and pencils in the one that's missing, in place, marked
+       as Pip's. */
 
-    function cvPlay() {
+    function cvMark() {
+      settle(cvPriceText);
+      cvPriceText.textContent = "Scallop, 60cm: ";
+      cvPriceText.appendChild(el("span", "pp-edit", "£400"));
+    }
+    function cvPlay(done) {
+      working("Sorting your ideas…");
       cv.classList.add("is-sorted");
-      later(function () { line(JOBS[4].lines[1]); cvPrices.classList.add("is-lit"); }, 1900);
+      later(function () { working("Pricing the 60cm scallop…"); cvPrices.classList.add("is-lit"); }, 1900);
       later(function () { cvPrices.classList.remove("is-lit"); cvPrice.classList.add("is-lit"); }, 2800);
       later(function () { swapText(cvPriceText, PRICE_AFTER); }, 3250);
-      later(function () { cvPrice.classList.remove("is-lit"); finish(); }, 4300);
+      later(cvMark, 3600);
+      later(function () { cvPrice.classList.remove("is-lit"); done(); }, 4300);
     }
-
     function cvEnd() {
       cv.classList.add("is-sorted");
       cvPrices.classList.remove("is-lit");
       cvPrice.classList.remove("is-lit");
-      cvPriceText.textContent = PRICE_AFTER;
+      cvMark();
     }
-
-    function cvUndo() {
+    function cvReset() {
       settle(cvPriceText);
       cv.classList.remove("is-sorted");
       cvPrices.classList.remove("is-lit");
@@ -2150,9 +2173,9 @@
        grows, and the one finding, picked out. */
 
     function countUp(nodes, duration) {
-      var t0 = null, id = run;
+      var t0 = null, id = gen;
       function frameFn(ts) {
-        if (id !== run) return;
+        if (id !== gen) return;
         if (t0 === null) t0 = ts;
         var k = reduced() ? 1 : Math.min(1, (ts - t0) / duration);
         var eased = 1 - Math.pow(1 - k, 3);
@@ -2163,73 +2186,326 @@
       }
       requestAnimationFrame(frameFn);
     }
-
     function setTiles(final) {
       tiles.forEach(function (b) {
         b.textContent = (b.getAttribute("data-pre") || "") + (final ? (+b.getAttribute("data-to")).toLocaleString("en-GB") : "0") + (b.getAttribute("data-suf") || "");
       });
     }
-
-    function dashPlay() {
-      var s = JOBS[5].lines;
+    function dashPlay(done) {
+      working("Adding up the year…");
       later(function () { dash.classList.add("is-shown"); countUp(tiles, 1400); }, 300);
-      later(function () { line(s[1]); chart.classList.add("is-grown"); }, 1500);
-      later(function () { line(s[2]); dash.classList.add("is-found"); }, 2700);
-      later(finish, 3800);
+      later(function () { working("Drawing the chart…"); chart.classList.add("is-grown"); }, 1500);
+      later(function () { working("Looking for what stands out…"); dash.classList.add("is-found"); }, 2700);
+      later(done, 3800);
     }
-
     function dashEnd() {
       dash.classList.add("is-shown", "is-found");
       chart.classList.add("is-grown");
       setTiles(true);
     }
-
-    function dashUndo() {
+    function dashReset() {
       dash.classList.remove("is-shown", "is-found");
       chart.classList.remove("is-grown");
       setTiles(false);
     }
 
-    /* ── the controls ─────────────────────────────────────────────────────── */
+    /* ── the files: what Pip can do in each, and the words that ask for it ── */
 
-    goBtn.addEventListener("click", function () {
-      if (state !== "before") return;
-      bringIntoView();
-      play();
-    });
-    backBtn.addEventListener("click", function () {
+    var FILES = [
+      { scope: "note", reset: nlReset,
+        can: "draft this newsletter from your ideas",
+        ask: [[/draft|write|newsletter|idea|email|turn|word/, "draft"]],
+        moves: { draft: { play: nlPlay, end: nlEnd,
+          done: "Drafted from your ideas, in your words. The dates and prices are the bit to check.",
+          hint: "<b>Underlined:</b> Pip's draft. Change any word and it's yours." } } },
+      { scope: "photo", reset: photoReset,
+        can: "make this photo a product shot",
+        ask: [[/product|shot|photo|picture|tidy|crop|bright|light|clean|clutter|backdrop|background|cut|shop|edit/, "shot"]],
+        moves: { shot: { play: photoPlay, end: photoEnd,
+          done: "There's your product shot: square, bright and on a clean backdrop, ready for the shop." } } },
+      { scope: "table", reset: costsReset, stack: true, snap: costsSnap, restore: costsSet,
+        can: "work out costs and margins, and flag the low ones",
+        hint: "<b>Your spreadsheet:</b> click a price and change it.",
+        ask: [[/under|flag|low|highlight|colou?r|50/, "low"], [/margin|keep|profit|earn|left over|percent|%|make on/, "margin"], [/\bcosts?\b|to make|add (it |them )?up|\bsum|total|spend/, "cost"]],
+        moves: {
+          cost: { play: costPlay, end: costEnd,
+            done: "Added Cost to make: materials, your time and postage together.",
+            already: function () { return has.cost && "Cost to make is already in, after Postage."; },
+            hint: "<b>Your spreadsheet:</b> change a price and the sums keep up." },
+          margin: { play: marginPlay, end: marginEnd, done: marginDone,
+            already: function () { return has.marg && "Margin is already in, at the end of the table."; },
+            hint: "<b>Your spreadsheet:</b> change a price and the sums keep up." },
+          low: { play: lowPlay, end: lowEnd, done: lowDone,
+            already: function () { return has.low && "Anything under 50% is already highlighted."; },
+            hint: "<b>Your spreadsheet:</b> change a price and the sums keep up." }
+        } },
+      { scope: "note", reset: deckReset,
+        can: "make these steps into slides",
+        ask: [[/slide|deck|present|keynote|powerpoint|show/, "slides"]],
+        moves: { slides: { play: deckPlay, end: deckEnd,
+          done: "Six slides, one for each step, with your photos in." } } },
+      { scope: "canvas", reset: cvReset,
+        can: "sort this canvas and fill in what's missing",
+        ask: [[/sort|tidy|organi[sz]e|group|gap|fill|price|missing|arrange|mess/, "sort"]],
+        moves: { sort: { play: cvPlay, end: cvEnd,
+          done: "Sorted into fabrics, shapes and notes. The 60cm scallop had no price, so I've pencilled in £400 to match your sizes." } } },
+      { scope: "table", reset: dashReset,
+        can: "chart this and make a dashboard",
+        ask: [[/chart|graph|dashboard|total|trend|best|plot|visual|sales|month|year/, "dash"]],
+        moves: { dash: { play: dashPlay, end: dashEnd,
+          done: "One you might have missed: workshops made 43% of sales this year, up from 22% last year." } } }
+    ];
+
+    /* ── moves: Pip works in the file ─────────────────────────────────────── */
+
+    function press(move, then) {
+      var f = FILES[cur], m = f.moves[move];
+      if (!m) return;
+      if (busy && busy.move === move) return;
+      if (busy) land(true);
+      pp.step(2);
+      hot(move);
+      var already = m.already && m.already();
+      if (already) { reply(already, false, hist.length > 0); return; }
+      // A one-move file runs from its before, every time
+      if (!f.stack) { instantly(f.reset); hist = []; }
+      busy = { move: move, snap: f.snap ? f.snap() : null, then: then };
+      pp.showUndo(false);
+      if (reduced()) { land(true); return; }
+      m.play(function () { land(false); });
+    }
+
+    // The move's end: the file as Pip left it, what Pip did, and Undo
+    function land(now) {
+      var b = busy;
+      if (!b) return;
+      var f = FILES[cur], m = f.moves[b.move];
+      busy = null;
+      if (now) { stopAll(); instantly(function () { m.end(b.snap); }); }
+      hist.push(b.snap);
+      pp.step(3);
+      hot(b.move);
+      reply(typeof m.done === "function" ? m.done() : m.done, false, true);
+      pp.hint(m.hint || f.hint || null);
+      measureNote();
+      if (b.then) b.then();
+    }
+
+    function undo() {
+      var f = FILES[cur];
+      if (busy || !hist.length) return;
+      var snap = hist.pop();
+      instantly(function () { if (f.restore) f.restore(snap); else f.reset(); });
+      hot(null);
+      pp.step(4);
+      reply("Put back as it was.", false, hist.length > 0);
+      pp.hint(f.hint || null);
+    }
+
+    function ask(words) {
+      var f = FILES[cur], w = words.toLowerCase();
+      for (var i = 0; i < f.ask.length; i++) {
+        if (f.ask[i][0].test(w)) { press(f.ask[i][1]); return; }
+      }
+      pp.step(2);
+      hot(null);
+      reply("In this sample I can " + f.can + ". On your Mac, ask me anything.", false, hist.length > 0 && !busy);
+    }
+
+    /* ── files: opening one shows it fresh, with Pip's moves for it ───────── */
+
+    function show(i) {
+      var was = cur;
+      cur = i;
+      tabs.forEach(function (t, k) {
+        t.setAttribute("aria-selected", k === i ? "true" : "false");
+        t.tabIndex = k === i ? 0 : -1;
+      });
+      moveBtns.forEach(function (b) { b.hidden = +b.getAttribute("data-for") !== i; });
+      surfs.forEach(function (s, k) { s.hidden = k !== i; });
+      if (i !== was && !reduced() && surfs[i].animate) {
+        surfs[i].animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: EASE_OUT });
+      }
+      measureNote();
+    }
+    // Every file starts fresh: whatever is playing stops, at once
+    function fresh(i) {
       stopAll();
-      instantly(JOBS[cur].undo);
-      before();
-      bringIntoView();
-      goBtn.focus({ preventScroll: true });
-    });
-    jobBtns.forEach(function (b, i) {
-      b.addEventListener("click", function () {
-        pick(i);
-        bringIntoView();
+      var was = cur;
+      instantly(function () { FILES[was].reset(); if (i !== was) FILES[i].reset(); });
+      busy = null; hist = []; said = null; hotMove = null;
+      show(i);
+    }
+    function pick(i) {
+      if (i !== cur) {
+        fresh(i);
+        pp.resetSteps();
+        if (pp.auto) pp.hideHint(); else pp.hint(FILES[i].hint || null);
+        pp.open();
+      } else if (!pp.isOpen()) pp.open();
+      pp.step(1);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pp.stop(); pick(i); });
+      t.addEventListener("keydown", function (e) {
+        var to = e.key === "ArrowRight" ? (i + 1) % tabs.length : e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
+        if (to === null) return;
+        e.preventDefault();
+        pp.stop();
+        tabs[to].focus();
+        pick(to);
       });
     });
 
-    before();
-    fitBar();
-    var lastW = win.getBoundingClientRect().width;
-    var queued = false;
+    /* ── room: the file's width on a wide stage, Pip's on a phone ─────────── */
+
+    // On a wide stage the file keeps the width it has beside Pip's pop-over,
+    // open or shut, so opening Pip only slides it aside (pipPage's own
+    // narrowing, while Pip is open, never goes below this). Measured from the
+    // pop-over's place, not its rise, which scales it.
+    function fitDoc() {
+      if (root.clientWidth <= 640) { doc.style.width = ""; return; }
+      var cs = getComputedStyle(root);
+      var inner = root.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+      var full = Math.min(parseFloat(cs.getPropertyValue("--doc-cap")) || inner, inner);
+      var shut = pop.hidden;
+      if (shut) { pop.style.visibility = "hidden"; pop.hidden = false; }
+      var popLeft = pop.offsetLeft;
+      if (shut) { pop.hidden = true; pop.style.visibility = ""; }
+      doc.style.width = Math.round(Math.min(full, popLeft - 16 - 16)) + "px";
+    }
+    // On a phone the pop-over sits under the file and keeps the room of the
+    // tallest it gets, for any file, so the stage never changes height
+    function fitPop() {
+      pop.style.minHeight = "";
+      if (root.clientWidth > 640) return;
+      var keep = {
+        hidden: pop.hidden, vis: pop.style.visibility, says: says.hidden, undo: undoBtn.hidden,
+        kids: Array.prototype.slice.call(saysText.childNodes), moves: moveBtns.map(function (b) { return b.hidden; })
+      };
+      pop.style.visibility = "hidden";
+      pop.hidden = false;
+      says.hidden = false;
+      undoBtn.hidden = false;
+      var h = 0;
+      FILES.forEach(function (f, i) {
+        moveBtns.forEach(function (b) { b.hidden = +b.getAttribute("data-for") !== i; });
+        var lines = ["In this sample I can " + f.can + ". On your Mac, ask me anything.", "Your change stays. I'll learn from how you wrote it."];
+        Object.keys(f.moves).forEach(function (k) {
+          var m = f.moves[k];
+          lines.push(typeof m.done === "function" ? m.done() : m.done);
+        });
+        if (f.stack) lines.push(lowDone(), cap(lamp.say) + " keeps 33% now. That's under 50%, so it's highlighted.");
+        lines.forEach(function (t) {
+          saysText.textContent = t;
+          h = Math.max(h, pop.offsetHeight);
+        });
+      });
+      saysText.textContent = "";
+      keep.kids.forEach(function (k) { saysText.appendChild(k); });
+      moveBtns.forEach(function (b, k) { b.hidden = keep.moves[k]; });
+      says.hidden = keep.says;
+      undoBtn.hidden = keep.undo;
+      pop.hidden = keep.hidden;
+      pop.style.visibility = keep.vis;
+      // and the gap above "Ask Pip anything…", which takes up the slack
+      pop.style.minHeight = Math.ceil(h + 12) + "px";
+    }
+    // Six tabs that don't fit on one line go three and three, never one on
+    // its own; narrower than that, in two columns, as on a phone
+    var tabList = $(".pp-tabs", root);
+    function fitTabs() {
+      tabList.classList.remove("is-split", "is-grid");
+      if (root.clientWidth <= 640) return;
+      var gap = parseFloat(getComputedStyle(tabList).columnGap) || 0;
+      var w = tabs.map(function (t) { return t.offsetWidth; });
+      function line(a) { return a.reduce(function (sum, x) { return sum + x; }, 0) + gap * (a.length - 1); }
+      if (line(w) <= tabList.clientWidth) return;
+      tabList.classList.add(Math.max(line(w.slice(0, 3)), line(w.slice(3))) <= tabList.clientWidth ? "is-split" : "is-grid");
+    }
+    function fit() { fitDoc(); fitTabs(); fitPop(); measureNote(); }
+
+    /* ── the play-through: draft the newsletter, then the costs ───────────── */
+
+    function moveEl(move) { return $('[data-move="' + move + '"]', root); }
+    function resetAll() {
+      stopAll();
+      instantly(function () { FILES.forEach(function (f) { f.reset(); }); });
+      busy = null; hist = []; said = null; hotMove = null; typing = false;
+      show(0);
+      pp.close();
+      pp.resetSteps();
+    }
+    function play() {
+      pp.start(function () {
+        resetAll();
+        pp.hideHint();
+        pp.later(function () { pp.moveTo(tabs[0], 46, 18); }, 250);
+        pp.later(function () { pp.tap(); pick(0); }, 1050);
+        pp.later(function () { pp.moveTo(moveEl("draft"), 76, 20); }, 1600);
+        pp.later(function () { pp.tap(); press("draft", costsNext); }, 2400);
+      });
+      function costsNext() {
+        if (!pp.auto) return;
+        pp.later(function () { pp.moveTo(tabs[2], 34, 18); }, 700);
+        pp.later(function () { pp.tap(); pick(2); }, 1500);
+        pp.later(function () { pp.moveTo(moveEl("margin"), 90, 20); }, 2100);
+        pp.later(function () { pp.tap(); press("margin", priceNext); }, 2900);
+      }
+      function priceNext() {
+        if (!pp.auto) return;
+        pp.later(function () { pp.moveTo(lamp.price, lamp.price.offsetWidth - 18, 26); }, 800);
+        pp.later(function () { pp.tap(); typePrice(lamp, "£125", end); }, 1600);
+      }
+      function end() {
+        pp.later(function () {
+          pp.hint();
+          pp.done();
+          if (pp.isOpen()) pp.face.classList.remove("is-nudging");
+        }, 1400);
+      }
+    }
+
+    pp = pipPage(root, {
+      play: play,
+      onReplay: play,
+      onMove: function (move) { press(move); },
+      onUndo: undo,
+      onAsk: ask,
+      onOpen: function () {
+        pp.scope(FILES[cur].scope);
+        if (said) { pp.say(said.text, said.working); pp.showUndo(said.undo); }
+        pp.hot(hotMove);
+      },
+      onStop: function () {
+        // stopped part-way through typing a price: it lands at once
+        if (typing) typed(lamp, "£125");
+        pp.hint(FILES[cur].hint || null);
+        pp.done();
+        if (pp.isOpen()) pp.face.classList.remove("is-nudging");
+      }
+    });
+
+    root.classList.add("is-ready");
+    $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
+    $$(".pair", chart).forEach(function (p, i) { $$("i", p).forEach(function (b) { b.style.setProperty("--n", i); }); });
+    slideEls.forEach(function (s, i) { s.style.setProperty("--n", i); });
+    show(0);
+    sums(false);
+    fit();
+    // With no play-through, Pip's moves for the open file are there from the start
+    if (reduced()) pp.open();
+
+    var lastW = root.clientWidth, queued = null;
     function refit() {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(function () { queued = false; fitBar(); });
+      clearTimeout(queued);
+      // after pipPage has made room for an open pop-over (120ms)
+      queued = setTimeout(function () { lastW = root.clientWidth; fit(); }, 160);
     }
     if ("ResizeObserver" in window) {
-      new ResizeObserver(function () {
-        var w = win.getBoundingClientRect().width;
-        if (w === lastW) return;
-        lastW = w;
-        refit();
-      }).observe(win);
-    }
-    window.addEventListener("resize", refit);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBar);
+      new ResizeObserver(function () { if (root.clientWidth !== lastW) refit(); }).observe(root);
+    } else window.addEventListener("resize", refit);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
   }
 
 

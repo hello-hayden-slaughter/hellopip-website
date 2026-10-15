@@ -331,40 +331,34 @@
   </div>
 </section>
 
-<!-- ═══ Not just words: the six jobs ═══════════════════════════════════════ -->
+<!-- ═══ Help with everything you make: Pip in your files ═══════════════════ -->
 <section class="section band jobs" id="jobs" aria-labelledby="jobs-h">
   <div class="container">
     <div class="sec-head" data-reveal>
       <h2 class="h2" id="jobs-h">Help with everything you make.</h2>
-      <p class="lead">Pip works inside your notes, photos, spreadsheets and slides, not just a chat box. Pick a job and watch Pip do it.</p>
+      <p class="lead">Pip works inside your notes, photos, spreadsheets and slides, not in a chat box. Open a file, ask Pip, and the change lands in it.</p>
     </div>
   </div>
   <div class="container container--wide stack-gap" data-reveal-visual>
-    <div class="demo win--jobs" id="jobs-win" role="group" aria-label="Six jobs Pip can help with">
-      <div class="demo-try jobs-try">
-        <span class="demo-try-label">Try it: pick a job</span>
-        <div class="demo-try-actions jobs-pick" role="group" aria-label="Jobs">
-          <button type="button" class="try-btn job" data-job="0" aria-pressed="true"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Newsletter</span></button>
-          <button type="button" class="try-btn job" data-job="1" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>Product shot</span></button>
-          <button type="button" class="try-btn job" data-job="2" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Costs</span></button>
-          <button type="button" class="try-btn job" data-job="3" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg><span>Workshop slides</span></button>
-          <button type="button" class="try-btn job" data-job="4" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg><span>New collection</span></button>
-          <button type="button" class="try-btn job" data-job="5" aria-pressed="false"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg><span>Sales dashboard</span></button>
+    <ol class="pp-steps" aria-label="How it goes" data-pp-steps>
+      <li>Open a file</li>
+      <li>Ask Pip</li>
+      <li>Pip works in the file</li>
+      <li>It's yours to change</li>
+    </ol>
+    <div class="pp pp--jobs" data-pp data-jobs>
+      <button type="button" class="pp-replay" data-pp-replay hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg>Play it again</button>
+      <div class="pp-doc" data-pp-doc>
+        <div class="pp-tabs" role="tablist" aria-label="Files">
+          <button type="button" class="pp-tab" role="tab" id="jobs-t0" aria-selected="true" data-file="0"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Newsletter: <span data-date="month">October</span></span></button>
+          <button type="button" class="pp-tab" role="tab" id="jobs-t1" aria-selected="false" tabindex="-1" data-file="1"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-image"/></svg><span>sage-slim-lamp.jpg</span></button>
+          <button type="button" class="pp-tab" role="tab" id="jobs-t2" aria-selected="false" tabindex="-1" data-file="2"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span>Costs</span></button>
+          <button type="button" class="pp-tab" role="tab" id="jobs-t3" aria-selected="false" tabindex="-1" data-file="3"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-presentation"/></svg><span>Drum workshop steps</span></button>
+          <button type="button" class="pp-tab" role="tab" id="jobs-t4" aria-selected="false" tabindex="-1" data-file="4"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-shapes"/></svg><span>Spring collection</span></button>
+          <button type="button" class="pp-tab" role="tab" id="jobs-t5" aria-selected="false" tabindex="-1" data-file="5"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-dashboard"/></svg><span>Sales <span data-date="sales-year">2026</span></span></button>
         </div>
-      </div>
-      <div class="demo-pip demo-pip--act jobs-pip">
-        <span class="jobs-face" id="jobs-face"><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span>
-        <p class="jobs-msg" id="jobs-msg" aria-live="polite">You've jotted down this month's news. Want me to turn it into a first draft, in your words?</p>
-        <div class="demo-pip-act">
-          <button type="button" class="try-go" id="jobs-go">Yes, draft it</button>
-          <button type="button" class="try-back" id="jobs-back" hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg>View original</button>
-        </div>
-      </div>
-      <div class="demo-body jobs-body">
-        <p class="jobs-crumb"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-folder"/></svg><span id="jobs-title">Lume Lighting › Newsletters › Newsletter: <span data-date="month">October</span></span></p>
-        <div class="jobs-stage" id="jobs-stage">
-
-          <div class="surf surf--note" data-surf="0" id="nl">
+        <div class="jobs-stage">
+          <div class="surf surf--note" data-surf="0" role="tabpanel" aria-labelledby="jobs-t0" id="nl">
             <p class="doc-meta">Note · edited yesterday</p>
             <h3 class="surf-title">Newsletter: <span data-date="month">October</span></h3>
             <div class="nl" id="nl-text"></div>
@@ -380,7 +374,7 @@
             </div>
           </div>
 
-          <div class="surf surf--photo" data-surf="1">
+          <div class="surf surf--photo" data-surf="1" role="tabpanel" aria-labelledby="jobs-t1">
             <div class="photo-job" id="photo-job">
               <div class="photo-frame" id="photo-frame" role="img" aria-label="A sage green linen slim lamp on a desk, with a plant, a notepad, a laptop and scissors around it">
                 <div class="pv">
@@ -407,7 +401,7 @@
             </div>
           </div>
 
-          <div class="surf surf--costs" data-surf="2">
+          <div class="surf surf--costs" data-surf="2" role="tabpanel" aria-labelledby="jobs-t2">
             <div class="costs" id="costs">
               <div class="tbl-wrap costs-wrap"><table class="tbl tbl--costs" aria-label="Costs">
                 <thead><tr>
@@ -420,17 +414,17 @@
                   <th scope="col" class="c-marg">Margin<small class="fx">= (Price − Cost) ÷ Price</small></th>
                 </tr></thead>
                 <tbody>
-                  <tr><td class="c-name">Large scallop</td><td class="c-price">£350</td><td class="c-mats">£38</td><td class="c-time">£60</td><td class="c-post">£12</td><td class="c-cost">£110</td><td class="c-marg">69%</td></tr>
-                  <tr><td class="c-name">Medium scallop</td><td class="c-price">£300</td><td class="c-mats">£30</td><td class="c-time">£50</td><td class="c-post">£12</td><td class="c-cost">£92</td><td class="c-marg">69%</td></tr>
-                  <tr><td class="c-name">Gathered drum, 35cm</td><td class="c-price">£220</td><td class="c-mats">£22</td><td class="c-time">£40</td><td class="c-post">£10</td><td class="c-cost">£72</td><td class="c-marg">67%</td></tr>
-                  <tr data-low><td class="c-name">Sage slim lamp</td><td class="c-price">£105</td><td class="c-mats">£42<small>£14 + £28 base</small></td><td class="c-time">£20</td><td class="c-post">£8</td><td class="c-cost">£70</td><td class="c-marg">33%</td></tr>
+                  <tr data-parts="38,60,12" data-say="the large scallop"><td class="c-name">Large scallop</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£350</td><td class="c-mats">£38</td><td class="c-time">£60</td><td class="c-post">£12</td><td class="c-cost">£110</td><td class="c-marg">69%</td></tr>
+                  <tr data-parts="30,50,12" data-say="the medium scallop"><td class="c-name">Medium scallop</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£300</td><td class="c-mats">£30</td><td class="c-time">£50</td><td class="c-post">£12</td><td class="c-cost">£92</td><td class="c-marg">69%</td></tr>
+                  <tr data-parts="22,40,10" data-say="the 35cm drum"><td class="c-name">Gathered drum, 35cm</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£220</td><td class="c-mats">£22</td><td class="c-time">£40</td><td class="c-post">£10</td><td class="c-cost">£72</td><td class="c-marg">67%</td></tr>
+                  <tr data-parts="42,20,8" data-say="the slim lamp"><td class="c-name">Sage slim lamp</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£105</td><td class="c-mats">£42<small>£14 + £28 base</small></td><td class="c-time">£20</td><td class="c-post">£8</td><td class="c-cost">£70</td><td class="c-marg">33%</td></tr>
                 </tbody>
               </table></div>
               <p class="cf-rule" aria-hidden="true"><i></i>Highlighted: Margin under 50%</p>
             </div>
           </div>
 
-          <div class="surf surf--deck" data-surf="3">
+          <div class="surf surf--deck" data-surf="3" role="tabpanel" aria-labelledby="jobs-t3">
             <div class="deck-job" id="deck-job">
               <div class="step-note">
                 <p class="doc-meta">Note · Workshops</p>
@@ -454,7 +448,7 @@
             </div>
           </div>
 
-          <div class="surf surf--canvas" data-surf="4">
+          <div class="surf surf--canvas" data-surf="4" role="tabpanel" aria-labelledby="jobs-t4">
             <div class="cv" id="cv">
               <span class="cvh" style="--x: 4%">Fabrics</span>
               <span class="cvh" style="--x: 37%">Shapes</span>
@@ -470,7 +464,7 @@
             </div>
           </div>
 
-          <div class="surf surf--dash" data-surf="5">
+          <div class="surf surf--dash" data-surf="5" role="tabpanel" aria-labelledby="jobs-t5">
             <div class="dash" id="dash">
               <div class="dash-before">
                 <div class="tbl-wrap"><table class="tbl tbl--sales" aria-label="Sales this year">
@@ -511,9 +505,31 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
+      <button type="button" class="pp-face" aria-label="Ask Pip" aria-expanded="false" data-pp-face><svg class="pf" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></button>
+      <div class="pp-pop" role="dialog" aria-label="Pip" data-pp-pop hidden>
+        <div class="pp-pop-head">
+          <p class="pp-scope"><span data-pp-scope="note">Whole note</span><span data-pp-scope="photo">Whole photo</span><span data-pp-scope="table">Whole table</span><span data-pp-scope="canvas">Whole canvas</span></p>
+          <button type="button" class="pp-close" aria-label="Close Pip" data-pp-close><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+        </div>
+        <p class="pp-label">How Pip can help</p>
+        <div class="pp-moves">
+          <button type="button" class="pp-move" data-move="draft" data-for="0">Draft it from my ideas</button>
+          <button type="button" class="pp-move" data-move="shot" data-for="1" hidden>Make it a product shot</button>
+          <button type="button" class="pp-move" data-move="cost" data-for="2" hidden>Work out what each costs to make</button>
+          <button type="button" class="pp-move" data-move="margin" data-for="2" hidden>How much do I keep on each?</button>
+          <button type="button" class="pp-move" data-move="low" data-for="2" hidden>Flag anything under 50%</button>
+          <button type="button" class="pp-move" data-move="slides" data-for="3" hidden>Make it into slides</button>
+          <button type="button" class="pp-move" data-move="sort" data-for="4" hidden>Sort it and fill the gaps</button>
+          <button type="button" class="pp-move" data-move="dash" data-for="5" hidden>Chart it, and make a dashboard</button>
+        </div>
+        <p class="pp-says" aria-live="polite" data-pp-says hidden><svg class="pf" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span data-pp-says-text></span></p>
+        <button type="button" class="try-back pp-undo" data-pp-undo hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg>Undo</button>
+        <form class="pp-compose" data-pp-compose><input type="text" placeholder="Ask Pip anything…" aria-label="Ask Pip" autocomplete="off"><button type="submit" aria-label="Send"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-send"/></svg></button></form>
+      </div>
+      <svg class="pp-pointer" viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-pp-pointer><path d="M4 2l15 9-6.5 1.8L16 20l-2.6 1.3-3.4-7.3L5 18z" fill="#1A1A1A" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <p class="pp-hint" data-pp-hint><b>Your turn:</b> open any file and ask Pip.</p>
     </div>
   </div>
 </section>

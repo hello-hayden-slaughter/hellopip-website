@@ -1586,74 +1586,54 @@ small { font-size: inherit; }
 @keyframes pp-nudge { 0%, 100% { transform: none; } 50% { transform: translateY(-4px) rotate(-4deg); } }
 @keyframes pp-tap { 50% { scale: 0.85; } }
 
-/* ── Not just words: the six jobs ───────────────────────────────────────── */
+/* ── Help with everything you make: Pip in your files ───────────────────
 
-/* "Help with everything you make." A try-it demo with the site's one shape,
-   top to bottom: the strip holds the choices ("Try it: pick a job" and the
-   six jobs); Pip's line asks, and your answer (the do-it button, or View
-   original once it's done) sits at the end of that same line; the work fills
-   one steady box underneath.
+   Pip on your page (above), with six files open in tabs along the top of
+   the file. Opening one opens Pip's pop-over with the moves for that file;
+   each plays in the file itself, the bits Pip added marked as Pip's.
 
-   The box is one height for every job and every moment of one, sized to the
-   work rather than the screen, and each file sits centred at its natural
-   size. Pip's line keeps room for its tallest message at this width
-   (measured in script), so nothing moves when you pick, press or switch.
-   Without script every job's "before" is listed. */
-.win--jobs { container-name: jobs; max-width: 1320px; margin-inline: auto; }
-/* Without script the controls would do nothing, so only the befores show */
-.win--jobs:not(.is-ready) .jobs-try,
-.win--jobs:not(.is-ready) .jobs-pip { display: none; }
-
-/* The strip: the label, then the six jobs. They wrap and never scroll; the
-   label takes a line of its own when they don't fit beside it */
-.jobs-pick { gap: 8px; }
-.jobs-pick .try-btn { padding: 0 15px 0 13px; }
-.jobs-pick .try-btn .i-16 { width: 15px; height: 15px; }
-
-/* Pip's line (the shared .demo-pip--act): the face, what Pip says, and the
-   one button at the end. While Pip works the do-it button keeps its place,
-   unseen, so the words never reflow */
-.jobs-face { flex: none; display: inline-flex; }
-.jobs-msg { color: var(--text-primary); }
-.jobs-msg.is-busy { display: flex; align-items: flex-start; gap: 8px; color: var(--text-secondary); }
-.jobs-msg.is-busy .dots { height: 1.5em; }
-.jobs-pip.is-working .try-go { visibility: hidden; }
-.jobs-pip .try-back .i { margin-left: -1px; }
-/* Until the visitor has clicked anything here, the do-it button gently asks to be pressed */
-@media (prefers-reduced-motion: no-preference) {
-  .win--jobs:not(.is-tried) .jobs-pip .try-go { animation: jobs-nudge 2.2s var(--ease-in-out) 1.2s infinite; }
-}
-@keyframes jobs-nudge {
-  0%, 70%, 100% { box-shadow: 0 2px 6px var(--accent-soft-strong), 0 0 0 0 var(--accent-soft-strong); }
-  35%           { box-shadow: 0 2px 6px var(--accent-soft-strong), 0 0 0 5px var(--accent-soft-strong); }
-}
-
-/* The work: the file's folder and name, quietly, then the file. The box is
-   one fixed height, the crumb included; the stage under the crumb is a size
-   container (`stage`), so a file can size itself to the room (cqh) */
-.jobs-body { display: flex; flex-direction: column; }
-.win--jobs.is-ready .jobs-body { height: 470px; }
-.jobs-crumb {
-  flex: none;
+   The file is one height for every file and every moment of one, sized to
+   the screen within limits, and on a wide stage one width too: the room
+   beside Pip's pop-over (script holds it while Pip is shut, pipPage while
+   it's open), so opening Pip only slides the file aside and nothing in it
+   reflows. The file's insides are a size container (`stage`), so each file
+   sizes itself to the room. On a phone the pop-over sits under the file
+   and keeps the room of its tallest reply, open or shut, so the stage never
+   changes height. Without script every file's "before" is listed. */
+.pp--jobs { --doc-cap: 1060px; }
+.pp--jobs .pp-doc {
   display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 14px 24px 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-muted);
-  white-space: nowrap;
+  flex-direction: column;
+  max-width: var(--doc-cap);
+  height: clamp(420px, calc(100svh - var(--header-h) - 200px), 540px);
+  min-height: 0;
+  padding: 18px 24px 22px;
 }
-.jobs-crumb .i { flex: none; }
-.jobs-crumb > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.win--jobs:not(.is-ready) .jobs-crumb { display: none; }
+.pp--jobs .pp-tabs { flex: none; }
+/* Tabs that don't fit on one line go three and three, never one on its own;
+   narrower still, two columns as on a phone (script measures which) */
+.pp--jobs .pp-tabs.is-split { row-gap: 0; }
+.pp--jobs .pp-tabs.is-split::after { content: ""; order: 2; flex-basis: 100%; height: 0; }
+.pp--jobs .pp-tabs.is-split .pp-tab:nth-child(n+4) { order: 3; margin-top: 4px; }
+.pp--jobs .pp-tabs.is-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-inline: -6px; }
+.pp--jobs .pp-tabs.is-grid .pp-tab { padding: 0 10px; }
+/* The hint reads as one line of words that wraps, its label inline */
+.pp--jobs .pp-hint { display: block; }
+/* Pip's pop-over says what it's working on: the whole of this file */
+.pp--jobs .pp-scope span:not(.is-on) { display: none; }
+.pp--jobs:not(.is-ready) .pp-doc { height: auto; }
+.pp--jobs:not(.is-ready) .pp-tabs,
+.pp--jobs:not(.is-ready) .pp-face,
+.pp--jobs:not(.is-ready) .pp-hint { display: none; }
+@container (max-width: 640px) {
+  .pp--jobs .pp-doc { height: 470px; padding: 14px 12px; }
+  .pp--jobs .pp-pop { margin-bottom: 12px; }
+  .pp--jobs.is-ready .pp-pop[hidden] { display: flex !important; visibility: hidden; }
+  .pp--jobs .pp-compose { margin-top: auto; }
+}
 
-.jobs-stage {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  padding: 14px 24px 24px;
-}
-.win--jobs.is-ready .jobs-stage {
+.jobs-stage { display: grid; grid-template-columns: minmax(0, 1fr); }
+.pp--jobs.is-ready .jobs-stage {
   container: stage / size;
   flex: 1 1 auto;
   min-height: 0;
@@ -1661,32 +1641,15 @@ small { font-size: inherit; }
   overflow: hidden;
 }
 .surf { min-width: 0; min-height: 0; }
-.win--jobs:not(.is-ready) .surf + .surf { margin-top: 40px; padding-top: 40px; box-shadow: inset 0 1px 0 var(--border-light); }
-.win--jobs.is-ready .surf { grid-area: 1 / 1; }
+.pp--jobs:not(.is-ready) .surf + .surf { margin-top: 40px; padding-top: 40px; box-shadow: inset 0 1px 0 var(--border-light); }
+.pp--jobs.is-ready .surf { grid-area: 1 / 1; }
 .surf-title { margin: 2px 0 12px; font-size: 22px; font-weight: var(--weight-semibold); line-height: 1.3; letter-spacing: -0.015em; }
 
-/* Pip's bar (shared with "It's your page"): a face, a label, words, buttons */
-.pipbar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  background: var(--bg-primary);
-  box-shadow: inset 0 1px 0 var(--border-light);
-}
-.pipbar-face { display: inline-flex; flex: none; align-self: flex-start; margin-top: 6px; }
-.pipbar-text { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.pipbar-label { font-size: 12px; font-weight: var(--weight-medium); color: var(--text-muted); }
-.pipbar-msg { font-size: 15px; line-height: 1.45; color: var(--text-primary); min-height: 1.45em; }
-.pipbar-msg.is-busy { display: flex; align-items: flex-start; gap: 8px; color: var(--text-secondary); }
-.pipbar-msg.is-busy .dots { height: 1.45em; }
-.pipbar-actions { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; min-height: var(--control-h); }
-.pipbar-actions .btn .i { margin-right: -2px; }
-
-/* View original, and a switch mid-job, put the before back at once */
-.win--jobs.is-instant .jobs-stage *,
-.win--jobs.is-instant .jobs-stage *::before,
-.win--jobs.is-instant .jobs-stage *::after { transition: none !important; animation: none !important; }
+/* Undo, and opening a file mid-job, put the before back at once */
+.pp--jobs.is-instant .pp-doc,
+.pp--jobs.is-instant .jobs-stage *,
+.pp--jobs.is-instant .jobs-stage *::before,
+.pp--jobs.is-instant .jobs-stage *::after { transition: none !important; animation: none !important; }
 
 /* A coral wash on the idea Pip is reading or writing from (.is-lit) */
 .rough li.is-lit { background-color: var(--accent-soft); }
@@ -1696,22 +1659,24 @@ small { font-size: inherit; }
    paragraph writes, then folds away. Done, only the newsletter is left. A
    note longer than the stage scrolls under a fade. */
 .surf--note { position: relative; justify-self: center; width: min(100%, 640px); }
-.win--jobs.is-ready .surf--note { overflow-y: auto; scrollbar-width: none; }
-.win--jobs.is-ready .surf--note.is-long {
+.pp--jobs.is-ready .surf--note { overflow-y: auto; scrollbar-width: none; }
+.pp--jobs.is-ready .surf--note.is-long {
   padding-bottom: 36px;
   -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
           mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
 }
-.win--jobs.is-ready .surf--note.is-long.is-scrolled {
+.pp--jobs.is-ready .surf--note.is-long.is-scrolled {
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 40px), transparent);
           mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 40px), transparent);
 }
-.win--jobs.is-ready .surf--note::-webkit-scrollbar { display: none; }
+.pp--jobs.is-ready .surf--note::-webkit-scrollbar { display: none; }
 .nl-h { margin: 0 0 6px; font-size: 14px; font-weight: var(--weight-semibold); line-height: 1.4; color: var(--text-secondary); }
 .nl:not(:empty) { margin-bottom: 18px; }
 .nl p { font-size: 15px; line-height: 1.6; }
 .nl p + p { margin-top: 8px; }
 .nl .caret { opacity: 1; height: 1.1em; vertical-align: -0.18em; margin-left: 2px; }
+/* Drafted, it's yours to write in; Pip's words underlined until you change them (.pp-edit) */
+.nl[contenteditable] { outline: none; caret-color: var(--accent-strong); }
 .nl-ideas { overflow: hidden; }
 .rough { list-style: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; font-size: 15px; line-height: 1.45; color: var(--text-secondary); }
 .rough li {
@@ -1901,12 +1866,14 @@ small { font-size: inherit; }
 .ptool-tick { display: none; margin: 0 -3px 0 -1px; color: var(--chart-sage); }
 .ptool.is-done .ptool-tick { display: block; }
 
-/* Costs: one table, full width, and only what Pip's tables really do. Pip
-   adds a formula column (Cost to make), then another in percent (Margin),
-   then a conditional format that colours any row with a margin under 50%.
-   The new columns arrive at the table's right edge, and the header row is
-   one height from the start (room for a formula under a new column's name),
-   so nothing already there moves. */
+/* Costs: your spreadsheet, and only what Pip's tables really do. Pip adds a
+   formula column (Cost to make), another in percent (Margin), and a
+   conditional format that colours any row with a margin under 50%. The new
+   columns arrive at the table's right edge, and the header row is one height
+   from the start (room for a formula under a new column's name), so nothing
+   already there moves. A column Pip added is washed as Pip's (th.is-pips)
+   until you change a number; the prices are yours to change, and the sums
+   follow. */
 .costs { --th-h: 68px; justify-self: center; width: min(100%, 980px); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .costs-wrap { width: 100%; max-width: none; }
 .tbl--costs { font-size: 14px; line-height: 1.3; }
@@ -1922,8 +1889,13 @@ small { font-size: inherit; }
 .costs.has-cost .c-cost, .costs.has-marg .c-marg { display: table-cell; }
 .tbl--costs td.c-cost, .tbl--costs td.c-marg { color: var(--text-primary); transition: opacity 240ms var(--ease-out); }
 .tbl--costs tr:not(.is-c) td.c-cost, .tbl--costs tr:not(.is-m) td.c-marg { opacity: 0; }
-.tbl--costs th.c-cost, .tbl--costs th.c-marg { background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--bg-secondary); }
-.costs.is-ruled .tbl--costs th.c-cost, .costs.is-ruled .tbl--costs th.c-marg { background: var(--bg-secondary); transition: background-color 600ms var(--ease-out); }
+.tbl--costs th { transition: background-color 600ms var(--ease-out), box-shadow 600ms var(--ease-out); }
+.tbl--costs th.is-pips { background-color: var(--accent-soft); box-shadow: inset 0 -2px 0 var(--accent); }
+/* The prices: click one and change it */
+.tbl--costs td.c-price[contenteditable] { outline: none; caret-color: var(--accent-strong); }
+.tbl--costs td.c-price[contenteditable]:hover { background-color: var(--bg-hover); }
+.tbl--costs td.c-price[contenteditable]:focus,
+.tbl--costs td.c-price.is-typing { background-color: var(--surface-pip); box-shadow: inset 0 0 0 2px var(--accent-strong); }
 /* The conditional format, and its rule as a tag under the table */
 .tbl--costs td { transition: background-color 400ms var(--ease-out), opacity 240ms var(--ease-out); }
 .tbl--costs tr.is-low td { background: var(--accent-soft); }
@@ -1960,7 +1932,7 @@ small { font-size: inherit; }
 .deck-job.is-dealing .step-note { opacity: 0; visibility: hidden; }
 .slides { visibility: hidden; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: min(900px, 240cqh - 5px); }
 .deck-job.is-dealing .slides { visibility: visible; }
-.win--jobs:not(.is-ready) .slides { display: none; }
+.pp--jobs:not(.is-ready) .slides { display: none; }
 .slide {
   position: relative;
   aspect-ratio: 16 / 10;
@@ -2018,7 +1990,7 @@ small { font-size: inherit; }
   box-shadow: inset 0 0 0 1px var(--border-light);
   overflow: hidden;
 }
-.win--jobs.is-ready .cv { height: 100%; }
+.pp--jobs.is-ready .cv { height: 100%; }
 .cvh {
   position: absolute;
   left: var(--x);
@@ -2100,12 +2072,12 @@ small { font-size: inherit; }
 .key { flex: none; display: flex; gap: 18px; margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
 .key i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
 
-/* ── The jobs window at its widths (the window is the `jobs` container) ── */
+/* ── The files at their widths (the file's insides are the `stage` container) ── */
 
-/* Narrower than a laptop: the costs table lays out to the stage's width;
+/* Narrower than a laptop: the costs table lays out to the file's width;
    once "Cost to make" exists, it stands in for the time and postage columns
    it adds up */
-@container jobs (max-width: 820px) {
+@container stage (max-width: 772px) {
   .costs { --th-h: 80px; }
   .tbl--costs { table-layout: fixed; }
   .tbl--costs th, .tbl--costs td { white-space: normal; }
@@ -2116,14 +2088,9 @@ small { font-size: inherit; }
   .cvi--sticky { padding: 6px 8px; font-size: 11.5px; }
   .cvh { font-size: 11.5px; }
 }
-/* A phone: the jobs in two tidy columns, a taller box, two slides across,
-   and the finding on a row of its own */
-@container jobs (max-width: 640px) {
-  .jobs-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; width: 100%; }
-  .jobs-pick .try-btn { width: 100%; min-width: 0; padding: 0 10px; gap: 6px; font-size: 13.5px; }
-  .win--jobs.is-ready .jobs-body { height: 500px; }
-  .jobs-crumb { padding: 12px 14px 0; }
-  .jobs-stage { padding: 12px 14px 16px; }
+/* Narrow, beside Pip or on a phone: two slides across, the finding on a row
+   of its own, and the photo's tools as icons */
+@container stage (max-width: 612px) {
   .slides { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-width: min(900px, 106cqh - 9px); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .tile--find { grid-column: 1 / -1; }
@@ -2140,12 +2107,7 @@ small { font-size: inherit; }
   .ptool > span { display: none; }
   .ptool-tick { margin: 0 -4px 0 2px; }
 }
-/* When the button wraps under Pip's words, the words and the button stay
-   together, centred in the line's kept height */
-@container jobs (max-width: 560px) {
-  .jobs-pip { align-content: center; }
-}
-@container jobs (max-width: 480px) {
+@container stage (max-width: 452px) {
   .slide-face { font-size: 10px; }
   .slide-face b { font-size: 11px; }
   .slide-face small { display: none; }
@@ -2170,8 +2132,7 @@ small { font-size: inherit; }
   .costs { --th-h: 48px; }
   .tbl--costs .fx { display: none; }
 }
-@container jobs (max-width: 340px) {
-  .jobs-pick .try-btn { padding: 0 8px; font-size: 13px; }
+@container stage (max-width: 312px) {
   .cvi--sticky { padding: 6px; font-size: 10.5px; }
   .tbl--costs { font-size: 12px; }
   .tbl--costs th { font-size: 10.5px; }
@@ -2956,6 +2917,7 @@ small { font-size: inherit; }
 @keyframes pip-peek   { from { opacity: 0; transform: translateY(72%); } to { opacity: 1; transform: none; } }
 @keyframes hand-draw  { to { stroke-dashoffset: 0; } }
 @keyframes slide-deal { from { opacity: 0; transform: translateY(10px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes jobs-recalc { 0%, 55% { box-shadow: inset 0 0 0 2px var(--accent); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
 
 @media (prefers-reduced-motion: no-preference) {
 
@@ -3012,8 +2974,9 @@ small { font-size: inherit; }
   .dots i:nth-child(2) { animation-delay: 0.15s; }
   .dots i:nth-child(3) { animation-delay: 0.3s; }
 
-  /* ── The six jobs ────────────────────────────────────────────────────── */
+  /* ── Help with everything you make ───────────────────────────────────── */
   .slide.is-dealt .slide-face { animation: slide-deal 480ms var(--ease-out) both; }
+  .tbl--costs td.is-recalc { animation: jobs-recalc 1200ms var(--ease-out); }
   .costs.has-cost th.c-cost, .costs.has-marg th.c-marg { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
 }
 
@@ -3071,7 +3034,7 @@ small { font-size: inherit; }
   }
   .dots i { animation: none; opacity: 0.5; }
   .tbl tr.is-new td { animation: none; }
-  .btn:active, .scene-reset:active, .job:active, .play-go:active { transform: none; }
+  .btn:active, .scene-reset:active, .play-go:active { transform: none; }
 }
 
 
