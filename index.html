@@ -290,36 +290,50 @@
 
 <!-- ═══ Help with the bit you're stuck on ══════════════════════════════════ -->
 <section class="section yours" id="yours" aria-labelledby="yours-h">
-  <div class="container grid12">
-    <div class="sec-head yours-head" data-reveal>
+  <div class="container">
+    <div class="sec-head" data-reveal>
       <h2 class="h2" id="yours-h">Help with the bit you're stuck on.</h2>
-      <p class="lead">Write it your way. Then ask Pip to tidy a sentence, shorten it or say more, and leave the rest alone. Pip learns how you write, so it still sounds like you.</p>
+      <p class="lead">This is your page: click in and write. When you're stuck, pick the words and ask Pip. Pip changes only that bit, the rest stays as you wrote it, and you carry on writing.</p>
     </div>
-    <div class="yours-visual" data-reveal-visual>
-      <div class="demo demo--help" data-help>
-        <div class="demo-try">
-          <span class="demo-try-label">Try it: ask Pip to</span>
-          <div class="demo-try-actions">
-            <button type="button" class="try-btn" data-edit="0" data-first>Tidy it up</button>
-            <button type="button" class="try-btn" data-edit="1">Make it 15 words</button>
-            <button type="button" class="try-btn" data-edit="2">Say more</button>
-            <button type="button" class="try-btn" data-edit="3">Make it a list</button>
-          </div>
+  </div>
+  <div class="container container--wide stack-gap" data-reveal-visual>
+    <ol class="pp-steps" aria-label="How it goes" data-pp-steps>
+      <li>You write</li>
+      <li>You pick a bit</li>
+      <li>Pip helps with that bit</li>
+      <li>You carry on</li>
+    </ol>
+    <div class="pp" data-pp data-help>
+      <button type="button" class="pp-replay" data-pp-replay hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg>Play it again</button>
+      <div class="pp-doc" data-pp-doc>
+        <p class="pp-crumb">Notes › Products</p>
+        <h3 class="pp-title">New in the shop</h3>
+        <div class="pp-body" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true" aria-label="New in the shop: a note you can write in" data-help-body>
+          <p data-help-p1>new sage lamp in the shop!! linen shade on an oak base, looks lovely on a desk. £105. made to order so 2 weeks ish</p>
+          <p>Photos to follow once the sun comes out.</p>
         </div>
-        <div class="demo-pip demo-pip--act"><span class="demo-pip-face" data-help-face><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></span><p data-help-msg aria-live="polite">Pick what you'd like me to do with the highlighted part.</p><div class="demo-pip-act demo-pip-act--keep"><button type="button" class="try-back" data-help-back hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg><span>View original</span></button></div></div>
-        <div class="demo-body help-body" data-help-body>
-          <p class="doc-meta">Note · Products</p>
-          <h3 class="help-title">New in the shop</h3>
-          <div class="help-row">
-            <p class="help-para"><span class="help-sel" data-help-text>new sage lamp in the shop!! linen shade on an oak base, looks lovely on a desk. £105. made to order so 2 weeks ish</span><i class="caret" aria-hidden="true"></i></p>
-            <span class="help-tag" data-help-tag>selected</span>
-          </div>
-          <div class="help-row">
-            <p class="help-para help-para--rest">Photos to follow once the sun comes out.</p>
-            <span class="help-tag help-tag--yours">your words</span>
-          </div>
-        </div>
+        <div class="pp-toolbar" aria-hidden="true"><span>B</span><span><i>I</i></span><span><u>U</u></span><span class="pp-sep"></span><span>H1</span><span>H2</span><span class="pp-sep"></span><span>•</span><span>1.</span></div>
       </div>
+      <button type="button" class="pp-ask" data-pp-ask hidden><svg class="pf" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg>Ask Pip</button>
+      <button type="button" class="pp-face" aria-label="Ask Pip" aria-expanded="false" data-pp-face><svg class="pf" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg></button>
+      <div class="pp-pop" role="dialog" aria-label="Pip" data-pp-pop hidden>
+        <div class="pp-pop-head">
+          <p class="pp-scope"><span data-pp-scope="sel">Selection</span><span data-pp-scope="all">Whole note</span></p>
+          <button type="button" class="pp-close" aria-label="Close Pip" data-pp-close><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+        </div>
+        <p class="pp-label">How Pip can help</p>
+        <div class="pp-moves">
+          <button type="button" class="pp-move" data-move="tidy">Tidy it up</button>
+          <button type="button" class="pp-move" data-move="short">Make it shorter</button>
+          <button type="button" class="pp-move" data-move="more">Say more, from my notes</button>
+          <button type="button" class="pp-move" data-move="list">Make it a list</button>
+        </div>
+        <p class="pp-says" aria-live="polite" data-pp-says hidden><svg class="pf" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span data-pp-says-text></span></p>
+        <button type="button" class="try-back pp-undo" data-pp-undo hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-undo"/></svg>Undo</button>
+        <form class="pp-compose" data-pp-compose><input type="text" placeholder="Ask Pip anything…" aria-label="Ask Pip" autocomplete="off"><button type="submit" aria-label="Send"><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-send"/></svg></button></form>
+      </div>
+      <svg class="pp-pointer" viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-pp-pointer><path d="M4 2l15 9-6.5 1.8L16 20l-2.6 1.3-3.4-7.3L5 18z" fill="#1A1A1A" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <p class="pp-hint" data-pp-hint><b>Your turn:</b> click into the page and write, or select some words and ask Pip.</p>
     </div>
   </div>
 </section>
