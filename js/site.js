@@ -311,10 +311,10 @@
   function stops() {
     var reel = $("[data-stops]");
     if (!reel) return;
-    var h1 = reel.closest("h1"), line = reel.closest(".stops-line");
+    var h1 = reel.closest("h1");
     var track = $(".stops-track", reel), flip = $(".stops-flip", reel);
     var phoneQuery = window.matchMedia ? window.matchMedia("(max-width: 700px)") : null;
-    var n = STOPS.length, at = n, hover = false, onScreen = true, timer = null, phoneMode = null;
+    var n = STOPS.length, at = n, onScreen = true, timer = null, phoneMode = null;
 
     function phone() { return !!(phoneQuery && phoneQuery.matches); }
     function probe() {
@@ -395,7 +395,7 @@
       if (phoneMode) fitFlip(); else { fitReel(); buildReel(); }
     }
     function turn() {
-      if (hover || !onScreen || document.hidden) return;
+      if (!onScreen || document.hidden) return;
       at += 1;
       if (phoneMode) placeFlip(true);
       else {
@@ -406,8 +406,6 @@
 
     layout();
     if (reduced()) return;
-    line.addEventListener("mouseenter", function () { hover = true; });
-    line.addEventListener("mouseleave", function () { hover = false; });
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (es) { onScreen = es[0].isIntersecting; }).observe(h1);
     }
@@ -3183,8 +3181,8 @@
   /* ── signup ────────────────────────────────────────────────────────────────
      "Download for Mac" leads here while Pip opens to its first 50 people: a
      name, an email and, if they like, what they do. It goes to Pip's own
-     database in the EU (an insert-only table; the key is the public one the
-     app ships with). Nothing is pretended: if it can't be saved, the form
+     database in the EU through join_waitlist (the table itself is closed;
+     the key is the public one the app ships with). Nothing is pretended: if it can't be saved, the form
      says so and offers Hayden's email instead. A hidden field catches bots. */
 
   var CONTACT = "hello@haydenslaughter.co.uk";
