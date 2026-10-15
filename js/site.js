@@ -62,14 +62,105 @@
   }
 
   /* Run fn once, when node is far enough into view */
-  function onceVisible(node, fn, threshold) {
-    if (!("IntersectionObserver" in window)) { fn(); return; }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) { io.disconnect(); fn(); }
+  /* ── where the visitor's screen is ───────────────────────────────────────
+     Demos play, and blocks arrive, as they come on screen. On the site's own
+     page an IntersectionObserver says when. But a review page can show the
+     site in a frame stretched to the page's whole height, which never
+     scrolls itself (the page around it does; iOS draws frames this way too).
+     There the frame is all "screen": an observer sees everything at once,
+     innerHeight is the whole page, and everything would play on load. So
+     while the frame is much taller than the screen, the screen is worked
+     out from the visitor's pointer, wheel or finger: where it is in the
+     page and, with a mouse, where it is on the physical screen, which puts
+     the screen's bottom edge exactly. Before anything moves, the screen is
+     the top of the page.
+       view.when(node, fn, { ratio, cut, tall })  fn once, when ratio of the
+         node shows (or tall × a screen of it, for tall blocks), above the
+         bottom cut of the screen
+       view.onScreen(node, f)  is it on screen now, its top above f of it
+       view.onMove(fn)         the screen moved (scroll, or a new estimate) */
+  var view = (function () {
+    function screenH() { return screen.availHeight || screen.height || 800; }
+    function stretched() { return window.innerHeight > screenH() * 1.3; }
+    // The browser's own viewport, roughly: its window less the toolbars
+    function viewH() { return Math.max(360, Math.min(screenH(), (window.outerHeight || screenH()) - 110)); }
+    var est = null, watchers = [], movers = [], frame = 0;
+    function guess() { if (!est) est = { top: 0, bottom: viewH() }; return est; }
+    function inPage(node) {
+      var r = node.getBoundingClientRect();
+      return { top: r.top + window.scrollY, bottom: r.bottom + window.scrollY, height: r.height };
+    }
+    // How much of a node shows on the estimated screen, above the cut
+    function showing(node, cut) {
+      var g = guess(), r = inPage(node);
+      var bottom = g.bottom - (g.bottom - g.top) * (cut || 0);
+      return { px: Math.max(0, Math.min(r.bottom, bottom) - Math.max(r.top, g.top)), node: r, screen: g.bottom - g.top };
+    }
+    function enough(sh, o) {
+      if (!sh.px) return false;
+      if (!o.ratio) return true;
+      return sh.px >= sh.node.height * o.ratio - 1 || (o.tall && sh.px >= sh.screen * o.tall);
+    }
+    function check() {
+      frame = 0;
+      if (!stretched()) return;
+      watchers = watchers.filter(function (w) {
+        if (!enough(showing(w.node, w.o.cut), w.o)) return true;
+        w.fire();
+        return false;
       });
-    }, { threshold: threshold || 0.35 });
-    io.observe(node);
+      movers.forEach(function (fn) { fn(); });
+    }
+    function soon() { if (!frame) frame = requestAnimationFrame(check); }
+    function fromEvent(e) {
+      if (!stretched()) return;
+      var p = e.touches && e.touches.length ? e.touches[0] : e;
+      if (p.clientY == null) return;
+      var y = p.clientY + window.scrollY, h = viewH(), top = y - h / 2;
+      // With a mouse: the browser window's bottom edge, in the page, is where the screen ends
+      if (!e.touches && p.screenY != null && window.outerHeight && window.screenY != null) {
+        var bottom = window.screenY + window.outerHeight - (p.screenY - p.clientY) + window.scrollY;
+        if (bottom > y && bottom - h < y) top = bottom - h;
+      }
+      top = Math.max(0, top);
+      est = { top: top, bottom: top + h };
+      soon();
+    }
+    ["pointermove", "pointerdown", "wheel", "touchstart", "touchmove"].forEach(function (t) {
+      document.addEventListener(t, fromEvent, { passive: true, capture: true });
+    });
+    window.addEventListener("resize", soon);
+    window.addEventListener("scroll", function () { movers.forEach(function (fn) { fn(); }); }, { passive: true });
+
+    function when(node, fn, o) {
+      o = o || {};
+      var done = false;
+      function fire() { if (done) return; done = true; if (io) io.disconnect(); fn(); }
+      var io = null;
+      if ("IntersectionObserver" in window) {
+        io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            // a stretched frame's observer sees the whole page: the estimate decides there
+            if (!e.isIntersecting || stretched()) return;
+            var screenPx = e.rootBounds ? e.rootBounds.height : window.innerHeight;
+            if (!o.ratio || e.intersectionRatio >= o.ratio - 0.001 || (o.tall && e.intersectionRect.height >= screenPx * o.tall)) fire();
+          });
+        }, { threshold: o.ratio ? [0, o.ratio / 2, o.ratio] : 0, rootMargin: o.cut ? "0px 0px -" + Math.round(o.cut * 100) + "% 0px" : "0px" });
+        io.observe(node);
+      } else if (!stretched()) { fire(); return; }
+      watchers.push({ node: node, o: o, fire: fire });
+      soon();
+    }
+    function onScreen(node, f) {
+      if (stretched()) return showing(node, 1 - (f || 1)).px > 0;
+      var r = node.getBoundingClientRect();
+      return r.top < window.innerHeight * (f || 1) && r.bottom > 0;
+    }
+    return { when: when, onScreen: onScreen, onMove: function (fn) { movers.push(fn); }, stretched: stretched };
+  })();
+
+  function onceVisible(node, fn, threshold) {
+    view.when(node, fn, { ratio: threshold || 0.35 });
   }
 
   /* Move 5, change in place: the old leaves in 100ms, the new arrives in 150ms */
@@ -513,22 +604,11 @@
       return;
     }
 
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var enough = entry.intersectionRatio >= 0.18 || entry.intersectionRect.height >= window.innerHeight * 0.25;
-        if (!enough) return;
-        entry.target.classList.add("is-in");
-        io.unobserve(entry.target);
-      });
-    }, { threshold: [0, 0.02, 0.05, 0.1, 0.18], rootMargin: "0px 0px -6% 0px" });
-
     targets.forEach(function (t) {
       // Whatever is already on the first screen arrives on load, without
       // waiting for the observer (which a background tab may hold back).
-      var r = t.getBoundingClientRect();
-      if (r.top < window.innerHeight * 0.94 && r.bottom > 0) { t.classList.add("is-in"); return; }
-      io.observe(t);
+      if (view.onScreen(t, 0.94)) { t.classList.add("is-in"); return; }
+      view.when(t, function () { t.classList.add("is-in"); }, { ratio: 0.18, tall: 0.25, cut: 0.06 });
     });
   }
 
@@ -1643,14 +1723,9 @@
     // Load on intent, so the click usually finds Pip ready
     play.addEventListener("pointerenter", load);
     go.addEventListener("focus", load);
-    if ("IntersectionObserver" in window) {
-      var io = new IntersectionObserver(function (es) {
-        if (!es[0].isIntersecting) return;
-        io.disconnect();
-        (window.requestIdleCallback || function (f) { return setTimeout(f, 1200); })(load);
-      }, { threshold: 0.5 });
-      io.observe(play);
-    }
+    view.when(play, function () {
+      (window.requestIdleCallback || function (f) { return setTimeout(f, 1200); })(load);
+    }, { ratio: 0.5 });
   }
 
   /* ── in view ───────────────────────────────────────────────────────────────
@@ -1662,15 +1737,8 @@
     var nodes = $$("[data-inview]");
     if (!nodes.length) return;
     function see(n) { n.classList.add("is-seen"); }
-    if (reduced() || !("IntersectionObserver" in window)) { nodes.forEach(see); return; }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        io.unobserve(e.target);
-        see(e.target);
-      });
-    }, { rootMargin: "0px 0px -20% 0px" });
-    nodes.forEach(function (n) { io.observe(n); });
+    if (reduced()) { nodes.forEach(see); return; }
+    nodes.forEach(function (n) { view.when(n, function () { see(n); }, { cut: 0.2 }); });
 
     $$(".squiggle[data-inview]").forEach(function (s) {
       var flip = false, last = 0;
@@ -1696,23 +1764,21 @@
     var play = $("#play");
     if (!stage || !play) return;
     if (reduced()) { stage.classList.add("is-up"); return; }
-    var timer = null;
-    function inSight() {
-      var r = play.getBoundingClientRect();
-      return r.top < window.innerHeight * 0.92 && r.bottom > 0; // the spot Pip peeks from is on screen
-    }
+    var timer = null, isUp = false;
+    // the spot Pip peeks from is on screen
+    function inSight() { return view.onScreen(play, 0.92); }
     function up() {
       clearTimeout(timer);
-      window.removeEventListener("scroll", onScroll);
+      isUp = true;
       stage.classList.add("is-up");
     }
-    function onScroll() {
-      if (!inSight()) return;
+    function onMove() {
+      if (isUp || !inSight()) return;
       clearTimeout(timer);
       timer = setTimeout(up, 450);
     }
     if (inSight()) timer = setTimeout(up, 2200);
-    window.addEventListener("scroll", onScroll, { passive: true });
+    view.onMove(onMove);
   }
 
   /* ── playground ────────────────────────────────────────────────────────────
