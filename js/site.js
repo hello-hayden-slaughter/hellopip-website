@@ -1034,7 +1034,82 @@
       more: "That's everything your notes say about it, so I've left it.",
       list: "That's one thought, or a list already, so I've left it."
     };
-    var WORKING = { tidy: "Tidying it up", "short": "Making it shorter", more: "Checking your notes", list: "Making it a list" };
+    var WORKING = { tidy: "Tidying it up", "short": "Making it shorter", more: "Checking your notes", list: "Making it a list",
+      answer: "Thinking it through", sceptic: "Reading it as a sceptic would", find: "Looking through your notes" };
+    /* The ideas that answer rather than change: said in the panel, nothing in the note moves */
+    function answerOnly(kind, text) {
+      if (kind === "find") return "Two of your notes talk about it: “Sage slim lamp” and “Costs: slim lamp”. On your Mac they open from here.";
+      if (kind === "answer") return "In this sample I can tidy, shorten, list or say more. On your Mac I'd answer it from your notes.";
+      var asks = [];
+      var price = /£\s?(\d[\d,.]*)/.exec(text);
+      if (price) asks.push("What does £" + price[1].replace(/[,.]+$/, "") + " include? Delivery isn't mentioned.");
+      if (/\b(weeks?|days?)\b/i.test(text)) asks.push("When would mine arrive if I order today?");
+      if (/\b(lovely|beautiful|perfect|best)\b/i.test(text)) asks.push("“Lovely” says how you feel about it. What would make a buyer feel it too?");
+      if (asks.length < 2) asks.push("What would a buyer want to know that this doesn't say?");
+      return "A sceptic would ask: " + asks.slice(0, 3).join(" ");
+    }
+
+    /* Pip's ideas for SELECTED words, by the app's own rules (standalone/src/
+       opening.py read_passage and the passage moves, ADR-0441): the words are
+       read for facts (rough, long, short, a run of items, a question) and the
+       first four moves whose needs hold are offered, named over "these N
+       words". With nothing selected, the note's own four. */
+    var WHOLE_LEAD = ($("[data-pp-lead]", root) || {}).textContent || "";
+    var WHOLE_MOVES = [
+      { move: "tidy", label: "Tidy it up", icon: "pen-line", where: "In the note" },
+      { move: "short", label: "Make it shorter", icon: "shrink", where: "In the note" },
+      { move: "more", label: "Say more, from my notes", icon: "expand", where: "In the note" },
+      { move: "list", label: "Make it a list", icon: "list", where: "In the note" }
+    ];
+    var PASSAGE_MOVES = [
+      { move: "tidy", say: "Tidy up {ref}", icon: "pen-line", where: "In the note", needs: ["rough"] },
+      { move: "answer", say: "Answer the question in {ref}", icon: "message", where: "Answer", needs: ["question"] },
+      { move: "short", say: "Make {ref} shorter", icon: "shrink", where: "In the note", needs: ["long"] },
+      { move: "list", say: "Make {ref} a list", icon: "list", where: "In the note", needs: ["listable", "!is_list"] },
+      { move: "more", say: "Expand {ref} from my notes", icon: "expand", where: "In the note", needs: ["short"] },
+      { move: "sceptic", say: "Read {ref} back as a sceptic would", icon: "search", where: "Answer", needs: ["!short", "!rough"] },
+      { move: "find", say: "Find my other notes on this", icon: "search", where: "Answer", needs: [] }
+    ];
+    var SPEAK = /(^|[^\w.'’\/@-])(u|ur|ish|thx|pls|plz|gonna|wanna|cuz|dunno|lol)(?![\w'’\/@-]|\.\w)/i;
+    function wordCount(t) { return t.split(/\s+/).filter(Boolean).length; }
+    function passageSentences(t) {
+      var flat = t.replace(/\s+/g, " ").trim(), out = [], start = 0, re = /[.!?…]+["'”’)\]]*\s+/g, m;
+      while ((m = re.exec(flat))) {
+        var after = flat.charAt(m.index + m[0].length);
+        if (/["”’']\s*$/.test(m[0]) && after && after === after.toLowerCase() && after !== after.toUpperCase()) continue;
+        out.push(flat.slice(start, m.index + m[0].length).trim());
+        start = m.index + m[0].length;
+      }
+      if (flat.slice(start).trim()) out.push(flat.slice(start).trim());
+      return out;
+    }
+    function startsLower(x) { var w = x.replace(/^[\s"'“‘(\[—–*_`-]+/, "").split(" ")[0] || ""; return /^[a-z]/.test(w) && !/[A-Z]/.test(w.slice(1)) && !/[.\/@_:\\]/.test(w); }
+    function passageFlags(text) {
+      var flat = text.replace(/\s+/g, " ").trim(), n = wordCount(flat), sents = passageSentences(text), f = {};
+      if (!n) return { n: 0, f: f, sents: sents };
+      if (n >= 40) f.long = true;
+      if (n <= 25) f.short = true;
+      var listable = sents.length >= 3 && n >= 8;
+      sents.forEach(function (x) {
+        if (listable || !/[,;]/.test(x)) return;
+        var parts = x.split(/,|;|\band\b|&/).map(function (q) { return q.replace(/^[\s.!?…:"“”]+|[\s.!?…:"“”]+$/g, ""); }).filter(Boolean);
+        if (parts.length >= 3 && parts.every(function (q) { return q.split(" ").length <= 6 && /[a-z]{2,}/i.test(q) && !/[(){}[\]=<>+*\/\\|_]/.test(q); })) listable = true;
+      });
+      if (listable) f.listable = true;
+      if (/\?["'”’)\]]*$/.test(flat)) f.question = true;
+      var rough = /!{2,}|\?{2,}/.test(flat) || SPEAK.test(flat) || /(^|[^\w.(\/'’@-])i(?=['’]|\.(?!\w)|[^\w.)\/'’@-]|$)/.test(flat);
+      for (var i = 1; i < sents.length && !rough; i++) if (startsLower(sents[i]) && !/["”’']$/.test(sents[i - 1])) rough = true;
+      if (!rough && n >= 20 && !/[.!?,;:…]/.test(flat)) rough = flat.split(" ").filter(function (w) { return /^[a-z]/.test(w); }).length * 10 >= n * 4;
+      if (rough) f.rough = true;
+      return { n: n, f: f, sents: sents };
+    }
+    function passageMoves(text) {
+      var r = passageFlags(text);
+      var ref = r.n === 1 ? "this word" : r.sents.length === 1 && /[.!?…]["'”’)\]]*$/.test(text.trim()) && text.indexOf("\n") < 0 ? "this sentence" : "these " + r.n + " words";
+      return PASSAGE_MOVES.filter(function (m) {
+        return m.needs.every(function (need) { return need.charAt(0) === "!" ? !r.f[need.slice(1)] : r.f[need]; });
+      }).slice(0, 4).map(function (m) { return { move: m.move, label: m.say.replace("{ref}", ref), icon: m.icon, where: m.where }; });
+    }
     var picked = null, history = [], pp;
 
     function norm(t) { return t.replace(/[•]/g, " ").replace(/\s+/g, " ").trim().toLowerCase(); }
@@ -1110,9 +1185,18 @@
       if (range) CSS.highlights.set("pp-picked", new Highlight(range)); else CSS.highlights.delete("pp-picked");
     }
     function pick(r) {
+      var was = picked ? picked.toString() : "";
       picked = r ? r.cloneRange() : null;
       pp.scope(picked ? "sel" : "all");
       showPicked(picked);
+      // The card's ideas follow what's picked: the selected words' own, or the note's
+      var now = picked ? picked.toString() : "";
+      if (now !== was) {
+        pp.setMoves(picked ? passageMoves(now) : WHOLE_MOVES);
+        // A selection's card leads with a fact, as in the app: how many words, and from where
+        var n = wordCount(now);
+        pp.lead(picked ? (n === 1 ? "1 word" : n + " words") + " from “New in the shop”." : WHOLE_LEAD);
+      }
     }
     document.addEventListener("selectionchange", function () {
       if (pp.auto) return;
@@ -1152,6 +1236,13 @@
       var targets = picked && !picked.collapsed && picked.toString().trim() ? [picked] : paragraphs();
       pp.hot(kind);
       if (!targets.length) { pp.say("Write something first, then ask me."); return; }
+      if (kind === "answer" || kind === "sceptic" || kind === "find") {
+        var words = targets.map(function (r) { return r.toString(); }).join(" ");
+        pp.say(WORKING[kind] + "…", true);
+        pp.busy(true);
+        setTimeout(function () { pp.busy(false); pp.say(answerOnly(kind, words)); if (then) then(); }, reduced() ? 0 : 1100);
+        return;
+      }
       pp.say(WORKING[kind] + "…", true);
       pp.busy(true);
       var before = snapshot();
@@ -1256,7 +1347,7 @@
           pp.moveTo(move, 70, 19);
           pp.later(function () {
             pp.tap();
-            pp.you("Tidy it up");
+            pp.you(($(".pp-move-label", move) || move).textContent);
             run("tidy", function () { pp.later(changeAWord, 1800); });
           }, 1100);
         }
