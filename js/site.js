@@ -52,19 +52,6 @@
     return svg;
   }
 
-  /* Pip's small face, idle or thinking */
-  function face(size, thinking) {
-    var ns = "http://www.w3.org/2000/svg";
-    var svg = document.createElementNS(ns, "svg");
-    svg.setAttribute("class", "pf pf-" + size);
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("focusable", "false");
-    var use = document.createElementNS(ns, "use");
-    use.setAttribute("href", thinking ? "#pip-think" : "#pip-face");
-    svg.appendChild(use);
-    return svg;
-  }
-
   /* Swap a small face between idle and thinking, in place */
   function setThinking(holder, on) {
     var use = holder && holder.querySelector("use");
@@ -109,14 +96,6 @@
     };
   }
 
-  /* Move 7, point at it: a coral wash that holds, then goes. Once. */
-  function wash(node) {
-    if (!node) return;
-    node.classList.remove("is-washed");
-    void node.offsetWidth;
-    node.classList.add("is-washed");
-    setTimeout(function () { node.classList.remove("is-washed"); }, 1300);
-  }
 
   /* A scripted vignette moment. It plays once when it comes into view, rests at
      its end state, and offers Replay (a quiet button under the window, named by
@@ -760,6 +739,8 @@
     var moves = $$("[data-move]", root);
     var api = { root: root, doc: doc, face: face, pop: pop, auto: false };
     var HINT = hintEl ? hintEl.innerHTML : "";
+    // the file's own width, read once before any inline width is set on it
+    var FULL = parseFloat(getComputedStyle(doc).maxWidth) || 0;
 
     api.step = function (n) { steps.forEach(function (li, i) { if (i < n) li.classList.add("is-on"); }); };
     api.resetSteps = function () { steps.forEach(function (li) { li.classList.remove("is-on"); }); };
@@ -779,8 +760,8 @@
       var cs = getComputedStyle(root);
       var padL = parseFloat(cs.paddingLeft) || 0, padR = parseFloat(cs.paddingRight) || 0;
       var inner = root.clientWidth - padL - padR;
-      var popLeft = pop.getBoundingClientRect().left - root.getBoundingClientRect().left;
-      var full = Math.min(parseFloat(getComputedStyle(doc).maxWidth) || inner, inner);
+      var popLeft = pop.offsetLeft; // layout, not the rise animation's scaled box
+      var full = Math.min(FULL || inner, inner);
       var width = Math.min(full, popLeft - 16 - 16);
       if (width < full) doc.style.maxWidth = Math.round(width) + "px";
       var centredLeft = padL + (inner - width) / 2;
