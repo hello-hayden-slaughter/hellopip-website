@@ -1,3 +1,4 @@
+Lilita One: Copyright (c) 2011, Juan Montoreano (juan@remolacha.biz), with Reserved Font Name "Lilita". Licensed under the SIL Open Font License, Version 1.1 (below).
 Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito) Nunito-Italic[wght].ttf: Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

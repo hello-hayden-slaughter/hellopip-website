@@ -63,6 +63,14 @@
    Brand coral #FF6B4A is NOT a text colour and not a white-text fill (2.82:1).
    ────────────────────────────────────────────────────────────────────────── */
 
+@font-face {
+  font-family: "Lilita One";
+  src: url("../assets/fonts/lilita-one-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
 
@@ -71,6 +79,10 @@
   --coral-dark: #D4502E;     /* The mouth. 4.21:1 with white: misses AA, not a button fill. */
   --coral-hover: #E85A3A;    /* Decorative hover only. 3.53:1 with white. */
   --navy: #090A49;           /* Pupils; the one high-emphasis dark. 17.45:1 on canvas, 6.47:1 on coral. */
+  --deck-paper: #FAFAF8;     /* A deck's own paper, ink, wash and accent ink (Coral Brief): fixed, light and dark */
+  --deck-ink: #1A1A1A;
+  --deck-coral-wash: #FFE9E1;
+  --deck-coral-ink: #B64528;
   --sage: #7A9278;           /* Data and calm secondary. */
   --sage-dark: #5C7459;      /* 5.13:1 with white. */
 
@@ -1797,50 +1809,60 @@ small { font-size: inherit; }
 .slides { visibility: hidden; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: min(900px, 240cqh - 5px); }
 .deck-job.is-dealing .slides { visibility: visible; }
 .pp--jobs:not(.is-ready) .slides { display: none; }
+/* The slides are the demo's own, drawn small: Pip's deck in Coral Brief,
+   1280 x 720, scaled to the slide's width (cqw). A photo full bleed under a
+   navy band with the words on it, or a photo beside the words on the peach
+   wash; Lilita One titles, a coral eyebrow. Sizes are the deck's: a title
+   64-88 of 1280, the eyebrow 15, the body 23 (each with a floor, small). */
 .slide {
   position: relative;
-  aspect-ratio: 16 / 10;
-  border-radius: 8px;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
   outline: 1.5px dashed var(--border);
   outline-offset: -1.5px;
+  container-type: inline-size;
 }
 .slide-face {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  border-radius: 8px;
-  background: var(--surface-pip);
+  border-radius: 6px;
+  background: var(--deck-paper);
   box-shadow: var(--shadow-sm), var(--win-ring);
-  font-size: 11px;
-  line-height: 1.3;
+  color: var(--deck-ink);
   opacity: 0;
 }
 .slide.is-dealt .slide-face { opacity: 1; }
-.slide-face b { display: block; font-size: 12px; font-weight: var(--weight-semibold); line-height: 1.25; }
-.slide-face small { display: block; margin-top: 3px; font-size: 10.5px; color: var(--text-secondary); }
-.s-n { display: block; margin-bottom: 2px; font-size: 10px; font-weight: var(--weight-semibold); color: var(--text-muted); }
-.slide-face .ph { border-radius: 0; box-shadow: none; padding: 0; transition: opacity 500ms var(--ease-out); transition-delay: calc(var(--n, 0) * 110ms); }
+.slide-face b { display: block; font-family: "Lilita One", var(--font-sans); font-weight: 400; font-size: max(7px, 5cqw); line-height: 1.08; }
+.slide-face small { display: block; margin-top: max(3px, 1.6cqw); font-size: max(6px, 1.8cqw); line-height: 1.45; }
+.s-n { display: block; margin-bottom: max(2px, 0.8cqw); font-size: max(4.5px, 1.2cqw); font-weight: var(--weight-semibold); letter-spacing: 0.14em; text-transform: uppercase; color: var(--deck-coral-ink); }
+.slide-face .ph { border-radius: 0; box-shadow: none; padding: 0; object-fit: cover; transition: opacity 500ms var(--ease-out); transition-delay: calc(var(--n, 0) * 110ms); }
 /* Each slide is made first, then its photo goes in */
 .slide-face { transition: background-color 500ms var(--ease-out); transition-delay: calc(var(--n, 0) * 110ms); }
 .deck-job:not(.has-photos) .slide-face { background: var(--bg-secondary); }
 .deck-job:not(.has-photos) .slide-face .ph { opacity: 0; }
-.s-cover .ph, .s-bleed .ph { position: absolute; inset: 0; height: 100%; }
-/* The words on a photo: a white bar that hugs them, bottom left */
-.s-cap, .s-bar {
+/* A photo full bleed, the words on a navy band over its lower third */
+.s-bleed .ph { position: absolute; inset: 0; width: 100%; height: 100%; }
+.s-band {
   position: absolute;
-  left: 7px;
-  bottom: 7px;
-  max-width: calc(100% - 14px);
-  padding: 6px 9px;
-  border-radius: 6px;
-  background: var(--surface-pip);
-  box-shadow: var(--shadow-sm);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 36%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 7.5cqw;
+  background: color-mix(in srgb, var(--navy) 62%, transparent);
+  color: #FFFFFF;
 }
-.s-cap { right: 7px; }
-/* A photo beside the words: the same half and the same padding every time */
-.s-split { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); }
+.s-band .s-n { color: var(--coral); }
+.s-band b { font-size: max(8px, 6.25cqw); }
+.s-band b.s-big { font-size: max(8.5px, 6.9cqw); }
+/* A photo beside the words: the photo's 616 of 1280, the words on the wash */
+.s-split { display: grid; grid-template-columns: 48.125% minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); background: var(--deck-coral-wash); }
 .s-split .ph { height: 100%; }
-.s-txt { min-width: 0; padding: 9px 10px; display: flex; flex-direction: column; justify-content: center; }
+.s-txt { min-width: 0; padding: 0 5cqw 0 7.5cqw; display: flex; flex-direction: column; justify-content: center; }
 
 /* Canvas, edge to edge: scattered ideas, sorted into fabrics, shapes and
    notes; then the one gap filled, in place */
@@ -1972,13 +1994,7 @@ small { font-size: inherit; }
   .ptool-tick { margin: 0 -4px 0 2px; }
 }
 @container stage (max-width: 452px) {
-  .slide-face { font-size: 10px; }
-  .slide-face b { font-size: 11px; }
   .slide-face small { display: none; }
-  .s-txt { padding: 7px; }
-  .s-n { font-size: 9.5px; }
-  .s-cap, .s-bar { left: 5px; bottom: 5px; max-width: calc(100% - 10px); padding: 4px 6px; }
-  .s-cap { right: 5px; }
   .cv.is-sorted .cvi--prices { top: 39%; }
   .cv.is-sorted .cvi--gap { top: 71%; }
   .cvi--sticky { font-size: 11px; }
