@@ -194,30 +194,23 @@
   </div>
 </section>
 
-<!-- The real Pip, full screen, only when someone asks for it -->
-<div class="takeover" id="takeover" role="dialog" aria-modal="true" aria-labelledby="takeover-h" hidden>
-  <div class="takeover-panel" data-takeover-panel>
-    <div class="takeover-bar">
-      <p class="takeover-what" id="takeover-h"><svg class="pf pf-24" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span><b>A sample workspace.</b> <span class="takeover-small">Nothing leaves your browser.</span></span></p>
-      <div class="takeover-end">
-        <a class="takeover-alt" data-takeover-alt href="#" target="_blank" rel="noopener" hidden>Not opening? Try a new tab</a>
-        <a class="btn btn--primary btn--xs takeover-dl" href="download.html?start=1">Try Pip free for 14 days</a>
-        <button type="button" class="takeover-close" data-takeover-close><span>Close</span><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
-      </div>
-    </div>
-    <div class="takeover-stage" data-takeover-stage>
-      <img class="takeover-poster" src="assets/img/pip-demo-note.jpg" alt="" decoding="async">
-      <p class="takeover-wait" data-takeover-wait><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span data-takeover-wait-text>Opening Pip…</span></p>
-      <div class="takeover-note" data-takeover-note hidden>
-        <div class="takeover-note-card" role="group" aria-labelledby="takeover-note-h">
-          <svg class="pf pf-40" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg>
-          <h2 class="takeover-note-h" id="takeover-note-h">This is the real Pip.</h2>
-          <p>No live AI in here: Pip's replies are written in advance. The note that opens shows you around.</p>
-          <button type="button" class="btn btn--primary takeover-note-ok" data-takeover-note-ok>Let me in</button>
-        </div>
-      </div>
-    </div>
+<!-- Pip's window: "Open Pip" grows it out of the desk above (js: demoWindow) -->
+<div class="pw-veil" data-pw-veil aria-hidden="true"></div>
+<div class="pw" id="pw" role="dialog" aria-modal="true" aria-label="Pip, with a sample business to play with" tabindex="-1" aria-hidden="true">
+  <div class="pw-app" data-pw-app>
+    <img class="pw-poster" src="assets/img/pip-demo-note.jpg" alt="" decoding="async">
   </div>
+  <p class="pw-wait"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span data-pw-wait-text>Opening Pip…</span></p>
+  <div class="pw-skin" data-pw-skin aria-hidden="true"></div>
+  <div class="pw-lights" data-pw-lights>
+    <button type="button" class="pw-light pw-light--close" data-pw-close aria-label="Close"><svg viewBox="0 0 8 8" aria-hidden="true" focusable="false"><path d="M1.6 1.6l4.8 4.8M6.4 1.6L1.6 6.4" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></button>
+    <button type="button" class="pw-light pw-light--min" data-pw-min aria-label="Minimise"><svg viewBox="0 0 8 8" aria-hidden="true" focusable="false"><path d="M1.2 4h5.6" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+    <button type="button" class="pw-light pw-light--full" data-pw-full aria-label="Full screen"><svg class="pw-full-in" viewBox="0 0 8 8" aria-hidden="true" focusable="false"><path d="M1.7 1.7h3.4L1.7 5.1z M6.3 6.3H2.9l3.4-3.4z" fill="currentColor"/></svg><svg class="pw-full-out" viewBox="0 0 8 8" aria-hidden="true" focusable="false"><path d="M3.6 3.6H.9l2.7-2.7z M4.4 4.4h2.7L4.4 7.1z" fill="currentColor"/></svg></button>
+  </div>
+</div>
+<p class="pw-cap" data-pw-cap><span data-pw-cap-text>Like what you see?</span><a data-pw-alt href="#" target="_blank" rel="noopener" hidden>Not opening? Try a new tab</a><a class="btn btn--primary btn--sm" href="download.html?start=1">Try Pip free for 14 days</a></p>
+<div class="pw-dock" data-pw-dock inert>
+  <button type="button" class="pw-tile" data-pw-tile aria-label="Bring Pip back"><img src="assets/img/pip-app-icon.png" alt="" width="52" height="52" decoding="async"><span class="pw-tip" aria-hidden="true">Pip</span></button>
 </div>
 
 <!-- ═══ Why I built Pip ════════════════════════════════════════════════════ -->

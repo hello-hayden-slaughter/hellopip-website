@@ -18,7 +18,7 @@ A slot is an element with `data-photo="…"`. Where there's a photo it is an `<i
 Square-bracket notes in the copy (`[N]`, `[contact address]`, `[Check with Jo before this goes live]`) are `<span class="rm">`. Delete the span when the note is settled. On the download page, `[version]`, `[size]` and `[date]` are filled from the latest GitHub release when it answers.
 
 ## The playable demo
-"Have a play" on the home page is the site's own scripted sample, inside `#play`. A live embed of the Pip web demo can replace the contents of `#play` later.
+"Have a play" on the home page is a desk inside `#play`. On a laptop or tablet, "Open Pip" turns the desk into a window holding the live Pip web demo (`data-live-demo` on `#play`), centred on the screen at the Mac app's shape, with the page dimmed behind it. The window has macOS's three controls where the Mac app has them: red puts it back on the desk, yellow tucks it into a little dock at the bottom of the screen, green fills the browser window. Until the demo says it's ready, `assets/img/pip-demo-note.jpg` (a 2560 × 1600 screenshot of what the demo opens on) stands in, so retake it when the demo's first screen changes. `demoWindow` in `js/site.js` runs it.
 
 ## Downloads
 Every "Download for Mac" button goes to `download.html?start=1`. That page finds the Mac's chip and the latest release of `hello-hayden-slaughter/Pip-release`, links its big button to the matching disk image (the releases page if GitHub doesn't answer) and, on a Mac, starts the download.

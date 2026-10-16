@@ -10,7 +10,7 @@
      mascots    the live Pip: blink, and eyes that follow the cursor
      reveal     sections arriving on scroll
      scenes     the try-it demos: find, help, like, and the briefed and switch moments
-     takeover   "Go on, have a play": the real Pip, full screen, on request
+     demoWindow "Go on, have a play": the desk becomes the real Pip's window
      jobs       six files, and Pip in each (Pip on your page)
      accordion  questions that open with height and fade
      jumpList   the questions page's group list
@@ -78,7 +78,8 @@
          node shows (or tall × a screen of it, for tall blocks), above the
          bottom cut of the screen
        view.onScreen(node, f)  is it on screen now, its top above f of it
-       view.onMove(fn)         the screen moved (scroll, or a new estimate) */
+       view.onMove(fn)         the screen moved (scroll, or a new estimate)
+       view.screen()           where the screen is, as position: fixed measures */
   var view = (function () {
     function screenH() { return screen.availHeight || screen.height || 800; }
     function stretched() { return window.innerHeight > screenH() * 1.3; }
@@ -151,12 +152,17 @@
       watchers.push({ node: node, o: o, fire: fire });
       soon();
     }
+    function screenNow() {
+      if (!stretched()) return { top: 0, height: window.innerHeight };
+      var g = guess();
+      return { top: g.top - window.scrollY, height: g.bottom - g.top };
+    }
     function onScreen(node, f) {
       if (stretched()) return showing(node, 1 - (f || 1)).px > 0;
       var r = node.getBoundingClientRect();
       return r.top < window.innerHeight * (f || 1) && r.bottom > 0;
     }
-    return { when: when, onScreen: onScreen, onMove: function (fn) { movers.push(fn); }, stretched: stretched };
+    return { when: when, onScreen: onScreen, onMove: function (fn) { movers.push(fn); }, stretched: stretched, screen: screenNow };
   })();
 
   function onceVisible(node, fn, threshold) {
@@ -1627,193 +1633,361 @@
   }
 
 
-  /* ── takeover ──────────────────────────────────────────────────────────────
-     The demo on the page is a still screenshot, so the page scrolls like a
-     page. "Go on, have a play" is a real decision: the real Pip (the web demo)
-     grows out of the screenshot to fill the screen, and Close or Esc puts it
-     back. The frame loads on intent (hover, focus, or the section sitting in
-     view), so it's usually ready by the click; until it says pip-demo:ready
-     from its own origin, the screenshot stands in. On a large screen the app
-     draws at its natural size; on a smaller one it draws at a laptop size and
-     is scaled down to fit, so it never reflows into a layout the Mac app can't
-     reach. Phones keep the screenshot and a line saying to use a laptop. */
-  function takeover() {
+  /* ── demoWindow ────────────────────────────────────────────────────────────
+     "Go on, have a play" is a real decision, so the real Pip (the web demo)
+     only comes when asked. "Open Pip" turns the desk into Pip's window, in
+     place: the desk clears, the page glides until the section sits mid-screen
+     and the desk grows into a window at the Mac app's shape (16:10), as big
+     as the screen allows and never past the demo's natural 1280 × 800. The
+     rest of the page dims and goes inert. The window controls are macOS's,
+     where the Mac app has them: red puts Pip back on the desk, yellow tucks
+     it into a little dock so the visitor can read on and bring it back, green
+     fills the browser window (green again, or Esc, comes back). Pip keeps its
+     place through all of them for the visit.
+     The frame loads on intent (hover, focus, or the section sitting in view),
+     so it's usually ready by the click; until it says pip-demo:ready from its
+     own origin, a screenshot of what it opens on stands in. In the window the
+     app lays out at 1280 × 800, scaled to fit; full screen, it lays out at
+     the screen's shape (scaled down below 1280 × 800, never up), so it never
+     reflows into a layout the Mac app can't reach. While the window moves the
+     frame keeps its size and is scaled; it lays out once, when the window
+     lands. Phones keep the desk and a line saying to use a laptop. */
+  function demoWindow() {
     var play = $("#play");
-    var dlg = $("#takeover");
-    if (!play || !dlg) return;
+    var pw = $("#pw");
+    if (!play || !pw) return;
     var src = play.getAttribute("data-live-demo");
+    var desk = $("[data-playground]", play);
     var go = $("[data-play-go]", play);
-    var shot = $("[data-playground]", play);
-    var alt = $("[data-takeover-alt]", dlg);
-    var panel = $("[data-takeover-panel]", dlg);
-    var stage = $("[data-takeover-stage]", dlg);
-    var waitText = $("[data-takeover-wait-text]", dlg);
-    var closeBtn = $("[data-takeover-close]", dlg);
-    var note = $("[data-takeover-note]", dlg);
-    var noteOk = $("[data-takeover-note-ok]", dlg);
-    if (!src || !go || !shot || !window.matchMedia) return;
+    if (!src || !desk || !go || !window.matchMedia) return;
     var origin;
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
-    alt.href = src;
+    var veil = $("[data-pw-veil]"), cap = $("[data-pw-cap]"), dock = $("[data-pw-dock]");
+    var app = $("[data-pw-app]", pw), skin = $("[data-pw-skin]", pw), lights = $("[data-pw-lights]", pw);
+    var waitText = $("[data-pw-wait-text]", pw), capText = $("[data-pw-cap-text]", cap), alt = $("[data-pw-alt]", cap);
+    var tile = $("[data-pw-tile]", dock), goLabel = $("span", go);
+    var bClose = $("[data-pw-close]", pw), bMin = $("[data-pw-min]", pw), bFull = $("[data-pw-full]", pw);
+    var header = $(".site-header");
+    var objs = $$(".pg-obj", desk);
     var big = window.matchMedia("(min-width: 768px)");
-    var frame = null, ready = false, isOpen = false, slowTimer = null, lastFocus = null, anim = null;
+    var W = 1280, H = 800;   // the demo's natural size, and the Mac app's shape
+    var fw = W, fh = H;      // the size the frame lays out at now
+    var frame = null, ready = false, slowTimer = null;
+    // closed, open, full or min (in the dock); busy while it moves
+    var state = "closed", box = null, lastFocus = null;
+    alt.href = src;
 
-    // The dialog belongs to the page, not to the section, so the rest can go
-    // inert. Closed, it's laid out but unseen (see the CSS).
-    document.body.appendChild(dlg);
-    dlg.hidden = false;
-    dlg.setAttribute("aria-hidden", "true");
+    // The window and its parts belong to the page, not the section, so the
+    // rest can go inert
+    var mine = [veil, pw, cap, dock];
+    mine.forEach(function (n) { document.body.appendChild(n); });
 
     function sync() {
       go.hidden = !big.matches;
       play.classList.toggle("is-playable", big.matches);
+      if (!big.matches && (state === "open" || state === "full")) close();
     }
     sync();
     if (big.addEventListener) big.addEventListener("change", sync); else if (big.addListener) big.addListener(sync);
 
-    function load() {
+    function load(asked) {
       if (frame || !big.matches) return;
-      if (navigator.connection && navigator.connection.saveData && !isOpen) return;
+      if (!asked && navigator.connection && navigator.connection.saveData) return;
       frame = document.createElement("iframe");
-      frame.className = "takeover-frame";
+      frame.className = "pw-frame";
       frame.src = src;
       frame.title = "Pip, with a sample business to play with";
       frame.setAttribute("referrerpolicy", "no-referrer");
       // Loaded but silent (an older demo, or a page that can't show frames):
-      // show the frame anyway, and offer a new tab in case it's blank.
+      // show the frame anyway, and offer a new tab in case it's blank
       frame.addEventListener("load", function () {
         setTimeout(function () {
           if (ready) return;
-          dlg.classList.add("is-ready");
-          alt.hidden = false;
+          pw.classList.add("is-live");
+          showAlt(true);
         }, 3000);
       });
-      stage.appendChild(frame);
-      fit();
+      app.appendChild(frame);
     }
+    function showAlt(on) { alt.hidden = !on; capText.hidden = on; }
 
     window.addEventListener("message", function (e) {
       if (e.origin !== origin || !e.data || e.data.type !== "pip-demo:ready") return;
       ready = true;
       clearTimeout(slowTimer);
-      alt.hidden = true;
-      dlg.classList.add("is-ready");
+      showAlt(false);
+      pw.classList.add("is-live");
     });
 
-    function fit() {
-      if (!frame) return;
-      var w = stage.clientWidth, h = stage.clientHeight;
-      if (!w || !h) return;
-      var k = Math.min(1, w / 1280, h / 800);
-      frame.style.width = Math.round(w / k) + "px";
-      frame.style.height = Math.round(h / k) + "px";
-      frame.style.transform = k < 1 ? "scale(" + k + ")" : "";
+    /* Where things are, in the coordinates position: fixed measures from */
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function screenBox() { var s = view.screen(); return { x: 0, y: s.top, w: window.innerWidth, h: s.height }; }
+    function rectOf(node, r) { var b = node.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height, r: r }; }
+    function deskBox() { return rectOf(desk, 18); }
+    function tileBox() { return rectOf(tile, 12); }
+    // The Mac app's shape, as big as the screen allows, with a line's room under it
+    function windowBox() {
+      var s = screenBox();
+      var side = s.w < 1100 ? 24 : 40, top = 28, under = 76;
+      var maxW = Math.min(W, s.w - side * 2), maxH = s.h - top - under;
+      var w = Math.max(320, Math.min(maxW, maxH * W / H)), h = w * H / W;
+      return { x: Math.round(s.x + (s.w - w) / 2), y: Math.round(s.y + top + Math.max(0, (maxH - h) / 2)), w: Math.round(w), h: Math.round(h), r: 12 };
     }
-    window.addEventListener("resize", fit);
+    function fullBox() { var s = screenBox(); return { x: s.x, y: s.y, w: s.w, h: s.h, r: 0 }; }
+    function mix(a, b, e, f) {
+      if (f === undefined) f = e;
+      return { x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * f, w: a.w + (b.w - a.w) * e, h: a.h + (b.h - a.h) * f, r: a.r + (b.r - a.r) * e };
+    }
 
-    function setInert(on) {
+    // Put the window at b, the frame scaled to cover it
+    function draw(b) {
+      box = b;
+      pw.style.left = b.x + "px";
+      pw.style.top = b.y + "px";
+      pw.style.width = b.w + "px";
+      pw.style.height = b.h + "px";
+      pw.style.borderRadius = b.r + "px";
+      var k = Math.max(b.w / fw, b.h / fh);
+      app.style.transform = "scale(" + k + ")";
+      // Over the rail's empty top, level with the sidebar button beside it
+      lights.style.left = (16 * k).toFixed(1) + "px";
+      lights.style.top = (19 * k - 6).toFixed(1) + "px";
+      cap.style.left = b.x + b.w / 2 + "px";
+      cap.style.top = b.y + b.h + 20 + "px";
+    }
+    // ...and when it lands, let the app lay out at the window's shape
+    function settle(b) {
+      var k = Math.min(1, b.w / W, b.h / H);
+      var w = Math.round(b.w / k), h = Math.round(b.h / k);
+      if (w !== fw || h !== fh) {
+        fw = w; fh = h;
+        app.style.width = w + "px";
+        app.style.height = h + "px";
+      }
+      draw(b);
+    }
+    // Shut, it waits laid out at the window's size, so the app boots at its own
+    settle(windowBox());
+
+    /* Motion: the window is moved frame by frame, so it can follow the desk
+       while the page glides */
+    function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+    function easeInOut(t) { return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2; }
+    function tween(ms, ease, step) {
+      return new Promise(function (done) {
+        if (reduced()) { step(1, 1); done(); return; }
+        var t0 = performance.now();
+        (function tick(now) {
+          var t = clamp((now - t0) / ms, 0, 1);
+          step(ease(t), t);
+          if (t < 1) requestAnimationFrame(tick); else done();
+        })(t0);
+      });
+    }
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, reduced() ? 0 : ms); }); }
+
+    function clearDesk(on) {
+      desk.classList.toggle("is-clear", on);
+      objs.forEach(function (o) {
+        var x = parseFloat(o.style.getPropertyValue("--x")) || 50;
+        var y = parseFloat(o.style.getPropertyValue("--y")) || 50;
+        o.style.setProperty("--dx", on ? (x - 50) * 2.4 + "px" : "0px");
+        o.style.setProperty("--dy", on ? (y - 50) * 2.4 + "px" : "0px");
+      });
+    }
+    function focusOn(on) {
+      document.documentElement.classList.toggle("has-pw", on);
       Array.prototype.forEach.call(document.body.children, function (node) {
-        if (node === dlg || node.tagName === "SCRIPT") return;
+        if (mine.indexOf(node) !== -1 || node.tagName === "SCRIPT") return;
         if (on) node.setAttribute("inert", ""); else node.removeAttribute("inert");
       });
     }
-
-    // The panel starts exactly over the screenshot and grows to the screen
-    function fromShot() {
-      var r = shot.getBoundingClientRect();
-      var k = r.width / window.innerWidth;
-      return "translate(" + r.left + "px, " + r.top + "px) scale(" + k + ")";
+    function show(on) {
+      pw.classList.toggle("is-on", on);
+      if (on) pw.removeAttribute("aria-hidden"); else pw.setAttribute("aria-hidden", "true");
     }
+    function placeDock() {
+      // A frame stretched to the page's height has no screen bottom of its
+      // own: the dock sits at the bottom of the estimated screen instead
+      if (view.stretched()) {
+        var s = screenBox();
+        dock.style.top = s.y + s.h - dock.offsetHeight - 10 + "px";
+        dock.style.bottom = "auto";
+      } else {
+        dock.style.top = "";
+        dock.style.bottom = "";
+      }
+    }
+    function showDock(on) {
+      if (on) placeDock();
+      dock.classList.toggle("is-on", on);
+      dock.inert = !on;
+      goLabel.textContent = on ? "Back to Pip" : "Open Pip";
+    }
+    view.onMove(function () { if (state === "min") placeDock(); });
 
-    function open() {
-      if (isOpen || !big.matches) return;
-      isOpen = true;
-      lastFocus = document.activeElement;
-      load();
-      dlg.classList.add("is-open");
-      dlg.removeAttribute("aria-hidden");
-      document.documentElement.classList.add("has-takeover");
-      setInert(true);
-      fit();
+    /* Open: the desk grows into the window, mid-screen. From the dock, the
+       window comes back up out of it while the page glides back. */
+    function open(fromDock) {
+      if (state !== "closed" && state !== "min") return;
+      var wasMin = state === "min";
+      state = "busy";
+      lastFocus = fromDock ? go : document.activeElement;
+      load(true);
       if (!ready) {
         waitText.textContent = "Opening Pip…";
         clearTimeout(slowTimer);
         slowTimer = setTimeout(function () {
           if (ready) return;
           waitText.textContent = "Still opening. Pip needs a moment on a slow connection.";
-          alt.hidden = false;
+          showAlt(true);
         }, 8000);
       }
-      if (anim) anim.cancel();
-      if (!reduced() && panel.animate) {
-        anim = panel.animate(
-          [{ transform: fromShot(), borderRadius: "24px", opacity: 0.6 }, { transform: "none", borderRadius: "0px", opacity: 1 }],
-          { duration: 560, easing: EASE_OUT }
-        );
-        dlg.animate([{ backgroundColor: "rgba(0,0,0,0)" }, { backgroundColor: "rgba(0, 0, 0, 0.32)" }], { duration: 560, easing: EASE_OUT });
+      var T = windowBox();
+      var startY = window.scrollY, endY = startY;
+      if (!view.stretched()) {
+        // The desk lands in the room under the header, so when Pip goes back
+        // the desk is whole, not tucked under the header
+        var d = desk.getBoundingClientRect();
+        var head = header ? header.getBoundingClientRect().height : 0;
+        var room = window.innerHeight - head;
+        var aim = d.height <= room ? head + (room - d.height) / 2 : head + 8;
+        endY = clamp(startY + d.top - aim, 0, document.documentElement.scrollHeight - window.innerHeight);
       }
-      // The first time, a word on what's different here (no live AI), while
-      // Pip loads behind it
-      if (note && !noteSeen()) {
-        note.hidden = false;
-        noteOk.focus({ preventScroll: true });
-      } else {
-        closeBtn.focus({ preventScroll: true });
-      }
+      focusOn(true);
+      clearDesk(true);
+      veil.classList.add("is-on");
+      pw.classList.remove("is-settled", "is-full");
+      var from = fromDock ? tileBox() : deskBox();
+      skin.style.opacity = fromDock ? "0" : "1";
+      draw(from);
+      show(true);
       document.addEventListener("keydown", onKey);
+      return wait(fromDock ? 0 : 120).then(function () {
+        return tween(fromDock ? 560 : 640, easeOut, function (e, t) {
+          if (endY !== startY) window.scrollTo({ top: startY + (endY - startY) * e, behavior: "instant" });
+          draw(mix(fromDock ? from : deskBox(), T, e));
+          if (!fromDock) skin.style.opacity = String(1 - clamp((t - 0.12) / 0.5, 0, 1));
+        });
+      }).then(function () {
+        settle(windowBox());
+        skin.style.opacity = "0";
+        pw.classList.add("is-settled");
+        cap.classList.add("is-on");
+        if (wasMin) showDock(false);
+        state = "open";
+        pw.focus({ preventScroll: true });
+      });
     }
 
-    var NOTE_KEY = "pip-site:demo-note-seen";
-    var noteShown = false;
-    function noteSeen() {
-      if (noteShown) return true;
-      try { return window.localStorage.getItem(NOTE_KEY) === "1"; } catch (e) { return false; }
-    }
-    function dismissNote() {
-      if (!note || note.hidden) return false;
-      note.hidden = true;
-      noteShown = true;
-      try { window.localStorage.setItem(NOTE_KEY, "1"); } catch (e) { /* private window: shown once per visit */ }
-      closeBtn.focus({ preventScroll: true });
-      return true;
-    }
-    if (noteOk) noteOk.addEventListener("click", dismissNote);
-
+    /* Close: back into the desk, and the desk's things come back */
     function close() {
-      if (!isOpen) return;
-      isOpen = false;
-      document.removeEventListener("keydown", onKey);
+      if (state === "full") return unfull().then(close);
+      if (state !== "open") return Promise.resolve();
+      state = "busy";
       clearTimeout(slowTimer);
-      function done() {
-        dlg.classList.remove("is-open");
-        dlg.setAttribute("aria-hidden", "true");
-        document.documentElement.classList.remove("has-takeover");
-        setInert(false);
-        if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); else go.focus({ preventScroll: true });
-      }
-      if (anim) anim.cancel();
-      if (reduced() || !panel.animate) { done(); return; }
-      anim = panel.animate(
-        [{ transform: "none", borderRadius: "0px", opacity: 1 }, { transform: fromShot(), borderRadius: "24px", opacity: 0 }],
-        { duration: 380, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" }
-      );
-      anim.onfinish = function () { anim.cancel(); anim = null; done(); };
+      document.removeEventListener("keydown", onKey);
+      pw.classList.remove("is-settled");
+      cap.classList.remove("is-on");
+      veil.classList.remove("is-on");
+      var from = box;
+      return tween(440, easeInOut, function (e, t) {
+        draw(mix(from, deskBox(), e));
+        skin.style.opacity = String(clamp(t / 0.55, 0, 1));
+      }).then(function () {
+        show(false);
+        settle(windowBox());
+        clearDesk(false);
+        focusOn(false);
+        state = "closed";
+        var back = lastFocus && lastFocus.focus && document.contains(lastFocus) && !lastFocus.closest("[inert]") ? lastFocus : go;
+        back.focus({ preventScroll: true });
+      });
+    }
+
+    /* Minimise: into the dock, and the page is the visitor's again */
+    function minimise() {
+      if (state !== "open") return Promise.resolve();
+      state = "busy";
+      clearTimeout(slowTimer);
+      document.removeEventListener("keydown", onKey);
+      pw.classList.remove("is-settled");
+      cap.classList.remove("is-on");
+      showDock(true);
+      return wait(180).then(function () {
+        veil.classList.remove("is-on");
+        var from = box, to = tileBox();
+        // A rough genie: the window narrows first and drops late, pouring in
+        return tween(560, function (t) { return t; }, function (e, t) {
+          draw(mix(from, to, 1 - Math.pow(1 - t, 2.2), Math.pow(t, 1.8)));
+          pw.style.opacity = t > 0.82 ? String(1 - (t - 0.82) / 0.18) : "1";
+        });
+      }).then(function () {
+        show(false);
+        pw.style.opacity = "";
+        settle(windowBox());
+        clearDesk(false);
+        focusOn(false);
+        state = "min";
+        go.focus({ preventScroll: true });
+      });
+    }
+
+    /* Full screen: green fills the browser window; green again, or Esc, comes back */
+    function full() {
+      if (state === "full") return unfull();
+      if (state !== "open") return Promise.resolve();
+      state = "busy";
+      cap.classList.remove("is-on");
+      pw.classList.add("is-full");
+      bFull.setAttribute("aria-label", "Exit full screen");
+      bMin.disabled = true;
+      var from = box, to = fullBox();
+      return tween(420, easeOut, function (e) { draw(mix(from, to, e)); }).then(function () {
+        settle(fullBox());
+        state = "full";
+      });
+    }
+    function unfull() {
+      if (state !== "full") return Promise.resolve();
+      state = "busy";
+      pw.classList.remove("is-full");
+      bFull.setAttribute("aria-label", "Full screen");
+      bMin.disabled = false;
+      var from = box, to = windowBox();
+      return tween(400, easeOut, function (e) { draw(mix(from, to, e)); }).then(function () {
+        settle(windowBox());
+        cap.classList.add("is-on");
+        state = "open";
+      });
     }
 
     function onKey(e) {
       if (e.key !== "Escape") return;
-      e.preventDefault();
-      if (!dismissNote()) close();
+      if (state === "full") { e.preventDefault(); unfull(); }
+      else if (state === "open") { e.preventDefault(); close(); }
     }
 
-    go.addEventListener("click", open);
-    closeBtn.addEventListener("click", close);
+    go.addEventListener("click", function () { open(false); });
+    tile.addEventListener("click", function () { open(true); });
+    bClose.addEventListener("click", function () { close(); });
+    bMin.addEventListener("click", function () { minimise(); });
+    bFull.addEventListener("click", function () { full(); });
+    veil.addEventListener("click", function () { close(); });
+    window.addEventListener("resize", function () {
+      if (state === "open") settle(windowBox());
+      else if (state === "full") settle(fullBox());
+      else if (state === "closed" || state === "min") {
+        settle(windowBox());
+        if (state === "min") placeDock();
+      }
+    });
 
     // Load on intent, so the click usually finds Pip ready
-    play.addEventListener("pointerenter", load);
-    go.addEventListener("focus", load);
+    play.addEventListener("pointerenter", function () { load(); });
+    go.addEventListener("focus", function () { load(); });
     view.when(play, function () {
-      (window.requestIdleCallback || function (f) { return setTimeout(f, 1200); })(load);
+      (window.requestIdleCallback || function (f) { return setTimeout(f, 1200); })(function () { load(); });
     }, { ratio: 0.5 });
   }
 
@@ -3431,7 +3605,7 @@
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [pageTop, dates, stops, header, mascots, reveal, inView, peek, scenes, takeover, playground, jobs, flow, accordion, jumpList, signup].forEach(function (init) {
+  [pageTop, dates, stops, header, mascots, reveal, inView, peek, scenes, demoWindow, playground, jobs, flow, accordion, jumpList, signup].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }
