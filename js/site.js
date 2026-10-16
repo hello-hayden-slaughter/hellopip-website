@@ -1735,7 +1735,7 @@
      place: the desk's things and invitation fade as Pip fades in over them,
      while the page eases the desk to mid-screen. Then the desk grows into a
      window at the Mac app's shape (16:10), as big as the screen allows and
-     never past the demo's natural 1280 × 800, and the rest of the page
+     never past 1280 × 800, and the rest of the page
      steps back (dims, and goes inert). Closing is the same, backwards. The window controls are macOS's,
      where the Mac app has them: red puts Pip back on the desk, yellow tucks
      it into a little dock so the visitor can read on and bring it back, green
@@ -1743,10 +1743,11 @@
      place through all of them for the visit.
      The frame loads on intent (hover, focus, or the section sitting in view),
      so it's usually ready by the click; until it says pip-demo:ready from its
-     own origin, a screenshot of what it opens on stands in. In the window the
-     app lays out at 1280 × 800, scaled to fit; full screen, it lays out at
-     the screen's shape (scaled down below 1280 × 800, never up), so it never
-     reflows into a layout the Mac app can't reach. While the window moves the
+     own origin, a screenshot of what it opens on stands in. In the window and
+     full screen, the app lays out at the window's own size, at its real
+     size, as the Mac app does in a window that big: text and controls are
+     never shrunk. Only a window smaller than the Mac app allows (448 × 500)
+     lays out at that size and is scaled to fit. While the window moves the
      frame keeps its size and is scaled; it lays out once, when the window
      lands. Phones keep the desk and a line saying to use a laptop. */
   function demoWindow() {
@@ -1766,7 +1767,8 @@
     var bClose = $("[data-pw-close]", pw), bMin = $("[data-pw-min]", pw), bFull = $("[data-pw-full]", pw);
     var header = $(".site-header");
     var big = window.matchMedia("(min-width: 768px)");
-    var W = 1280, H = 800;   // the demo's natural size, and the Mac app's shape
+    var W = 1280, H = 800;   // the biggest the window gets, at the Mac app's shape
+    var MIN_W = 448, MIN_H = 500;   // the Mac app's smallest window (electron.js)
     var fw = W, fh = H;      // the size the frame lays out at now
     var frame = null, ready = false, slowTimer = null;
     // closed, open, full or min (in the dock); busy while it moves
@@ -1861,9 +1863,9 @@
       cap.style.left = b.x + b.w / 2 + "px";
       cap.style.top = b.y + b.h + 8 + "px";
     }
-    // ...and when it lands, let the app lay out at the window's shape
+    // ...and when it lands, let the app lay out at the window's own size
     function settle(b) {
-      var k = Math.min(1, b.w / W, b.h / H);
+      var k = Math.min(1, b.w / MIN_W, b.h / MIN_H);
       var w = Math.round(b.w / k), h = Math.round(b.h / k);
       if (w !== fw || h !== fh) {
         fw = w; fh = h;
