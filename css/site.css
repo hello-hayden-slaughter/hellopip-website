@@ -3208,7 +3208,8 @@ html.has-pw { overflow: hidden; }
 .pw.is-full .pw-light .pw-full-in { display: none; }
 .pw.is-full .pw-light .pw-full-out { display: block; }
 
-/* Under the window: the one line the old bar said that still matters */
+/* Under the window, only when the demo won't show: a way to open it in a new
+   tab. Nothing else is said here; the visitor is trying Pip, not being sold to. */
 .pw-cap {
   position: fixed;
   left: 0;
@@ -3218,7 +3219,7 @@ html.has-pw { overflow: hidden; }
   align-items: center;
   gap: 14px;
   color: var(--pw-cap-fg);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: var(--weight-medium);
   white-space: nowrap;
   transform: translateX(-50%);
@@ -3227,7 +3228,7 @@ html.has-pw { overflow: hidden; }
   transition: opacity 200ms var(--ease-out), visibility 0s linear 200ms;
 }
 .pw-cap.is-on { opacity: 1; visibility: visible; transition: opacity 260ms var(--ease-out) 80ms; }
-.pw-cap a:not(.btn) { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.pw-cap a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 
 /* Minimised: Pip waits in a little dock while you read on */
 .pw-dock {

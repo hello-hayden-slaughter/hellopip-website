@@ -1664,7 +1664,7 @@
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
     var veil = $("[data-pw-veil]"), cap = $("[data-pw-cap]"), dock = $("[data-pw-dock]");
     var app = $("[data-pw-app]", pw), skin = $("[data-pw-skin]", pw), lights = $("[data-pw-lights]", pw);
-    var waitText = $("[data-pw-wait-text]", pw), capText = $("[data-pw-cap-text]", cap), alt = $("[data-pw-alt]", cap);
+    var waitText = $("[data-pw-wait-text]", pw), alt = $("[data-pw-alt]", cap);
     var tile = $("[data-pw-tile]", dock), goLabel = $("span", go);
     var bClose = $("[data-pw-close]", pw), bMin = $("[data-pw-min]", pw), bFull = $("[data-pw-full]", pw);
     var header = $(".site-header");
@@ -1714,7 +1714,7 @@
       });
       app.appendChild(frame);
     }
-    function showAlt(on) { alt.hidden = !on; capText.hidden = on; }
+    function showAlt(on) { alt.hidden = !on; }
 
     window.addEventListener("message", function (e) {
       if (e.origin !== origin || !e.data || e.data.type !== "pip-demo:ready") return;
@@ -1730,10 +1730,11 @@
     function rectOf(node, r) { var b = node.getBoundingClientRect(); return { x: b.left, y: b.top, w: b.width, h: b.height, r: r }; }
     function deskBox() { return rectOf(desk, 18); }
     function tileBox() { return rectOf(tile, 12); }
-    // The Mac app's shape, as big as the screen allows, with a line's room under it
+    // The Mac app's shape, as big as the screen allows, with even room above
+    // and below (where "Try a new tab" goes, if the demo won't show)
     function windowBox() {
       var s = screenBox();
-      var side = s.w < 1100 ? 24 : 40, top = 28, under = 76;
+      var side = s.w < 1100 ? 24 : 40, top = 36, under = 36;
       var maxW = Math.min(W, s.w - side * 2), maxH = s.h - top - under;
       var w = Math.max(320, Math.min(maxW, maxH * W / H)), h = w * H / W;
       return { x: Math.round(s.x + (s.w - w) / 2), y: Math.round(s.y + top + Math.max(0, (maxH - h) / 2)), w: Math.round(w), h: Math.round(h), r: 12 };
@@ -1758,7 +1759,7 @@
       lights.style.left = (16 * k).toFixed(1) + "px";
       lights.style.top = (19 * k - 6).toFixed(1) + "px";
       cap.style.left = b.x + b.w / 2 + "px";
-      cap.style.top = b.y + b.h + 20 + "px";
+      cap.style.top = b.y + b.h + 8 + "px";
     }
     // ...and when it lands, let the app lay out at the window's shape
     function settle(b) {
