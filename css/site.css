@@ -1442,6 +1442,14 @@ small { font-size: inherit; }
 .pp-msg--you { align-self: flex-end; max-width: 85%; padding: 8px 12px; border-radius: 14px 14px 4px 14px; background: var(--surface-user, var(--bg-tertiary)); }
 .pp-msg--pip { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .pp-msg--pip .is-busy { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); }
+/* A link to what Pip made, the app's own (PipLink): the thing's glyph, then
+   its name, inline in the sentence in the quieter ink, underlined on hover.
+   What it names is open beside the chat already, so a click rings that. */
+.pp-link { display: inline; padding: 0; border: 0; border-radius: 4px; background: none; font: inherit; color: var(--text-secondary); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: var(--underline-offset); transition: color var(--transition-fast), text-decoration-color var(--transition-fast); }
+.pp-link:hover, .pp-link:focus-visible { color: var(--text-primary); text-decoration-color: currentColor; }
+.pp-link .i { display: inline-block; vertical-align: -0.125em; margin-right: 4px; }
+.is-pointed { border-radius: 14px; animation: pp-pointed 1400ms var(--ease-out); }
+@keyframes pp-pointed { 0%, 45% { outline: 2px solid var(--accent); outline-offset: -2px; } 100% { outline: 2px solid transparent; outline-offset: -2px; } }
 .pp-says[hidden], .pp-undo[hidden] { display: none; }
 .pp-compose { flex: none; display: flex; align-items: center; gap: 8px; margin: 0 10px 10px; padding: 6px 6px 6px 14px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--border); }
 .pp-compose input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14.5px; color: var(--text-primary); outline: none; }
@@ -1455,6 +1463,37 @@ small { font-size: inherit; }
 .pp-replay .i { color: var(--text-muted); }
 .pp-pointer { position: absolute; left: 0; top: 0; z-index: 9; width: 22px; height: 22px; opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25)); transition: transform 900ms var(--ease-in-out), opacity var(--dur-quick) var(--ease-out); }
 .pp-pointer.is-dragging { transition: transform 90ms linear, opacity var(--dur-quick) var(--ease-out); }
+/* Your turn: the pointer grows a little, and wears a name tag saying what to
+   try, the way a shared cursor does. It glides onto that move and waits.
+   (Sizes change on the arrow inside, never on the pointer: a scale there
+   scales its position too, and it jumps.) */
+.pp-pointer { overflow: visible; }
+.pp-pointer path { transform-box: view-box; transform-origin: 4px 2px; transition: scale var(--dur-quick) var(--ease-out); }
+.pp-pointer.is-inviting path { scale: 1.2; }
+.pp-try { position: absolute; left: 0; top: 0; z-index: 8; pointer-events: none; transition: transform 900ms var(--ease-in-out); }
+.pp-pointer.is-still, .pp-try.is-still { transition: none; }
+.pp-try::before { content: ""; position: absolute; left: -15px; top: -16px; width: 38px; height: 38px; border-radius: 50%; background: var(--accent); opacity: 0; }
+.pp-try-label {
+  position: absolute;
+  left: 15px;
+  top: 23px;
+  white-space: nowrap;
+  padding: 5px 11px 6px;
+  border-radius: var(--radius-full);
+  background: var(--accent-strong);
+  color: var(--text-on-dark);
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+  transform-origin: 0 0;
+  transition: opacity var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out);
+}
+.pp-try.is-left .pp-try-label { left: auto; right: -4px; transform-origin: 100% 0; }
+.pp-try.is-on .pp-try-label { opacity: 1; transform: none; }
+.pp-move.is-tried { background: var(--bg-hover); }
 /* On a narrow stage the panel sits under the file, one height whatever it
    says, so the page under it never jumps */
 @container ppbox (max-width: 860px) {
@@ -1467,13 +1506,13 @@ small { font-size: inherit; }
   .pp-hint { position: static; justify-self: center; max-width: 100%; transform: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .pp-move.is-nudge { animation: pp-nudge 1.6s var(--ease-in-out) 2; }
+  .pp-try.is-on::before { animation: pp-halo 1.5s var(--ease-out) 3; }
   .pp-caret { animation: caret-blink 1.1s steps(1, end) infinite; }
-  .pp-pointer.is-tapping { animation: pp-tap 250ms var(--ease-out); }
+  .pp-pointer.is-tapping path { animation: pp-tap 250ms var(--ease-out); }
   .pp-msg { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
 }
 @keyframes pp-tap { 50% { scale: 0.85; } }
-@keyframes pp-nudge { 0%, 100% { box-shadow: inset 0 0 0 1.5px transparent; } 40% { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent-strong); } }
+@keyframes pp-halo { 0% { opacity: 0.4; transform: scale(0.35); } 100% { opacity: 0; transform: scale(1.35); } }
 @keyframes pp-rise { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
 
 /* ── Help with everything you make: Pip in your files ───────────────────
@@ -1746,20 +1785,21 @@ small { font-size: inherit; }
    formula column (Cost to make), another in percent (Margin), and a
    conditional format that colours any row with a margin under 50%. The new
    columns arrive at the table's right edge, and the header row is one height
-   from the start (room for a formula under a new column's name), so nothing
+   from the start (room for a new column's name on two lines), so nothing
    already there moves. A column Pip added is washed as Pip's (th.is-pips)
    until you change a number; the prices are yours to change, and the sums
-   follow. */
-.costs { --th-h: 68px; justify-self: center; width: min(100%, 980px); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+   follow. A formula column's sum shows on hover, as in the app (.cf-tip). */
+.costs { --th-h: 46px; position: relative; justify-self: center; width: min(100%, 980px); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .costs-wrap { width: 100%; max-width: none; }
 .tbl--costs { font-size: 14px; line-height: 1.3; }
 .tbl--costs th, .tbl--costs td { height: 46px; padding: 4px 12px; white-space: nowrap; }
 .tbl--costs th { height: var(--th-h); font-size: 13px; line-height: 1.25; vertical-align: bottom; padding-bottom: 10px; }
 .tbl--costs th.c-name, .tbl--costs td.c-name { text-align: left; }
-.tbl--costs td small { display: block; font-size: 11.5px; color: var(--text-muted); }
-/* A new column's formula, under its name: small, in the mono face, on two
-   lines, so all seven columns fit from a laptop up */
-.tbl--costs .fx { display: block; max-width: 128px; margin: 3px 0 0 auto; font-family: var(--font-mono); font-size: 11px; font-weight: var(--weight-regular); line-height: 1.35; color: var(--text-muted); white-space: normal; }
+/* The app's tooltip, over a formula cell: its pointer under the cell's middle,
+   held clear of the chip's corners */
+.cf-tip { position: absolute; left: 0; top: 0; z-index: 3; padding: 5px 9px; border-radius: 7px; background: var(--tooltip-bg); color: var(--tooltip-fg); font-size: 11.5px; font-weight: var(--weight-medium); line-height: 1; letter-spacing: 0.01em; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22); pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(calc(-100% - 8px)); transition: opacity 120ms var(--ease-out), visibility 0s linear 120ms; }
+.cf-tip::after { content: ""; position: absolute; top: 100%; left: clamp(12px, var(--beak, 50%), calc(100% - 12px)); transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--tooltip-bg); }
+.cf-tip.is-on { opacity: 1; visibility: visible; transition-delay: 0s; }
 /* The two new columns, hidden until Pip adds them; then each cell lands */
 .tbl--costs .c-cost, .tbl--costs .c-marg { display: none; }
 .costs.has-cost .c-cost, .costs.has-marg .c-marg { display: table-cell; }
@@ -1964,7 +2004,7 @@ small { font-size: inherit; }
    once "Cost to make" exists, it stands in for the time and postage columns
    it adds up */
 @container stage (max-width: 772px) {
-  .costs { --th-h: 80px; }
+  .costs { --th-h: 56px; }
   .tbl--costs { table-layout: fixed; }
   .tbl--costs th, .tbl--costs td { white-space: normal; }
   .tbl--costs .c-name { width: 30%; }
@@ -2007,10 +2047,7 @@ small { font-size: inherit; }
   .tbl--costs .c-price { width: 15%; }
   .tbl--costs .c-mats, .tbl--costs .c-time, .tbl--costs .c-post,
   .tbl--costs .c-cost, .tbl--costs .c-marg { width: 18.67%; }
-  .tbl--costs td small { display: none; }
-  /* Too narrow to read a formula: the live line says what's being added */
   .costs { --th-h: 48px; }
-  .tbl--costs .fx { display: none; }
 }
 @container stage (max-width: 312px) {
   .cvi--sticky { padding: 6px; font-size: 10.5px; }
@@ -2184,16 +2221,14 @@ small { font-size: inherit; }
 }
 .pc-model-name { color: var(--text-primary); }
 .pc-model.is-on { background: var(--bg-active); }
-.pc-model.is-changed { box-shadow: 0 0 0 3px var(--accent-soft-strong); }
 .pmodel { margin-top: 1px; font-size: 11.5px; font-weight: var(--weight-medium); color: var(--text-muted); }
-.pmodel--new { color: var(--text-accent); }
 
 .mmenu {
   position: absolute;
   z-index: 3;
   right: clamp(12px, 3cqi, 18px);
   bottom: calc(48px + clamp(12px, 3cqi, 16px) + 8px);
-  width: min(290px, calc(100% - 24px));
+  width: min(336px, calc(100% - 24px));
   padding: 6px;
   border-radius: 14px;
   background: var(--surface-pip);
@@ -2398,9 +2433,44 @@ small { font-size: inherit; }
 .hand-arrow--why { width: 54px; height: 48px; margin-top: 2px; transform: rotate(52deg) scaleX(-1); }
 .why-text { grid-column: 6 / span 7; display: flex; flex-direction: column; gap: 22px; }
 .why-text .h2 { margin-bottom: 6px; }
-.why-story { max-width: 34em; font-size: clamp(17px, 1.35vw, 19px); line-height: 1.6; color: var(--text-secondary); }
-.why-story--end { color: var(--text-primary); font-weight: var(--weight-medium); }
-.why-by { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 14px; font-weight: var(--weight-medium); color: var(--text-muted); }
+/* The quote: set like a classic testimonial. The marks are Nunito's own
+   rounded quotes drawn at 900: a graphic, not text, so the 400/500/600 rule
+   for words does not apply. */
+.why-quote { position: relative; margin: 26px 0 0; padding-top: clamp(58px, 5.2vw, 76px); }
+.why-quote::before {
+  content: "\201C";
+  position: absolute;
+  top: 0;
+  left: -0.05em;
+  font-family: var(--font-sans);
+  font-weight: 900;
+  font-size: clamp(132px, 11.5vw, 176px);
+  line-height: 0.62;
+  color: var(--accent-mark);
+  pointer-events: none;
+}
+.why-quote-text { margin: 0; position: relative; }
+.why-quote-text p {
+  max-width: 23em;
+  font-size: clamp(22px, 2.1vw, 30px);
+  font-weight: var(--weight-medium);
+  line-height: 1.38;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+  text-wrap: pretty;
+}
+.why-quote-text p::after {
+  content: "\201D";
+  margin-left: 0.06em;
+  font-weight: 900;
+  font-size: 2.2em;
+  line-height: 0;
+  vertical-align: -0.4em;
+  color: var(--accent-mark);
+}
+.why-by { display: flex; align-items: center; gap: 8px; margin-top: 22px; font-size: 15px; font-weight: var(--weight-medium); color: var(--text-muted); }
+.why-by b { font-weight: var(--weight-semibold); color: var(--text-primary); }
+.why-by-dot { width: 4px; height: 4px; margin: 0 4px; border-radius: 50%; background: currentColor; opacity: 0.6; }
 
 @media (max-width: 899px) {
   .why-figure, .why-text { grid-column: 1 / -1; }
