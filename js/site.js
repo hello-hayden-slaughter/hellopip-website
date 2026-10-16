@@ -1679,13 +1679,18 @@
 
     // The window and its parts belong to the page, not the section, so the
     // rest can go inert
-    var mine = [veil, pw, cap, dock];
+    var dialog = $("[data-pw-dialog]");
+    var mine = [veil, dialog, dock];
     mine.forEach(function (n) { document.body.appendChild(n); });
 
     function sync() {
       go.hidden = !big.matches;
       play.classList.toggle("is-playable", big.matches);
-      if (!big.matches && (state === "open" || state === "full")) close();
+      if (big.matches) return;
+      // Narrowed to a phone's width (a tablet turned, say): Pip goes back on
+      // the desk, and the desk shows the phone line
+      if (state === "open" || state === "full") close();
+      else if (state === "min") { showDock(false); state = "closed"; }
     }
     sync();
     if (big.addEventListener) big.addEventListener("change", sync); else if (big.addListener) big.addListener(sync);
@@ -1804,7 +1809,7 @@
     }
     function show(on) {
       pw.classList.toggle("is-on", on);
-      if (on) pw.removeAttribute("aria-hidden"); else pw.setAttribute("aria-hidden", "true");
+      if (on) dialog.removeAttribute("aria-hidden"); else dialog.setAttribute("aria-hidden", "true");
     }
     function placeDock() {
       // A frame stretched to the page's height has no screen bottom of its
@@ -1843,6 +1848,9 @@
           showAlt(true);
         }, 8000);
       }
+      // Stop any smooth scroll still running (a focus scroll, say), so the
+      // glide starts from where the page really is
+      window.scrollTo({ top: window.scrollY, behavior: "instant" });
       var T = windowBox();
       var startY = window.scrollY, endY = startY;
       if (!view.stretched()) {
@@ -1856,20 +1864,26 @@
       }
       focusOn(true);
       clearDesk(true);
-      veil.classList.add("is-on");
       pw.classList.remove("is-settled", "is-full");
-      var from = fromDock ? tileBox() : deskBox();
-      skin.style.opacity = fromDock ? "0" : "1";
-      draw(from);
-      show(true);
       document.addEventListener("keydown", onKey);
-      return wait(fromDock ? 0 : 120).then(function () {
-        return tween(fromDock ? 560 : 640, easeOut, function (e, t) {
-          if (endY !== startY) window.scrollTo({ top: startY + (endY - startY) * e, behavior: "instant" });
-          draw(mix(fromDock ? from : deskBox(), T, e));
-          if (!fromDock) skin.style.opacity = String(1 - clamp((t - 0.12) / 0.5, 0, 1));
+      // The page glides while the desk clears; once its things have gone,
+      // the window grows out of the desk, following it, to mid-screen, and
+      // the page dims around it
+      var glide = endY === startY ? Promise.resolve() : tween(fromDock ? 560 : 700, easeOut, function (e) {
+        window.scrollTo({ top: startY + (endY - startY) * e, behavior: "instant" });
+      });
+      var from = fromDock ? tileBox() : null;
+      var grow = wait(fromDock ? 0 : 240).then(function () {
+        skin.style.opacity = fromDock ? "0" : "1";
+        draw(from || deskBox());
+        show(true);
+        veil.classList.add("is-on");
+        return tween(560, easeOut, function (e, t) {
+          draw(mix(from || deskBox(), T, e));
+          if (!fromDock) skin.style.opacity = String(1 - clamp((t - 0.1) / 0.5, 0, 1));
         });
-      }).then(function () {
+      });
+      return Promise.all([glide, grow]).then(function () {
         settle(windowBox());
         skin.style.opacity = "0";
         pw.classList.add("is-settled");
@@ -1877,6 +1891,7 @@
         if (wasMin) showDock(false);
         state = "open";
         pw.focus({ preventScroll: true });
+        sync();
       });
     }
 
@@ -1930,6 +1945,7 @@
         focusOn(false);
         state = "min";
         go.focus({ preventScroll: true });
+        sync();
       });
     }
 
@@ -1946,6 +1962,7 @@
       return tween(420, easeOut, function (e) { draw(mix(from, to, e)); }).then(function () {
         settle(fullBox());
         state = "full";
+        sync();
       });
     }
     function unfull() {
@@ -1959,6 +1976,7 @@
         settle(windowBox());
         cap.classList.add("is-on");
         state = "open";
+        sync();
       });
     }
 
@@ -1969,7 +1987,7 @@
     }
 
     go.addEventListener("click", function () { open(false); });
-    tile.addEventListener("click", function () { open(true); });
+    tile.addEventListener("click", function () { if (big.matches) open(true); });
     bClose.addEventListener("click", function () { close(); });
     bMin.addEventListener("click", function () { minimise(); });
     bFull.addEventListener("click", function () { full(); });
