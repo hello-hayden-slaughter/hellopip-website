@@ -2941,7 +2941,7 @@ small { font-size: inherit; }
   left: var(--x);
   top: var(--y);
   width: clamp(64px, 11cqi, 136px);
-  transform: translate(-50%, -50%) translate(var(--px, 0px), var(--py, 0px)) translate(var(--dx, 0px), var(--dy, 0px));
+  transform: translate(-50%, -50%) translate(var(--px, 0px), var(--py, 0px));
   transition: transform 700ms var(--ease-out);
 }
 .pg-bob { display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -3056,17 +3056,18 @@ small { font-size: inherit; }
 }
 
 /* ── The demo window ─────────────────────────────────────────────────────────
-   "Open Pip" turns the desk into Pip's window, in place. The desk clears, the
-   page glides so the section sits mid-screen, and the desk grows into the
-   window at the Mac app's own shape (16:10), as big as the screen allows and
-   never past the demo's natural 1280 × 800, so the app draws at its own
-   layout, scaled. The rest of the page dims. The window controls sit where
+   "Open Pip" turns the desk into Pip, in its own place: its five things and
+   the invitation fade as Pip fades in over them, nothing moving but the page
+   easing the desk to mid-screen. Then the desk grows into the window, at the
+   Mac app's own shape (16:10), as big as the screen allows and never past
+   the demo's natural 1280 × 800, so the app draws at its own layout, scaled,
+   and the rest of the page steps back. Closing is the same, backwards. The window controls sit where
    macOS draws them in the Mac app, over the empty top of Pip's rail
    (electron.js: trafficLightPosition 16, 18); nothing else is drawn on the
    demo. Red puts it back on the desk, yellow tucks it into a little dock
    while you read on, green fills the browser window. */
 :root {
-  --pw-veil: rgba(22, 19, 16, 0.44);
+  --pw-veil: rgba(22, 19, 16, 0.36);
   --pw-cap-fg: rgba(255, 255, 255, 0.94);
   --pw-dock-bg: rgba(250, 250, 248, 0.6);
   --pw-dock-ring: rgba(26, 26, 26, 0.14);
@@ -3079,7 +3080,7 @@ small { font-size: inherit; }
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --pw-veil: rgba(0, 0, 0, 0.52);
+    --pw-veil: rgba(0, 0, 0, 0.5);
     --pw-dock-bg: rgba(46, 45, 41, 0.62);
     --pw-dock-ring: rgba(255, 255, 255, 0.14);
     --pw-dot: #E8E5E0;
@@ -3087,7 +3088,7 @@ small { font-size: inherit; }
   }
 }
 :root[data-theme="dark"] {
-  --pw-veil: rgba(0, 0, 0, 0.52);
+  --pw-veil: rgba(0, 0, 0, 0.5);
   --pw-dock-bg: rgba(46, 45, 41, 0.62);
   --pw-dock-ring: rgba(255, 255, 255, 0.14);
   --pw-dot: #E8E5E0;
@@ -3096,14 +3097,13 @@ small { font-size: inherit; }
 
 html.has-pw { overflow: hidden; }
 
-/* The desk clears before it becomes the window: its things drift outward
-   (--dx, --dy, on top of the pointer's parallax) and fade, the invitation
-   goes, and they all come back when Pip is put away */
-.pg-bob { transition: opacity 520ms var(--ease-out); }
-.playground.is-clear .pg-obj { transition: transform 420ms var(--ease-out); }
-.playground.is-clear .pg-bob { opacity: 0; transition-duration: 240ms; }
-.pg-centre { transition: opacity 360ms var(--ease-out) 160ms, transform 360ms var(--ease-out) 160ms; }
-.playground.is-clear .pg-centre { opacity: 0; transform: scale(0.98); transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out); }
+/* As Pip fades in over the desk, the desk's things and its invitation fade
+   where they are (nothing flies off), and fade back when Pip goes. The fade
+   is on .pg-bob, not .pg-obj, whose intro animation holds its opacity. */
+.pg-bob,
+.pg-centre { transition: opacity 360ms var(--ease-out); }
+.playground.is-clear .pg-bob,
+.playground.is-clear .pg-centre { opacity: 0; }
 .playground.is-clear .pg-centre > * { pointer-events: none; }
 
 .pw-veil {
@@ -3111,16 +3111,16 @@ html.has-pw { overflow: hidden; }
   inset: 0;
   z-index: 200;
   background: var(--pw-veil);
-  -webkit-backdrop-filter: blur(3px);
-          backdrop-filter: blur(3px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 380ms var(--ease-out), visibility 0s linear 380ms;
+  transition: opacity 520ms var(--ease-out), visibility 0s linear 520ms;
 }
-.pw-veil.is-on { opacity: 1; visibility: visible; transition: opacity 380ms var(--ease-out); }
+.pw-veil.is-on { opacity: 1; visibility: visible; transition: opacity 520ms var(--ease-out); }
 
 /* Shut, the window stays laid out but unseen, so a demo loaded early boots at
-   its natural size, not at nothing */
+   its natural size, not at nothing. It has no ground of its own: the app
+   always covers it, and while Pip fades in, the desk shows through. Its
+   shadow and corners grow from the desk's as it lifts (set by the script). */
 .pw {
   position: fixed;
   left: 0;
@@ -3128,7 +3128,7 @@ html.has-pw { overflow: hidden; }
   z-index: 210;
   overflow: hidden;
   border-radius: 12px;
-  background: #FAFAF8; /* the demo's own canvas */
+  background: transparent;
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.3), 0 24px 64px rgba(0, 0, 0, 0.32), 0 6px 18px rgba(0, 0, 0, 0.14);
   outline: none;
   visibility: hidden;
@@ -3158,16 +3158,6 @@ html.has-pw { overflow: hidden; }
   color: var(--text-secondary);
   white-space: nowrap;
   transform: translateX(-50%);
-}
-/* While it grows out of the desk, the window wears the desk's surface (.playground's) */
-.pw-skin {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  background-color: color-mix(in srgb, var(--chart-amber) 7%, var(--surface-pip));
-  background-image: var(--grain), radial-gradient(ellipse 60% 55% at 50% 50%, var(--surface-pip) 30%, transparent 100%);
-  background-size: 90px 90px, 100% 100%;
 }
 
 /* The window controls: 12px, 8px apart, glyphs on hover, as macOS draws them */
@@ -3208,7 +3198,8 @@ html.has-pw { overflow: hidden; }
 .pw.is-full .pw-light .pw-full-in { display: none; }
 .pw.is-full .pw-light .pw-full-out { display: block; }
 
-/* Under the window: the one line the old bar said that still matters */
+/* Under the window, only when the demo won't show: a way to open it in a new
+   tab. Nothing else is said here; the visitor is trying Pip, not being sold to. */
 .pw-cap {
   position: fixed;
   left: 0;
@@ -3218,7 +3209,7 @@ html.has-pw { overflow: hidden; }
   align-items: center;
   gap: 14px;
   color: var(--pw-cap-fg);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: var(--weight-medium);
   white-space: nowrap;
   transform: translateX(-50%);
@@ -3227,7 +3218,7 @@ html.has-pw { overflow: hidden; }
   transition: opacity 200ms var(--ease-out), visibility 0s linear 200ms;
 }
 .pw-cap.is-on { opacity: 1; visibility: visible; transition: opacity 260ms var(--ease-out) 80ms; }
-.pw-cap a:not(.btn) { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.pw-cap a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 
 /* Minimised: Pip waits in a little dock while you read on */
 .pw-dock {
