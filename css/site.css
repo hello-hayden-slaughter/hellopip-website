@@ -2918,11 +2918,11 @@ small { font-size: inherit; }
 }
 
 
-/* ── Have a play: the playground and the takeover ───────────────────────────
+/* ── Have a play: the playground and the demo window ────────────────────────
    On the page there's no app to mistake for the real thing: a desk on Pip's
    dotted canvas with Jo's five things on it, drawn as the app's own loading
    screen draws them (Loader/deskObjects), and an invitation in the middle.
-   On a laptop or tablet "Open Pip" brings the real app up full screen. */
+   On a laptop or tablet "Open Pip" turns the desk into the real app's window. */
 .playground {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -2941,7 +2941,7 @@ small { font-size: inherit; }
   left: var(--x);
   top: var(--y);
   width: clamp(64px, 11cqi, 136px);
-  transform: translate(-50%, -50%) translate(var(--px, 0px), var(--py, 0px));
+  transform: translate(-50%, -50%) translate(var(--px, 0px), var(--py, 0px)) translate(var(--dx, 0px), var(--dy, 0px));
   transition: transform 700ms var(--ease-out);
 }
 .pg-bob { display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -3055,68 +3055,97 @@ small { font-size: inherit; }
   50%      { transform: translateY(-7px); }
 }
 
-.takeover {
+/* ── The demo window ─────────────────────────────────────────────────────────
+   "Open Pip" turns the desk into Pip's window, in place. The desk clears, the
+   page glides so the section sits mid-screen, and the desk grows into the
+   window at the Mac app's own shape (16:10), as big as the screen allows and
+   never past the demo's natural 1280 × 800, so the app draws at its own
+   layout, scaled. The rest of the page dims. The window controls sit where
+   macOS draws them in the Mac app, over the empty top of Pip's rail
+   (electron.js: trafficLightPosition 16, 18); nothing else is drawn on the
+   demo. Red puts it back on the desk, yellow tucks it into a little dock
+   while you read on, green fills the browser window. */
+:root {
+  --pw-veil: rgba(22, 19, 16, 0.44);
+  --pw-cap-fg: rgba(255, 255, 255, 0.94);
+  --pw-dock-bg: rgba(250, 250, 248, 0.6);
+  --pw-dock-ring: rgba(26, 26, 26, 0.14);
+  --pw-dot: #3A3733;
+  /* macOS's own window controls: the system's colours, not the site's */
+  --pw-red: #FF5F57;    --pw-red-ring: #E2463F;    --pw-red-ink: #7E0F06;
+  --pw-yellow: #FEBC2E; --pw-yellow-ring: #E1A116; --pw-yellow-ink: #8A4E07;
+  --pw-green: #28C840;  --pw-green-ring: #14AE2C;  --pw-green-ink: #075C09;
+  --pw-off: #D5D3CF;    --pw-off-ring: #C3C1BD;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pw-veil: rgba(0, 0, 0, 0.52);
+    --pw-dock-bg: rgba(46, 45, 41, 0.62);
+    --pw-dock-ring: rgba(255, 255, 255, 0.14);
+    --pw-dot: #E8E5E0;
+    --pw-off: #55524D; --pw-off-ring: #46433F;
+  }
+}
+:root[data-theme="dark"] {
+  --pw-veil: rgba(0, 0, 0, 0.52);
+  --pw-dock-bg: rgba(46, 45, 41, 0.62);
+  --pw-dock-ring: rgba(255, 255, 255, 0.14);
+  --pw-dot: #E8E5E0;
+  --pw-off: #55524D; --pw-off-ring: #46433F;
+}
+
+html.has-pw { overflow: hidden; }
+
+/* The desk clears before it becomes the window: its things drift outward
+   (--dx, --dy, on top of the pointer's parallax) and fade, the invitation
+   goes, and they all come back when Pip is put away */
+.pg-bob { transition: opacity 520ms var(--ease-out); }
+.playground.is-clear .pg-obj { transition: transform 420ms var(--ease-out); }
+.playground.is-clear .pg-bob { opacity: 0; transition-duration: 240ms; }
+.pg-centre { transition: opacity 360ms var(--ease-out) 160ms, transform 360ms var(--ease-out) 160ms; }
+.playground.is-clear .pg-centre { opacity: 0; transform: scale(0.98); transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out); }
+.playground.is-clear .pg-centre > * { pointer-events: none; }
+
+.pw-veil {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: var(--scrim);
+  background: var(--pw-veil);
+  -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 380ms var(--ease-out), visibility 0s linear 380ms;
 }
-/* Closed, it stays laid out but unseen: a demo loaded early boots at the
-   screen's real size, not at nothing */
-.takeover:not(.is-open) { visibility: hidden; pointer-events: none; }
-.takeover-panel {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
+.pw-veil.is-on { opacity: 1; visibility: visible; transition: opacity 380ms var(--ease-out); }
+
+/* Shut, the window stays laid out but unseen, so a demo loaded early boots at
+   its natural size, not at nothing */
+.pw {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 210;
   overflow: hidden;
-  background: var(--bg-primary);
-  transform-origin: 0 0;
+  border-radius: 12px;
+  background: #FAFAF8; /* the demo's own canvas */
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.3), 0 24px 64px rgba(0, 0, 0, 0.32), 0 6px 18px rgba(0, 0, 0, 0.14);
+  outline: none;
+  visibility: hidden;
+  pointer-events: none;
 }
-.takeover-bar {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 52px;
-  padding: env(safe-area-inset-top, 0px) 10px 0 18px;
-  background: var(--bg-secondary);
-  box-shadow: inset 0 -1px 0 var(--border-light);
-}
-.takeover-what { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 14px; line-height: 1.35; color: var(--text-secondary); }
-.takeover-what b { font-weight: var(--weight-semibold); color: var(--text-primary); }
-.takeover-end { flex: none; display: flex; align-items: center; gap: 6px; }
-.takeover-alt { margin-right: 8px; font-size: 13.5px; font-weight: var(--weight-medium); }
-.takeover-close {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 10px 0 12px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 13.5px;
-  font-weight: var(--weight-medium);
-  transition: background-color var(--transition-fast);
-}
-.takeover-close:hover { background: var(--bg-hover); }
-.takeover-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--bg-primary); }
-.takeover-poster {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 0 0;
-  transition: opacity 420ms var(--ease-out);
-}
-.takeover-wait {
+.pw.is-on { visibility: visible; pointer-events: auto; }
+.pw-app { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; transform-origin: 0 0; }
+.pw-poster { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 0 0; transition: opacity 420ms var(--ease-out); }
+.pw-frame { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: #FAFAF8; opacity: 0; transition: opacity 420ms var(--ease-out); }
+.pw.is-live .pw-frame { opacity: 1; }
+.pw.is-live .pw-poster,
+.pw.is-live .pw-wait { opacity: 0; visibility: hidden; transition: opacity 420ms var(--ease-out), visibility 0s linear 420ms; }
+.pw-wait {
   position: absolute;
   left: 50%;
-  bottom: 28px;
+  bottom: 24px;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3129,62 +3158,121 @@ small { font-size: inherit; }
   color: var(--text-secondary);
   white-space: nowrap;
   transform: translateX(-50%);
-  transition: opacity var(--dur-quick) var(--ease-out);
 }
-.takeover-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  background: var(--bg-primary);
-  transform-origin: 0 0;
-  opacity: 0;
-  transition: opacity 420ms var(--ease-out);
-}
-.takeover.is-ready .takeover-frame { opacity: 1; }
-.takeover.is-ready .takeover-poster,
-.takeover.is-ready .takeover-wait { opacity: 0; visibility: hidden; transition: opacity 420ms var(--ease-out), visibility 0s linear 420ms; }
-html.has-takeover { overflow: hidden; }
-/* The first time: what's different about this Pip (no live AI), over the stage */
-.takeover-note {
+/* While it grows out of the desk, the window wears the desk's surface (.playground's) */
+.pw-skin {
   position: absolute;
   inset: 0;
   z-index: 3;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--chart-amber) 7%, var(--surface-pip));
+  background-image: var(--grain), radial-gradient(ellipse 60% 55% at 50% 50%, var(--surface-pip) 30%, transparent 100%);
+  background-size: 90px 90px, 100% 100%;
+}
+
+/* The window controls: 12px, 8px apart, glyphs on hover, as macOS draws them */
+.pw-lights {
+  position: absolute;
+  z-index: 4;
+  left: 16px;
+  top: 13px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out);
+}
+.pw.is-settled .pw-lights { opacity: 1; transition-duration: 220ms; }
+.pw-light {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: color-mix(in srgb, var(--bg-primary) 62%, transparent);
-  -webkit-backdrop-filter: blur(6px);
-          backdrop-filter: blur(6px);
 }
-.takeover-note[hidden] { display: none; }
-.takeover-note-card {
+.pw-light::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+.pw-light svg { display: block; width: 8px; height: 8px; opacity: 0; transition: opacity 80ms linear; }
+.pw-lights:hover .pw-light svg,
+.pw-lights:focus-within .pw-light svg { opacity: 1; }
+.pw-light--close { background: var(--pw-red);    box-shadow: inset 0 0 0 0.5px var(--pw-red-ring);    color: var(--pw-red-ink); }
+.pw-light--min   { background: var(--pw-yellow); box-shadow: inset 0 0 0 0.5px var(--pw-yellow-ring); color: var(--pw-yellow-ink); }
+.pw-light--full  { background: var(--pw-green);  box-shadow: inset 0 0 0 0.5px var(--pw-green-ring);  color: var(--pw-green-ink); }
+.pw-light:active { filter: brightness(0.82); }
+/* As on a Mac, a full-screen window can't be minimised */
+.pw-light:disabled { background: var(--pw-off); box-shadow: inset 0 0 0 0.5px var(--pw-off-ring); }
+.pw-light:disabled svg { visibility: hidden; }
+.pw-light:focus-visible { outline-offset: 2px; }
+.pw-light .pw-full-out { display: none; }
+.pw.is-full .pw-light .pw-full-in { display: none; }
+.pw.is-full .pw-light .pw-full-out { display: block; }
+
+/* Under the window: the one line the old bar said that still matters */
+.pw-cap {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 211;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  max-width: 440px;
-  padding: 28px 28px 24px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-pip);
-  box-shadow: var(--shadow-lg), var(--win-ring);
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--text-secondary);
+  align-items: center;
+  gap: 14px;
+  color: var(--pw-cap-fg);
+  font-size: 15px;
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--ease-out), visibility 0s linear 200ms;
 }
-.takeover-note-h { margin-top: 2px; font-size: 22px; line-height: 1.25; font-weight: var(--weight-semibold); letter-spacing: -0.01em; color: var(--text-primary); }
-.takeover-note-ok { margin-top: 6px; }
-@media (prefers-reduced-motion: no-preference) {
-  .takeover-note:not([hidden]) .takeover-note-card { animation: intro-rise 320ms var(--ease-out) 260ms both; }
+.pw-cap.is-on { opacity: 1; visibility: visible; transition: opacity 260ms var(--ease-out) 80ms; }
+.pw-cap a:not(.btn) { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Minimised: Pip waits in a little dock while you read on */
+.pw-dock {
+  position: fixed;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  z-index: 220;
+  display: flex;
+  padding: 6px 6px 9px;
+  border-radius: 20px;
+  background: var(--pw-dock-bg);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+          backdrop-filter: blur(18px) saturate(1.6);
+  box-shadow: 0 0 0 0.5px var(--pw-dock-ring), 0 10px 30px rgba(0, 0, 0, 0.18);
+  transform: translate(-50%, 24px);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 300ms var(--ease-out), opacity 200ms var(--ease-out), visibility 0s linear 300ms;
 }
-@media (max-width: 1023px) {
-  .takeover-small { display: none; }
+.pw-dock.is-on { transform: translate(-50%, 0); opacity: 1; visibility: visible; transition: transform 320ms var(--ease-out), opacity 200ms var(--ease-out); }
+.pw-tile { position: relative; display: block; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 14px; background: none; }
+.pw-tile img { display: block; width: 52px; height: 52px; }
+.pw-tile::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 4px; height: 4px; border-radius: 50%; background: var(--pw-dot); transform: translateX(-50%); }
+.pw-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 16px);
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-fg);
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms var(--ease-out);
 }
+.pw-tile:hover .pw-tip,
+.pw-tile:focus-visible .pw-tip { opacity: 1; }
+
 @media (prefers-reduced-motion: reduce) {
-  .takeover-frame, .takeover-poster, .play-go, .pg-obj, .pg-art, .pg-art .fl { transition: none; }
+  .play-go, .pg-obj, .pg-bob, .pg-centre, .pg-art, .pg-art .fl,
+  .pw-veil, .pw-cap, .pw-dock, .pw-lights, .pw-frame, .pw-poster { transition: none; }
 }
 
 
