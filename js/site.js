@@ -853,6 +853,25 @@
       }
       return cur;
     }
+    // Words, or words with a link to what Pip made: { link: "Sales dashboard",
+    // icon: "dashboard", to: el }. It is the app's link, the thing's glyph then
+    // its name; what it names is open beside the chat already, so a click rings it
+    function words(t, text) {
+      if (!Array.isArray(text)) { t.textContent = text; return; }
+      text.forEach(function (part) {
+        if (typeof part === "string") { t.appendChild(document.createTextNode(part)); return; }
+        var a = el("button", "pp-link");
+        a.type = "button";
+        a.appendChild(icon(part.icon, 14));
+        a.appendChild(document.createTextNode(part.link));
+        a.addEventListener("click", function () {
+          part.to.classList.remove("is-pointed");
+          void part.to.offsetWidth;
+          part.to.classList.add("is-pointed");
+        });
+        t.appendChild(a);
+      });
+    }
     api.say = function (text, working) {
       var t = pipMsg().firstChild;
       t.textContent = "";
@@ -861,7 +880,7 @@
         w.appendChild(dots());
         w.appendChild(document.createTextNode(text));
         t.appendChild(w);
-      } else t.textContent = text;
+      } else words(t, text);
       scrollDown();
     };
     // The next thing Pip says starts a message of its own
@@ -921,13 +940,15 @@
     });
 
     /* The play-through's pointer and its timers: one run at a time */
-    var timers = [];
+    var timers = [], at = null;
     api.later = function (fn, ms) { timers.push(setTimeout(fn, ms)); };
     function place(x, y, drag) {
       if (!pointer) return;
+      at = { x: x, y: y };
       pointer.classList.toggle("is-dragging", !!drag);
       pointer.style.opacity = "1";
       pointer.style.transform = "translate(" + Math.round(x) + "px," + Math.round(y) + "px)";
+      if (tryOn) tryTip.style.transform = pointer.style.transform;
     }
     api.moveTo = function (target, dx, dy) {
       if (!target) return;
@@ -953,23 +974,89 @@
       if (pointer) pointer.style.opacity = "0";
       if (replay) replay.hidden = false;
     };
+
+    /* Your turn: the pointer stays, says what to try beside it, then glides
+       onto that move and waits there for the visitor to take over. It goes
+       the moment they do anything in the stage. */
+    var tryTip = null, tryOn = null, tryTimers = [];
+    function still(fn) {
+      pointer.classList.add("is-still"); tryTip.classList.add("is-still");
+      fn();
+      void pointer.offsetWidth;
+      pointer.classList.remove("is-still"); tryTip.classList.remove("is-still");
+    }
+    // On the move's own words, near their start, so the name tag fits beside
+    function onWords(move) {
+      var words = $(".pp-move-label", move) || move, r = document.createRange();
+      r.selectNodeContents(words);
+      var t = r.getBoundingClientRect(), m = move.getBoundingClientRect(), b = root.getBoundingClientRect();
+      return { x: t.left - b.left + Math.min(t.width * 0.6, 48), y: m.top - b.top + m.height * 0.5 };
+    }
+    api.invite = function (move, from) {
+      var target = $('[data-move="' + move + '"]', pop);
+      api.done();
+      if (!pointer || !target) return;
+      if (!tryTip) {
+        tryTip = el("span", "pp-try");
+        tryTip.setAttribute("aria-hidden", "true");
+        tryTip.appendChild(el("span", "pp-try-label"));
+        root.appendChild(tryTip);
+      }
+      tryTip.firstChild.textContent = "Try \u201C" + ($(".pp-move-label", target) || target).textContent + "\u201D";
+      var end = onWords(target);
+      // Too near the panel's right-hand edge for the name tag: it hangs to the left
+      var edge = pop.getBoundingClientRect().right - root.getBoundingClientRect().left;
+      tryTip.classList.toggle("is-left", end.x + 15 + tryTip.firstChild.offsetWidth > edge - 6);
+      tryOn = target;
+      var start = at && !from ? at : end;
+      if (from && !reduced()) {
+        var f = from.getBoundingClientRect(), b = root.getBoundingClientRect();
+        start = { x: f.left - b.left + f.width * 0.5, y: f.top - b.top + f.height * 0.45 };
+      }
+      if (reduced()) start = end;
+      still(function () { place(start.x, start.y); });
+      pointer.classList.add("is-inviting");
+      tryTip.classList.add("is-on");
+      // Once it has caught the eye the name tag goes, so it hides nothing Pip
+      // said; the pointer stays parked on the move
+      var land = start === end ? 0 : 2200;
+      if (land) tryTimers.push(setTimeout(function () { place(end.x, end.y); }, 1300));
+      tryTimers.push(setTimeout(function () { target.classList.add("is-tried"); }, land));
+      tryTimers.push(setTimeout(function () { tryTip.classList.remove("is-on"); }, land + 4000));
+    };
+    api.uninvite = function () {
+      if (!tryOn) return;
+      tryTimers.forEach(clearTimeout); tryTimers = [];
+      tryOn.classList.remove("is-tried");
+      tryOn = null;
+      tryTip.classList.remove("is-on");
+      pointer.classList.remove("is-inviting");
+      if (!api.auto) pointer.style.opacity = "0";
+    };
+    // A new width moves the move: the pointer keeps to it
+    window.addEventListener("resize", function () {
+      if (!tryOn) return;
+      var end = onWords(tryOn);
+      still(function () { place(end.x, end.y); });
+    });
+
     api.start = function (play) {
+      api.uninvite();
       api.stop();
       api.auto = true;
       if (replay) replay.hidden = true;
       play();
     };
-    root.addEventListener("pointerdown", function (e) { if (api.auto && !e.target.closest("[data-pp-replay]")) api.stop(); }, true);
-    root.addEventListener("keydown", function () { if (api.auto) api.stop(); }, true);
+    root.addEventListener("pointerdown", function (e) {
+      api.uninvite();
+      if (api.auto && !e.target.closest("[data-pp-replay]")) api.stop();
+    }, true);
+    root.addEventListener("keydown", function () { api.uninvite(); if (api.auto) api.stop(); }, true);
     if (replay) replay.addEventListener("click", function () { if (opts.onReplay) opts.onReplay(); });
-    // A first nudge toward Pip's moves, once in view, until the visitor acts
-    if (opts.nudge && !reduced()) onceVisible(root, function () {
-      setTimeout(function () {
-        var first = $(".pp-move", pop);
-        if (first && !api.touched) first.classList.add("is-nudge");
-      }, 900);
+    // With no play-through, the pointer shows the first move once in view
+    if (opts.invite) onceVisible(root, function () {
+      setTimeout(function () { if (!api.touched && !api.auto) api.invite(opts.invite, doc); }, 900);
     }, 0.6);
-    root.addEventListener("pointerdown", function () { $$(".pp-move.is-nudge", pop).forEach(function (m) { m.classList.remove("is-nudge"); }); });
     if (!reduced() && opts.play) {
       onceVisible(root, function () { setTimeout(function () { if (!api.touched) opts.play(); }, 700); }, 0.5);
     } else if (replay && opts.play) replay.hidden = false;
@@ -1191,13 +1278,14 @@
       if (range) CSS.highlights.set("pp-picked", new Highlight(range)); else CSS.highlights.delete("pp-picked");
     }
     function pick(r) {
-      var was = picked ? picked.toString() : "";
+      // (a pick Pip has since rewritten reads as "", so whether there was one counts too)
+      var was = picked ? picked.toString() : "", had = !!picked;
       picked = r ? r.cloneRange() : null;
       pp.scope(picked ? "sel" : "all");
       showPicked(picked);
       // The card's ideas follow what's picked: the selected words' own, or the note's
       var now = picked ? picked.toString() : "";
-      if (now !== was) {
+      if (now !== was || had !== !!picked) {
         pp.setMoves(picked ? passageMoves(now) : WHOLE_MOVES);
         // A selection's card leads with a fact, as in the app: how many words, and from where
         var n = wordCount(now);
@@ -1390,10 +1478,13 @@
             }, 900);
           }, 1100);
         }
+        // Your turn, on the whole note again: the pointer shows one to try
         function finish() {
           var c = $(".pp-caret", body); if (c) c.remove();
+          window.getSelection().removeAllRanges();
+          pick(null);
           pp.hint();
-          pp.done();
+          pp.invite("short");
         }
       });
     }
@@ -1494,28 +1585,24 @@
     });
   }
 
-  /* Switch AI: a chat already going, with its AI named in the chat box
-     (Claude Sonnet 5) and under each answer. A pointer clicks the name, the
-     menu opens up from it, the pointer picks Claude Opus 5.5, and the name
-     changes. Then a follow-up goes in and the answer says it came from Opus,
-     with the Sonnet answer still above it: same chat, different AI. */
+  /* The right AI for every job: a chat already going, each answer marked as
+     Pip's choice and the model it went to (Claude Sonnet 5). A pointer opens
+     the menu from the chat box: models from four companies, Pip's choice
+     ticked. It runs down them, then picks Pip's choice again and the menu
+     closes. A follow-up goes in and Pip answers as before: nothing to choose,
+     and everything there if you want it. */
   function sceneSwitch() {
     var root = $('[data-scene="switch"]');
     if (!root) return;
     var chat = $(".pchat", root);
     var steps = $$("[data-step]", root);
     var chip = $("[data-chip]", root);
-    var label = $("[data-chip-label]", root);
     var opts = $$("[data-menu] .mopt", root);
     var cursor = $("[data-cursor]", root);
     var box = composer(root);
-    var DEFAULT = 0, PICK = 1; // Claude Sonnet 5 → Claude Opus 5.5
+    var CHOICE = 0, OTHERS = [1, 2, 3, 4]; // Pip's choice, then Claude, GPT, Mistral, GLM
 
-    function choose(i, animate) {
-      opts.forEach(function (o, k) { o.classList.toggle("is-on", k === i); o.classList.remove("is-hover"); });
-      var name = opts[i].getAttribute("data-model");
-      if (animate) swapText(label, name); else label.textContent = name;
-    }
+    function hover(i) { opts.forEach(function (o, k) { o.classList.toggle("is-hover", k === i); }); }
     // Put the pointer's tip on the middle of a node (or a point in the chat)
     function point(node, fx, fy) {
       var c = chat.getBoundingClientRect();
@@ -1535,13 +1622,22 @@
     function clear() {
       steps.forEach(function (s) { s.classList.remove("is-shown", "is-thinking", "is-answered"); });
       root.classList.remove("is-open");
-      chip.classList.remove("is-on", "is-changed");
+      chip.classList.remove("is-on");
       cursor.classList.remove("is-on", "is-press");
+      hover(-1);
       box.reset();
+    }
+    // Down the list, one model at a time
+    function browse(sleep, k) {
+      if (k >= OTHERS.length) return sleep(0);
+      point(opts[OTHERS[k]], 0.3, 0.55);
+      return sleep(k ? 520 : 760)
+        .then(function () { hover(OTHERS[k]); return sleep(380); })
+        .then(function () { return browse(sleep, k + 1); });
     }
 
     createScene(root, {
-      start: function () { clear(); choose(DEFAULT); root.classList.add("is-pre"); },
+      start: function () { clear(); root.classList.add("is-pre"); },
       play: function (sleep) {
         var q = steps[0], a = steps[1];
         point(null, 0.62, 0.42);
@@ -1549,20 +1645,20 @@
           .then(function () { cursor.classList.add("is-on"); return sleep(250); })
           .then(function () { point(chip, 0.55, 0.6); return sleep(900); })
           .then(function () { return press(sleep); })
-          .then(function () { chip.classList.add("is-on"); root.classList.add("is-open"); return sleep(900); })
-          .then(function () { point(opts[PICK], 0.3, 0.55); return sleep(760); })
-          .then(function () { opts[PICK].classList.add("is-hover"); return sleep(420); })
+          .then(function () { chip.classList.add("is-on"); root.classList.add("is-open"); return sleep(700); })
+          .then(function () { return browse(sleep, 0); })
+          .then(function () { point(opts[CHOICE], 0.3, 0.55); return sleep(700); })
+          .then(function () { hover(CHOICE); return sleep(420); })
           .then(function () { return press(sleep); })
-          .then(function () { choose(PICK, true); chip.classList.add("is-changed"); return sleep(650); })
-          .then(function () { root.classList.remove("is-open"); chip.classList.remove("is-on"); point(null, 0.78, 0.5); return sleep(500); })
-          .then(function () { cursor.classList.remove("is-on"); chip.classList.remove("is-changed"); return sleep(500); })
+          .then(function () { hover(-1); root.classList.remove("is-open"); chip.classList.remove("is-on"); point(null, 0.78, 0.5); return sleep(500); })
+          .then(function () { cursor.classList.remove("is-on"); return sleep(500); })
           .then(function () { return box.type(q.textContent, sleep); })
           .then(function () { return sleep(400); })
           .then(function () { box.send(); q.classList.add("is-shown"); return sleep(500); })
           .then(function () { a.classList.add("is-shown", "is-thinking"); return sleep(1300); })
           .then(function () { a.classList.remove("is-thinking"); a.classList.add("is-answered"); return sleep(300); });
       },
-      end: function () { clear(); choose(PICK); root.classList.remove("is-pre"); }
+      end: function () { clear(); root.classList.remove("is-pre"); }
     });
   }
 
@@ -2161,7 +2257,6 @@
         say: tr.getAttribute("data-say"), was: price.textContent, good: price.textContent
       };
     });
-    var lamp = rows[rows.length - 1];
 
     var deck = $("#deck-job");
     var slideEls = $$(".slide", deck);
@@ -2497,7 +2592,7 @@
       var low = null;
       rows.forEach(function (r) { var m = marginOf(r); if (m != null && (!low || m < low.m)) low = { r: r, m: m }; });
       if (!low) return "Added Margin: what you keep from each price, after it's made.";
-      return cap(low.r.say) + " keeps the least, " + low.m + "%." + (low.r === lamp ? " Its oak base is £28 of the £" + lamp.make + " it costs to make." : "");
+      return cap(low.r.say) + " keeps the least, " + low.m + "%.";
     }
     function lowDone() {
       var u = under();
@@ -2567,6 +2662,33 @@
       sums(false);
       if (changed) priceSaid(r);
     });
+    // A formula cell shows its sum on hover, the app's tooltip: "= Materials +
+    // Time + Postage", over the cell after a beat, kept inside the table
+    var fxTip = el("span", "cf-tip"), fxOn = null, fxTimer = null;
+    fxTip.setAttribute("aria-hidden", "true");
+    costs.appendChild(fxTip);
+    function fxHide() { clearTimeout(fxTimer); fxOn = null; fxTip.classList.remove("is-on"); }
+    function fxShow(td) {
+      var th = $("th." + (td.classList.contains("c-cost") ? "c-cost" : "c-marg"), costs);
+      if (!td.offsetWidth) return;
+      fxTip.textContent = th.getAttribute("data-fx");
+      var r = td.getBoundingClientRect(), c = costs.getBoundingClientRect(), w = fxTip.offsetWidth;
+      var mid = r.left - c.left + r.width / 2, left = Math.max(0, Math.min(mid - w / 2, c.width - w));
+      fxTip.style.left = left + "px";
+      fxTip.style.top = (r.top - c.top) + "px";
+      fxTip.style.setProperty("--beak", (mid - left) + "px");
+      fxTip.classList.add("is-on");
+    }
+    costs.addEventListener("pointerover", function (e) {
+      var td = e.pointerType !== "touch" && e.target.closest ? e.target.closest("td.c-cost, td.c-marg") : null;
+      if (td === fxOn) return;
+      fxHide();
+      if (!td) return;
+      fxOn = td;
+      fxTimer = setTimeout(function () { fxShow(td); }, 600);
+    });
+    costs.addEventListener("pointerleave", fxHide);
+    costs.addEventListener("pointerdown", fxHide);
     /* ── 3 · The deck ───────────────────────────────────────────────────────
        The steps note steps aside, a slide is dealt for each step, then the
        step photos go in. */
@@ -2740,7 +2862,7 @@
         ask: [[/chart|graph|dashboard|total|trend|best|plot|visual|sales|month|year/, "dash"]],
         moves: { dash: { label: "Make it a dashboard", icon: "bar-chart", where: "New dashboard",
           play: dashPlay, end: dashEnd,
-          done: "One you might have missed: workshops made 43% of sales this year, up from 22% last year.",
+          done: function () { return ["Made you a ", { link: "Sales dashboard", icon: "dashboard", to: $(".dash-after", dash) }, " from this table. One you might have missed: workshops made 43% of sales this year, up from 22% last year."]; },
           again: "The dashboard's made. Undo takes you back to the table.",
           undo: "Back to your table." } } }
     ];
@@ -2862,7 +2984,7 @@
     }
     function fit() { fitTabs(); measureNote(); }
 
-    pp = pipPage(root, { onMove: press, onUndo: undo, onAsk: ask, nudge: true });
+    pp = pipPage(root, { onMove: press, onUndo: undo, onAsk: ask, invite: "draft" });
 
     root.classList.add("is-ready");
     $$(".cvi", cv).forEach(function (c, i) { c.style.setProperty("--n", i); });
@@ -3108,7 +3230,7 @@
         show("plan", true);
         thinking(false);
         var mine = plan.filter(function (e) { return e.mine; }).length;
-        pp.say("Made a plan in a new table, " + month + " posts: three posts a week." + (mine > 1 ? " Your new ideas are in it too." : mine ? " Your new idea is in it too." : ""));
+        pp.say(["Made a plan in a new table, ", { link: month + " posts", icon: "table", to: box }, ", with three posts a week." + (mine > 1 ? " Your new ideas are in it too." : mine ? " Your new idea is in it too." : "")]);
         pp.showUndo(true);
         pp.hint(hintNow());
         if (go && then) then();
@@ -3356,7 +3478,7 @@
           if (!pp.auto) return;
           pp.later(function () {
             pp.hint(END);
-            pp.done();
+            pp.invite("photos");
           }, 1200);
         }
         pp.later(idea, 600);

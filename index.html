@@ -226,10 +226,12 @@
     </figure>
     <div class="why-text" data-reveal>
       <h2 class="h2" id="why-h"><span class="beat-line">Hi, nice to meet you.</span> <span class="beat beat-line">I'm Hayden, and I build Pip.</span></h2>
-      <p class="why-story">I used AI every day for my work. But everything had to go through a chat box, and there was nowhere to just write my own thoughts and get on with my own work. When I went looking for something I'd made last week, it took ages to find, buried in an old conversation. And none of it sat with the rest of my work.</p>
-      <p class="why-story">It was frustrating having my work spread all over the place. So I built Pip.</p>
-      <p class="why-story why-story--end">My work takes centre stage, all joined up, and I get the power of AI to help wherever it's needed.</p>
-      <p class="why-by"><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-map-pin"/></svg><span>Made in Brighton</span></p>
+      <figure class="why-quote">
+        <blockquote class="why-quote-text">
+          <p>I loved what AI could do for my work. I didn't love losing it all in a long list of chats. So I built Pip, a place for my work with AI right beside it.</p>
+        </blockquote>
+        <figcaption class="why-by"><b>Hayden</b><span class="why-by-dot" aria-hidden="true"></span><svg class="i i-16" aria-hidden="true" focusable="false"><use href="#i-map-pin"/></svg><span>Made in Brighton</span></figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -401,14 +403,14 @@
                   <th scope="col" class="c-mats">Materials</th>
                   <th scope="col" class="c-time">Your time</th>
                   <th scope="col" class="c-post">Postage</th>
-                  <th scope="col" class="c-cost">Cost to make<small class="fx">= Materials + Time + Postage</small></th>
-                  <th scope="col" class="c-marg">Margin<small class="fx">= (Price − Cost) ÷ Price</small></th>
+                  <th scope="col" class="c-cost" data-fx="= Materials + Time + Postage">Cost to make<span class="sr-only">, worked out as Materials + Time + Postage</span></th>
+                  <th scope="col" class="c-marg" data-fx="= (Price − Cost) ÷ Price">Margin<span class="sr-only">, worked out as (Price − Cost) ÷ Price</span></th>
                 </tr></thead>
                 <tbody>
                   <tr data-parts="38,60,12" data-say="the large scallop"><td class="c-name">Large scallop</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£350</td><td class="c-mats">£38</td><td class="c-time">£60</td><td class="c-post">£12</td><td class="c-cost">£110</td><td class="c-marg">69%</td></tr>
                   <tr data-parts="30,50,12" data-say="the medium scallop"><td class="c-name">Medium scallop</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£300</td><td class="c-mats">£30</td><td class="c-time">£50</td><td class="c-post">£12</td><td class="c-cost">£92</td><td class="c-marg">69%</td></tr>
                   <tr data-parts="22,40,10" data-say="the 35cm drum"><td class="c-name">Gathered drum, 35cm</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£220</td><td class="c-mats">£22</td><td class="c-time">£40</td><td class="c-post">£10</td><td class="c-cost">£72</td><td class="c-marg">67%</td></tr>
-                  <tr data-parts="42,20,8" data-say="the slim lamp"><td class="c-name">Sage slim lamp</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£105</td><td class="c-mats">£42<small>£14 + £28 base</small></td><td class="c-time">£20</td><td class="c-post">£8</td><td class="c-cost">£70</td><td class="c-marg">33%</td></tr>
+                  <tr data-parts="42,20,8" data-say="the slim lamp"><td class="c-name">Sage slim lamp</td><td class="c-price" contenteditable="true" spellcheck="false" inputmode="decimal">£105</td><td class="c-mats">£42</td><td class="c-time">£20</td><td class="c-post">£8</td><td class="c-cost">£70</td><td class="c-marg">33%</td></tr>
                 </tbody>
               </table></div>
               <p class="cf-rule" aria-hidden="true"><i></i>Highlighted: Margin under 50%</p>
@@ -712,36 +714,37 @@
 <section class="section switch" id="switch" aria-labelledby="switch-h">
   <div class="container grid12">
     <div class="sec-head switch-head" data-reveal>
-      <h2 class="h2" id="switch-h"><span class="beat-line">Switch AI.</span> <span class="beat beat-line">Keep everything.</span></h2>
-      <p class="lead">Pip picks a good AI for each job, so you don't have to think about it. But you're never tied to one company. If prices go up, or you'd rather not use them, switch in a click and keep everything you've made.</p>
+      <h2 class="h2" id="switch-h"><span class="beat-line">The right AI</span> <span class="beat beat-line">for every job.</span></h2>
+      <p class="lead">Pip picks the right AI for each job, so you never have to think about it. Matching the AI to the job keeps costs down, and that keeps Pip affordable.</p>
       <ul class="switch-why">
-        <li><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg></span><span><b>Never locked in.</b> AI companies change their prices and rules. With Pip, you can move in a click.</span></li>
-        <li><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg></span><span><b>Good choices made for you.</b> Pip uses a lighter AI for small background jobs and a stronger one for your work.</span></li>
-        <li><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-folder-lock"/></svg></span><span><b>Your work stays yours.</b> Whichever AI you use, your notes and files stay on your Mac.</span></li>
+        <li><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg></span><span><b>Picked for you.</b> Each job goes to the AI that suits it, and every answer says which one it was.</span></li>
+        <li><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-percent"/></svg></span><span><b>Affordable by design.</b> Paying only for the AI each job needs is how Pip keeps its price low.</span></li>
+        <li><span class="icon-tile"><svg class="i i-20" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg></span><span><b>Not tied to one company.</b> Pick any of the top AI providers yourself. If one puts its prices up, Pip isn't stuck with it, and neither are you.</span></li>
       </ul>
     </div>
     <div class="switch-visual scene" data-reveal-visual>
-      <div class="demo win--switch" role="group" aria-label="Pip's chat: the AI for this chat is switched from Claude Sonnet to Claude Opus, and the conversation carries on" data-scene="switch">
+      <div class="demo win--switch" role="group" aria-label="Pip's chat: each answer comes from Pip's choice of AI. The AI menu opens on models from Anthropic, OpenAI, Mistral and Z.ai, Pip's choice stays picked, and the conversation carries on" data-scene="switch">
         <div class="chat-head"><svg class="pf pf-20" aria-hidden="true" focusable="false"><use href="#pip-face"/></svg><span>Pip's chat</span><button type="button" class="pp-replay chat-replay" data-replay-for="switch" hidden><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-rotate"/></svg>Play it again</button></div>
         <div class="pchat pchat--switch">
           <div class="pchat-log" data-log>
             <div class="pmsg pmsg--user">Give me three names for the autumn collection.</div>
-            <div class="pmsg pmsg--pip"><p class="pans">Ember, Hearth and Low Sun. Ember suits the mustard best.</p><p class="pmodel">Claude Sonnet 5</p></div>
+            <div class="pmsg pmsg--pip"><p class="pans">Ember, Hearth and Low Sun. Ember suits the mustard best.</p><p class="pmodel">Pip's choice · Claude Sonnet 5</p></div>
             <div class="pmsg pmsg--user" data-step>Three bolder ones?</div>
-            <div class="pmsg pmsg--pip" data-step><p class="pwork"><span class="pwork-now">Thinking</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p><p class="pans">Saffron Hour, Kiln and Molten. Kiln's the boldest, and it still sounds like your studio.</p><p class="pmodel pmodel--new">Claude Opus 5.5</p></div>
+            <div class="pmsg pmsg--pip" data-step><p class="pwork"><span class="pwork-now">Thinking</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p><p class="pans">Saffron Hour, Kiln and Molten. Kiln's the boldest, and it still sounds like your studio.</p><p class="pmodel">Pip's choice · Claude Sonnet 5</p></div>
           </div>
           <div class="pcomposer" data-composer>
             <span class="pc-field"><span class="pc-ph" data-ph>Ask a follow-up…</span><span class="pc-typed" data-typing></span><i class="caret" aria-hidden="true"></i></span>
-            <span class="pc-model" data-chip><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg><span class="pc-model-name" data-chip-label>Claude Sonnet 5</span><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></span>
+            <span class="pc-model" data-chip><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-sliders"/></svg><span class="pc-model-name" data-chip-label>Pip's choice</span><svg class="i i-12" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></span>
             <span class="pc-send" data-send><svg class="i i-14" aria-hidden="true" focusable="false"><use href="#i-send"/></svg></span>
           </div>
           <div class="mmenu" data-menu>
             <p class="mmenu-h">AI for this chat</p>
             <p class="mmenu-group">Pip subscription</p>
-            <div class="mopt is-on" data-model="Claude Sonnet 5"><span>Pip's choice · Claude Sonnet 5</span><small class="mopt-rec">Recommended</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
-            <div class="mopt" data-model="Claude Opus 5.5"><span>Claude Opus 5.5</span><small>The hardest problems</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
-            <div class="mopt" data-model="Claude Haiku 4.5"><span>Claude Haiku 4.5</span><small>Quick tasks</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
-            <div class="mopt" data-model="GLM-5.3 Flash"><span>GLM-5.3 Flash</span><small>Fast answers</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
+            <div class="mopt is-on" data-model="Pip's choice"><span>Pip's choice · Claude Sonnet 5</span><small class="mopt-rec">Recommended</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
+            <div class="mopt" data-model="Claude Opus 5.5"><span>Claude Opus 5.5</span><small>Anthropic</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
+            <div class="mopt" data-model="GPT-5"><span>GPT-5</span><small>OpenAI</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
+            <div class="mopt" data-model="Mistral Large"><span>Mistral Large</span><small>Mistral AI</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
+            <div class="mopt" data-model="GLM-5.3"><span>GLM-5.3</span><small>Z.ai</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
             <p class="mmenu-group">Your own</p>
             <div class="mopt"><span>Claude Opus 5.5</span><small>Your Claude plan</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
             <div class="mopt"><span>GPT-4o</span><small>Your OpenAI key</small><svg class="i i-14 mopt-tick" aria-hidden="true" focusable="false"><use href="#i-check"/></svg></div>
