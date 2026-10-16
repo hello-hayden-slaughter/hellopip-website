@@ -1635,11 +1635,12 @@
 
   /* ── demoWindow ────────────────────────────────────────────────────────────
      "Go on, have a play" is a real decision, so the real Pip (the web demo)
-     only comes when asked. "Open Pip" turns the desk into Pip's window, in
-     place: the desk clears, the page glides until the section sits mid-screen
-     and the desk grows into a window at the Mac app's shape (16:10), as big
-     as the screen allows and never past the demo's natural 1280 × 800. The
-     rest of the page dims and goes inert. The window controls are macOS's,
+     only comes when asked. "Open Pip" turns the desk into Pip, in its own
+     place: the desk's things and invitation fade as Pip fades in over them,
+     while the page eases the desk to mid-screen. Then the desk grows into a
+     window at the Mac app's shape (16:10), as big as the screen allows and
+     never past the demo's natural 1280 × 800, and the rest of the page
+     steps back (dims, and goes inert). Closing is the same, backwards. The window controls are macOS's,
      where the Mac app has them: red puts Pip back on the desk, yellow tucks
      it into a little dock so the visitor can read on and bring it back, green
      fills the browser window (green again, or Esc, comes back). Pip keeps its
@@ -1663,12 +1664,11 @@
     var origin;
     try { origin = new URL(src, location.href).origin; } catch (e) { return; }
     var veil = $("[data-pw-veil]"), cap = $("[data-pw-cap]"), dock = $("[data-pw-dock]");
-    var app = $("[data-pw-app]", pw), skin = $("[data-pw-skin]", pw), lights = $("[data-pw-lights]", pw);
+    var app = $("[data-pw-app]", pw), waitEl = $(".pw-wait", pw), lights = $("[data-pw-lights]", pw);
     var waitText = $("[data-pw-wait-text]", pw), alt = $("[data-pw-alt]", cap);
     var tile = $("[data-pw-tile]", dock), goLabel = $("span", go);
     var bClose = $("[data-pw-close]", pw), bMin = $("[data-pw-min]", pw), bFull = $("[data-pw-full]", pw);
     var header = $(".site-header");
-    var objs = $$(".pg-obj", desk);
     var big = window.matchMedia("(min-width: 768px)");
     var W = 1280, H = 800;   // the demo's natural size, and the Mac app's shape
     var fw = W, fh = H;      // the size the frame lays out at now
@@ -1745,9 +1745,13 @@
       return { x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * f, w: a.w + (b.w - a.w) * e, h: a.h + (b.h - a.h) * f, r: a.r + (b.r - a.r) * e };
     }
 
-    // Put the window at b, the frame scaled to cover it
-    function draw(b) {
+    // Put the window at b, the frame scaled to cover it. lift (0 to 1) is how
+    // far it has become a window: at 0 it is the desk (the desk's corners,
+    // and no shadow of its own, as the desk's shows), at 1 a Mac window.
+    function draw(b, lift) {
+      var l = lift === undefined ? 1 : lift;
       box = b;
+      pw.style.boxShadow = l ? "0 0 0 0.5px rgba(0,0,0," + (0.3 * l).toFixed(3) + "), 0 " + (24 * l).toFixed(1) + "px " + (64 * l).toFixed(1) + "px rgba(0,0,0," + (0.32 * l).toFixed(3) + "), 0 " + (6 * l).toFixed(1) + "px " + (18 * l).toFixed(1) + "px rgba(0,0,0," + (0.14 * l).toFixed(3) + ")" : "none";
       pw.style.left = b.x + "px";
       pw.style.top = b.y + "px";
       pw.style.width = b.w + "px";
@@ -1792,15 +1796,10 @@
     }
     function wait(ms) { return new Promise(function (r) { setTimeout(r, reduced() ? 0 : ms); }); }
 
-    function clearDesk(on) {
-      desk.classList.toggle("is-clear", on);
-      objs.forEach(function (o) {
-        var x = parseFloat(o.style.getPropertyValue("--x")) || 50;
-        var y = parseFloat(o.style.getPropertyValue("--y")) || 50;
-        o.style.setProperty("--dx", on ? (x - 50) * 2.4 + "px" : "0px");
-        o.style.setProperty("--dy", on ? (y - 50) * 2.4 + "px" : "0px");
-      });
-    }
+    function clearDesk(on) { desk.classList.toggle("is-clear", on); }
+    // How much of Pip shows in the window: 0 is the bare desk showing through
+    function seen(v) { app.style.opacity = String(v); waitEl.style.opacity = String(v); }
+    function linear(t) { return t; }
     function focusOn(on) {
       document.documentElement.classList.toggle("has-pw", on);
       Array.prototype.forEach.call(document.body.children, function (node) {
@@ -1832,8 +1831,8 @@
     }
     view.onMove(function () { if (state === "min") placeDock(); });
 
-    /* Open: the desk grows into the window, mid-screen. From the dock, the
-       window comes back up out of it while the page glides back. */
+    /* Open: the desk becomes Pip, then grows into the window. From the dock,
+       the window comes back up out of it while the page glides back. */
     function open(fromDock) {
       if (state !== "closed" && state !== "min") return;
       var wasMin = state === "min";
@@ -1864,29 +1863,46 @@
         endY = clamp(startY + d.top - aim, 0, document.documentElement.scrollHeight - window.innerHeight);
       }
       focusOn(true);
-      clearDesk(true);
       pw.classList.remove("is-settled", "is-full");
       document.addEventListener("keydown", onKey);
-      // The page glides while the desk clears; once its things have gone,
-      // the window grows out of the desk, following it, to mid-screen, and
-      // the page dims around it
-      var glide = endY === startY ? Promise.resolve() : tween(fromDock ? 560 : 700, easeOut, function (e) {
-        window.scrollTo({ top: startY + (endY - startY) * e, behavior: "instant" });
-      });
-      var from = fromDock ? tileBox() : null;
-      var grow = wait(fromDock ? 0 : 240).then(function () {
-        skin.style.opacity = fromDock ? "0" : "1";
-        draw(from || deskBox());
+      function glide(e) {
+        if (endY !== startY) window.scrollTo({ top: startY + (endY - startY) * e, behavior: "instant" });
+      }
+      var moving;
+      if (fromDock) {
+        var from = tileBox();
+        clearDesk(true);
+        seen(1);
+        draw(from);
         show(true);
         veil.classList.add("is-on");
-        return tween(560, easeOut, function (e, t) {
-          draw(mix(from || deskBox(), T, e));
-          if (!fromDock) skin.style.opacity = String(1 - clamp((t - 0.1) / 0.5, 0, 1));
+        moving = tween(560, easeOut, function (e) {
+          glide(e);
+          draw(mix(from, T, e));
         });
-      });
-      return Promise.all([glide, grow]).then(function () {
+      } else {
+        // In the desk's own place, its things fade (0 to 360ms) and Pip fades
+        // in as they go (140 to 440ms), so the two are never both there at
+        // full; the page eases the desk to mid-screen meanwhile (0 to 700ms).
+        // Then the desk grows into the window, gaining a window's corners and
+        // shadow, and the page steps back (380 to 980ms).
+        seen(0);
+        draw(deskBox(), 0);
+        show(true);
+        clearDesk(true);
+        var stepped = false;
+        moving = tween(980, linear, function (e, t) {
+          var ms = t * 980;
+          glide(easeInOut(clamp(ms / 700, 0, 1)));
+          seen(easeInOut(clamp((ms - 140) / 300, 0, 1)));
+          var g = easeInOut(clamp((ms - 380) / 600, 0, 1));
+          draw(mix(deskBox(), T, g), g);
+          if (!stepped && ms >= 380) { stepped = true; veil.classList.add("is-on"); }
+        });
+      }
+      return moving.then(function () {
         settle(windowBox());
-        skin.style.opacity = "0";
+        seen(1);
         pw.classList.add("is-settled");
         cap.classList.add("is-on");
         if (wasMin) showDock(false);
@@ -1896,7 +1912,9 @@
       });
     }
 
-    /* Close: back into the desk, and the desk's things come back */
+    /* Close: the window settles back into the desk as the page comes
+       forward (0 to 480ms); then, in the desk's own place, Pip fades (400 to
+       700ms) and the desk's things fade back as it goes (from 620ms) */
     function close() {
       if (state === "full") return unfull().then(close);
       if (state !== "open") return Promise.resolve();
@@ -1906,12 +1924,16 @@
       pw.classList.remove("is-settled");
       cap.classList.remove("is-on");
       veil.classList.remove("is-on");
-      var from = box;
-      return tween(440, easeInOut, function (e, t) {
-        draw(mix(from, deskBox(), e));
-        skin.style.opacity = String(clamp(t / 0.55, 0, 1));
+      var from = box, back = false;
+      return tween(700, linear, function (e, t) {
+        var ms = t * 700;
+        var g = easeInOut(clamp(ms / 480, 0, 1));
+        draw(mix(from, deskBox(), g), 1 - g);
+        seen(1 - easeInOut(clamp((ms - 400) / 300, 0, 1)));
+        if (!back && ms >= 620) { back = true; clearDesk(false); }
       }).then(function () {
         show(false);
+        seen(1);
         settle(windowBox());
         clearDesk(false);
         focusOn(false);
@@ -1934,7 +1956,7 @@
         veil.classList.remove("is-on");
         var from = box, to = tileBox();
         // A rough genie: the window narrows first and drops late, pouring in
-        return tween(560, function (t) { return t; }, function (e, t) {
+        return tween(560, linear, function (e, t) {
           draw(mix(from, to, 1 - Math.pow(1 - t, 2.2), Math.pow(t, 1.8)));
           pw.style.opacity = t > 0.82 ? String(1 - (t - 0.82) / 0.18) : "1";
         });
