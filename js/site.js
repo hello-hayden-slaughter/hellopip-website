@@ -1064,6 +1064,250 @@
     return api;
   }
 
+  /* ── A note's format bar ──────────────────────────────────────────────────
+     The app's own bar: bold, italic, underline and the two headings, the two
+     lists, then Undo and Redo. A note has one history, as in the app: your
+     typing, the bar's changes and Pip's edits, newest last, whoever made
+     them. The browser's own undo loses its place once Pip writes into the
+     page, so the note keeps its history here and ⌘Z and ⇧⌘Z step through it.
+     opts.onRestore runs after Undo or Redo puts an earlier page back. */
+  function noteBar(bar, body, opts) {
+    opts = opts || {};
+    var past = [], future = [], typing = null, typedAt = 0, applying = false, waiting = false;
+    try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch (e) {}
+    function btn(cmd) { return $('[data-cmd="' + cmd + '"]', bar); }
+    function inBody() { var s = window.getSelection(); return !!s.rangeCount && body.contains(s.anchorNode); }
+    // The nearest of these round the caret, inside the note
+    function within(sel) {
+      var s = window.getSelection(), n = s.rangeCount ? s.anchorNode : null;
+      var h = n && (n.nodeType === 1 ? n : n.parentNode), m = h && h.closest ? h.closest(sel) : null;
+      return m && m !== body && body.contains(m) ? m : null;
+    }
+
+    // The selection as characters into the note, so it can be put back
+    function selAt() {
+      if (!inBody()) return null;
+      var r = window.getSelection().getRangeAt(0), pre = document.createRange();
+      pre.selectNodeContents(body);
+      pre.setEnd(r.startContainer, r.startOffset);
+      var a = pre.toString().length;
+      return { a: a, z: a + r.toString().length };
+    }
+    function spot(n) {
+      var walk = document.createTreeWalker(body, NodeFilter.SHOW_TEXT), t, last = null;
+      while ((t = walk.nextNode())) { if (n <= t.length) return [t, n]; n -= t.length; last = t; }
+      return last ? [last, last.length] : [body, body.childNodes.length];
+    }
+    function select(at) {
+      var a = spot(at.a), z = spot(at.z), r = document.createRange(), s = window.getSelection();
+      r.setStart(a[0], a[1]); r.setEnd(z[0], z[1]);
+      s.removeAllRanges(); s.addRange(r);
+    }
+
+    /* The history: each step is the page as it was before a change */
+    function state(pip) { return { html: body.innerHTML, at: selAt(), pip: !!pip }; }
+    function push(s) {
+      var top = past[past.length - 1];
+      if (top && top.html === s.html) top.pip = top.pip || s.pip;
+      else past.push(s);
+      if (past.length > 200) past.shift();
+      future = [];
+      typing = null;
+      sync();
+    }
+    function record(pip) { push(state(pip)); }
+    function put(s) {
+      body.innerHTML = s.html;
+      if (s.at) { body.focus({ preventScroll: true }); select(s.at); }
+      typing = null;
+      sync();
+      if (opts.onRestore) opts.onRestore();
+    }
+    function undo() {
+      if (!past.length || waiting) return;
+      var s = past.pop();
+      future.push(state(s.pip));
+      put(s);
+    }
+    function redo() {
+      if (!future.length || waiting) return;
+      var s = future.pop();
+      past.push(state(s.pip));
+      put(s);
+    }
+    // Back to before Pip's newest change still in the note: Pip's own Undo
+    function undoPip() {
+      for (var i = past.length - 1; i >= 0 && !past[i].pip; i--);
+      if (i < 0) return false;
+      while (past.length > i) undo();
+      return true;
+    }
+
+    // A run of typing is one step; a new line, a paste or a format is one of its own
+    body.addEventListener("beforeinput", function (e) {
+      var t = e.inputType || "";
+      if (t === "historyUndo" || t === "historyRedo") { e.preventDefault(); if (t === "historyUndo") undo(); else redo(); return; }
+      if (applying) return;
+      var kind = /^delete/.test(t) ? "delete" : /^insert(Text|CompositionText|ReplacementText)$/.test(t) ? "insert" : null;
+      if (!kind || kind !== typing || Date.now() - typedAt > 600) record();
+      typing = kind;
+      typedAt = Date.now();
+    });
+    body.addEventListener("mousedown", function () { typing = null; });
+    body.addEventListener("keydown", function (e) {
+      var k = (e.key || "").toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && (k === "z" || k === "y")) {
+        e.preventDefault();
+        if (k === "y" || e.shiftKey) redo(); else undo();
+      } else if (/^(arrow|home|end|page)/.test(k)) typing = null;
+    });
+
+    /* The bar's buttons work on what's selected, as in the app. Bold with
+       the caret inside a word bolds the word. With nothing chosen in the
+       note, they work on its first line. */
+    function wordAt() {
+      var s = window.getSelection(), n = s.anchorNode;
+      if (!s.isCollapsed || !n || n.nodeType !== 3) return null;
+      var o = s.anchorOffset, t = n.data, a = o, z = o, W = /[A-Za-z0-9À-ÿ'’£-]/;
+      while (a > 0 && W.test(t.charAt(a - 1))) a--;
+      while (z < t.length && W.test(t.charAt(z))) z++;
+      if (a === o || z === o) return null;
+      var at = selAt(), r = document.createRange();
+      r.setStart(n, a); r.setEnd(n, z);
+      s.removeAllRanges(); s.addRange(r);
+      return at;
+    }
+    /* A line is a paragraph, a heading or a list item. The browser's own
+       block commands nest lists in headings and smear styles on the words,
+       so the bar sets a line's kind itself: the note is read as its lines,
+       the chosen ones change kind (or go back to plain lines when they all
+       are that kind already), and list items regroup into lists. The words
+       themselves move across untouched, Pip's underline and all. */
+    function linesOf() {
+      var out = [], loose = null;
+      Array.prototype.slice.call(body.childNodes).forEach(function (n) {
+        var tag = n.nodeType === 1 ? n.tagName : "";
+        if (tag === "UL" || tag === "OL") {
+          loose = null;
+          Array.prototype.slice.call(n.children).forEach(function (li) { out.push({ kind: tag.toLowerCase(), el: li }); });
+        } else if (/^(P|H[1-6]|DIV|BLOCKQUOTE)$/.test(tag)) {
+          loose = null;
+          out.push({ kind: tag === "H1" ? "h1" : tag === "H2" ? "h2" : "p", el: n });
+        } else if (loose || n.nodeType !== 3 || n.data.trim()) {
+          // words straight in the note, with no line round them, are one line
+          if (!loose) { loose = { kind: "p", el: null, nodes: [] }; out.push(loose); }
+          loose.nodes.push(n);
+        }
+      });
+      return out;
+    }
+    function offsetOf(node, off) {
+      var r = document.createRange();
+      r.selectNodeContents(body);
+      r.setEnd(node, off);
+      return r.toString().length;
+    }
+    function setLines(kind) {
+      var all = linesOf(), r = window.getSelection().getRangeAt(0), end = offsetOf(r.endContainer, r.endOffset);
+      var picked = all.filter(function (L, i) {
+        var first = L.el || L.nodes[0];
+        if (!(L.el ? r.intersectsNode(L.el) : L.nodes.some(function (n) { return r.intersectsNode(n); }))) return false;
+        // a selection ending where a line starts doesn't take that line
+        return r.collapsed || offsetOf(first, 0) < end || offsetOf(r.startContainer, r.startOffset) >= offsetOf(first, 0);
+      });
+      if (!picked.length) {
+        var host = within("li, p, h1, h2");
+        picked = all.filter(function (L) { return L.el === host; });
+        if (!picked.length) picked = all.slice(0, 1);
+      }
+      var to = picked.every(function (L) { return L.kind === kind; }) ? "p" : kind;
+      var ends = [[r.startContainer, r.startOffset], [r.endContainer, r.endOffset]], olds = [], news = [];
+      var frag = document.createDocumentFragment(), list = null;
+      all.forEach(function (L) {
+        var k = picked.indexOf(L) > -1 ? to : L.kind, tag = k === "ul" || k === "ol" ? "li" : k, node = L.el;
+        if (!node || node.tagName.toLowerCase() !== tag) {
+          node = document.createElement(tag);
+          if (L.el) {
+            Array.prototype.slice.call(L.el.attributes).forEach(function (a) { node.setAttribute(a.name, a.value); });
+            olds.push(L.el); news.push(node);
+          }
+          (L.el ? Array.prototype.slice.call(L.el.childNodes) : L.nodes).forEach(function (c) { node.appendChild(c); });
+        }
+        if (tag === "li") {
+          if (!list || list.tagName.toLowerCase() !== k) { list = document.createElement(k); frag.appendChild(list); }
+          list.appendChild(node);
+        } else { list = null; frag.appendChild(node); }
+      });
+      body.textContent = "";
+      body.appendChild(frag);
+      // The selection stays on the same words
+      ends = ends.map(function (e) { var i = olds.indexOf(e[0]); return i > -1 ? [news[i], e[1]] : e; });
+      if (ends.every(function (e) { return e[0] !== body && body.contains(e[0]); })) {
+        var nr = document.createRange();
+        nr.setStart(ends[0][0], ends[0][1]); nr.setEnd(ends[1][0], ends[1][1]);
+        window.getSelection().removeAllRanges(); window.getSelection().addRange(nr);
+      }
+    }
+    function apply(cmd) {
+      if (waiting) return;
+      if (cmd === "undo") return undo();
+      if (cmd === "redo") return redo();
+      var at = selAt();
+      body.focus({ preventScroll: true });
+      if (at) select(at);
+      else {
+        var first = $$("p, h1, h2, li", body).filter(function (b) { return b.textContent.trim(); })[0], r = document.createRange();
+        if (first) r.setStart(first, 0); else r.selectNodeContents(body);
+        r.collapse(true);
+        window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+      }
+      var before = state();
+      applying = true;
+      if (/^(h1|h2|ul|ol)$/.test(cmd)) setLines(cmd);
+      else {
+        var keep = wordAt();
+        document.execCommand(cmd);
+        if (keep) select(keep);
+      }
+      applying = false;
+      if (body.innerHTML !== before.html) push(before); else sync();
+    }
+    bar.addEventListener("mousedown", function (e) { e.preventDefault(); }); // the note keeps its selection
+    bar.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-cmd]");
+      if (b && !b.disabled) apply(b.getAttribute("data-cmd"));
+    });
+
+    /* What's on where the caret is, pressed as in the app; greyed while
+       Pip is writing in the note, and Undo and Redo when there's nothing */
+    function qs(c) { try { return document.queryCommandState(c); } catch (e) { return false; } }
+    function press(cmd, on) { btn(cmd).setAttribute("aria-pressed", on ? "true" : "false"); }
+    function sync() {
+      $$("[data-cmd]", bar).forEach(function (b) { b.disabled = waiting; });
+      if (!past.length) btn("undo").disabled = true;
+      if (!future.length) btn("redo").disabled = true;
+      var here = inBody(), list = here && within("ul, ol");
+      press("bold", here && (!!within("b, strong") || (!within("h1, h2") && qs("bold"))));
+      press("italic", here && qs("italic"));
+      press("underline", here && qs("underline"));
+      press("h1", here && !!within("h1"));
+      press("h2", here && !!within("h2"));
+      press("ul", !!list && list.tagName === "UL");
+      press("ol", !!list && list.tagName === "OL");
+    }
+    document.addEventListener("selectionchange", sync);
+    body.addEventListener("input", sync);
+    sync();
+
+    return {
+      record: record,
+      undoPip: undoPip,
+      hasPip: function () { return past.some(function (s) { return s.pip; }); },
+      wait: function (on) { waiting = !!on; sync(); },
+      clear: function () { past = []; future = []; typing = null; sync(); }
+    };
+  }
+
   /* ── Help with the bit you're stuck on ───────────────────────────────────
      A note you write in, with Pip docked beside it. Select words to work on
      just those (the panel says "Selection"), or nothing for the whole note.
@@ -1203,7 +1447,7 @@
         return m.needs.every(function (need) { return need.charAt(0) === "!" ? !r.f[need.slice(1)] : r.f[need]; });
       }).slice(0, 4).map(function (m) { return { move: m.move, label: m.say.replace("{ref}", ref), icon: m.icon, where: m.where }; });
     }
-    var picked = null, history = [], pp;
+    var picked = null, pp, bar;
 
     function norm(t) { return t.replace(/[•]/g, " ").replace(/\s+/g, " ").trim().toLowerCase(); }
     function textOf(v) { return Array.isArray(v) ? v.join(" ") : v; }
@@ -1309,10 +1553,15 @@
       });
     });
 
-    function snapshot() { return body.innerHTML; }
+    // Each block of writing, whatever the bar has made it: a line, a heading, a list item
     function paragraphs() {
-      return $$("p", body).filter(function (p) { return p.textContent.trim(); }).map(function (p) { var r = document.createRange(); r.selectNodeContents(p); return r; });
+      var out = $$("p, h1, h2, li", body).filter(function (p) { return p.textContent.trim() && !$("p, h1, h2, li", p); })
+        .map(function (p) { var r = document.createRange(); r.selectNodeContents(p); return r; });
+      if (!out.length && body.textContent.trim()) { var all = document.createRange(); all.selectNodeContents(body); out = [all]; }
+      return out;
     }
+    // While Pip writes, its moves wait, and so does the note's bar
+    function busy(on) { pp.busy(on); bar.wait(on); }
     function fill(span, out, then) {
       if (Array.isArray(out)) {
         out.forEach(function (line, k) { if (k) span.appendChild(el("br")); span.appendChild(document.createTextNode("•  " + line)); });
@@ -1333,19 +1582,18 @@
       if (kind === "answer" || kind === "sceptic" || kind === "find") {
         var words = targets.map(function (r) { return r.toString(); }).join(" ");
         pp.say(WORKING[kind] + "…", true);
-        pp.busy(true);
-        setTimeout(function () { pp.busy(false); pp.say(answerOnly(kind, words)); if (then) then(); }, reduced() ? 0 : 1100);
+        busy(true);
+        setTimeout(function () { busy(false); pp.say(answerOnly(kind, words)); if (then) then(); }, reduced() ? 0 : 1100);
         return;
       }
       pp.say(WORKING[kind] + "…", true);
-      pp.busy(true);
-      var before = snapshot();
+      busy(true);
       setTimeout(function () {
         var plans = targets.map(function (range) { return { range: range, a: answer(kind, range.toString()) }; });
         var changing = plans.filter(function (p) { return p.a.out; });
         var said = (changing[0] || plans[0]).a.say;
-        if (!changing.length) { pp.busy(false); pp.say(said); pick(null); window.getSelection().removeAllRanges(); if (then) then(); return; }
-        history.push(before);
+        if (!changing.length) { busy(false); pp.say(said); pick(null); window.getSelection().removeAllRanges(); if (then) then(); return; }
+        bar.record(true);
         var spans = changing.map(function (p) {
           var span = el("span", "pp-edit");
           p.range.deleteContents();
@@ -1357,7 +1605,7 @@
         var i = 0;
         (function next() {
           if (i >= spans.length) {
-            pp.busy(false);
+            busy(false);
             pp.say(said);
             pp.showUndo(true);
             pp.hint("<b>Underlined:</b> Pip's edit. Change any word and it's yours.");
@@ -1369,12 +1617,12 @@
         })();
       }, reduced() ? 0 : 1300);
     }
+    // Pip's Undo, in the panel: the note's history back to before Pip's newest change
     function undo() {
-      if (!history.length || pp.isBusy) return;
-      body.innerHTML = history.pop();
+      if (pp.isBusy || !bar.undoPip()) return;
       pick(null);
-      pp.say(history.length ? "Back to the version before that." : "Back to how you wrote it.");
-      if (history.length) pp.showUndo(true);
+      pp.say(bar.hasPip() ? "Back to the version before that." : "Back to how you wrote it.");
+      if (bar.hasPip()) pp.showUndo(true);
       pp.hint();
     }
 
@@ -1394,7 +1642,7 @@
       var p1 = el("p"); p1.setAttribute("data-help-p1", "");
       body.appendChild(p1);
       body.appendChild(el("p", "", REST));
-      history = []; pick(null); pp.clear(); pp.hint();
+      bar.clear(); pick(null); pp.clear(); pp.hint();
       return p1;
     }
 
@@ -1489,6 +1737,16 @@
       });
     }
 
+    bar = noteBar($("[data-pp-bar]", root), body, {
+      // Undo or Redo in the bar: Pip's Undo in the panel stays only while Pip's change is still there
+      onRestore: function () {
+        pick(null);
+        var undos = $$(".pp-undo", root), last = undos[undos.length - 1];
+        undos.forEach(function (b) { b.hidden = true; });
+        if (last && bar.hasPip()) last.hidden = false;
+        pp.hint();
+      }
+    });
     pp = pipPage(root, {
       play: play,
       onReplay: play,
@@ -1520,10 +1778,12 @@
     var box = $("[data-composer]", root);
     var ph = $("[data-ph]", box);
     var typed = $("[data-typing]", box);
+    var field = typed.parentNode;
     return {
       box: box,
       reset: function () {
         typed.textContent = "";
+        field.scrollLeft = 0;
         ph.hidden = false;
         box.classList.remove("is-typing", "is-ready");
       },
@@ -1535,6 +1795,7 @@
           if (i >= text.length) { box.classList.add("is-ready"); return Promise.resolve(); }
           i += 1;
           typed.textContent = text.slice(0, i);
+          field.scrollLeft = field.scrollWidth; // a long question keeps its end in view, as a real box does
           var ch = text.charAt(i - 1);
           return sleep(ch === " " ? 70 : ch === "?" || ch === "," ? 120 : 38 + Math.random() * 34).then(next);
         }
@@ -1542,6 +1803,7 @@
       },
       send: function () {
         typed.textContent = "";
+        field.scrollLeft = 0;
         ph.hidden = false;
         box.classList.remove("is-typing", "is-ready");
       }
@@ -1585,24 +1847,30 @@
     });
   }
 
-  /* The right AI for every job: a chat already going, each answer marked as
+  /* The right AI for every job: a chat already going, its answer marked as
      Pip's choice and the model it went to (Claude Sonnet 5). A pointer opens
      the menu from the chat box: models from four companies, Pip's choice
-     ticked. It runs down them, then picks Pip's choice again and the menu
-     closes. A follow-up goes in and Pip answers as before: nothing to choose,
-     and everything there if you want it. */
+     ticked. It runs down them and picks Claude Opus 5.5 for this chat. A
+     harder question goes in, the slim lamp's margin, and the answer works it
+     out from the costs, marked with the model that gave it. */
   function sceneSwitch() {
     var root = $('[data-scene="switch"]');
     if (!root) return;
     var chat = $(".pchat", root);
     var steps = $$("[data-step]", root);
     var chip = $("[data-chip]", root);
+    var chipName = $("[data-chip-label]", chip);
     var opts = $$("[data-menu] .mopt", root);
     var cursor = $("[data-cursor]", root);
     var box = composer(root);
-    var CHOICE = 0, OTHERS = [1, 2, 3, 4]; // Pip's choice, then Claude, GPT, Mistral, GLM
+    var CHOICE = 0, PICK = 1, OTHERS = [1, 2, 3, 4]; // Pip's choice, then Claude, GPT, Mistral, GLM
 
     function hover(i) { opts.forEach(function (o, k) { o.classList.toggle("is-hover", k === i); }); }
+    // The chat's AI: the tick in the menu and the name on the chip
+    function pick(i) {
+      opts.forEach(function (o, k) { o.classList.toggle("is-on", k === i); });
+      chipName.textContent = opts[i].getAttribute("data-model");
+    }
     // Put the pointer's tip on the middle of a node (or a point in the chat)
     function point(node, fx, fy) {
       var c = chat.getBoundingClientRect();
@@ -1625,6 +1893,7 @@
       chip.classList.remove("is-on");
       cursor.classList.remove("is-on", "is-press");
       hover(-1);
+      pick(CHOICE);
       box.reset();
     }
     // Down the list, one model at a time
@@ -1647,18 +1916,19 @@
           .then(function () { return press(sleep); })
           .then(function () { chip.classList.add("is-on"); root.classList.add("is-open"); return sleep(700); })
           .then(function () { return browse(sleep, 0); })
-          .then(function () { point(opts[CHOICE], 0.3, 0.55); return sleep(700); })
-          .then(function () { hover(CHOICE); return sleep(420); })
+          .then(function () { point(opts[PICK], 0.3, 0.55); return sleep(700); })
+          .then(function () { hover(PICK); return sleep(420); })
           .then(function () { return press(sleep); })
+          .then(function () { pick(PICK); return sleep(450); })
           .then(function () { hover(-1); root.classList.remove("is-open"); chip.classList.remove("is-on"); point(null, 0.78, 0.5); return sleep(500); })
           .then(function () { cursor.classList.remove("is-on"); return sleep(500); })
           .then(function () { return box.type(q.textContent, sleep); })
           .then(function () { return sleep(400); })
           .then(function () { box.send(); q.classList.add("is-shown"); return sleep(500); })
-          .then(function () { a.classList.add("is-shown", "is-thinking"); return sleep(1300); })
+          .then(function () { a.classList.add("is-shown", "is-thinking"); return sleep(2200); })
           .then(function () { a.classList.remove("is-thinking"); a.classList.add("is-answered"); return sleep(300); });
       },
-      end: function () { clear(); root.classList.remove("is-pre"); }
+      end: function () { clear(); pick(PICK); root.classList.remove("is-pre"); }
     });
   }
 
@@ -2209,7 +2479,7 @@
   }
 
   /* ── jobs ──────────────────────────────────────────────────────────────────
-     "Help with everything you make." Pip on your page (pipPage): six files
+     "Inside everything you make." Pip on your page (pipPage): six files
      open in tabs along the top of the file, Pip's panel docked beside it.
      Opening a file shows it as it is, and Pip's card says what Pip can do
      for it. A move plays the job in the file itself while Pip says what's
@@ -3062,6 +3332,7 @@
     var input = $("input", compose);
     var send = $("button", compose);
     var QUESTION = "Can you turn these into a plan for " + month + "?";
+    var YOURS = "<b>Your turn:</b> ask Pip to write the captions.";
     var END = "<b>Your turn:</b> ask Pip to pick the photos, or change a caption.";
 
     function norm(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, ""); }
@@ -3082,6 +3353,8 @@
     var gen = 0;       // a newer change, or Play it again, stops an older one's timers
     var shown = 6;     // whole rows in view
     var arrive = 0, jotting = false, pp;
+    var nudge = 0;     // anything done in the stage puts off the pointer's next nudge
+    var bar = noteBar($("[data-pp-bar]", files.note), ideasBox);
 
     table.setAttribute("aria-label", month + " posts");
     $$(".flow-tr", table).forEach(function (r, i) { r.style.setProperty("--n", i); });
@@ -3101,11 +3374,13 @@
       b.finish(false);
     }
 
-    /* The note's ideas as written now, one a line */
+    /* The note's ideas as written now, one a line, whatever the bar has
+       made them: list items, headings, plain lines */
+    function lines() { return $$("li, p, h1, h2", ideasBox).filter(function (n) { return !$("li, p, h1, h2", n); }); }
     function ideasNow() {
-      var items = $$("li", ideasBox);
-      var lines = items.length ? items.map(function (li) { return li.textContent; }) : ideasBox.innerText.split("\n");
-      return lines.map(function (t) { return t.trim(); }).filter(function (t) { return norm(t); });
+      var items = lines();
+      var texts = items.length ? items.map(function (li) { return li.textContent; }) : ideasBox.innerText.split("\n");
+      return texts.map(function (t) { return t.trim(); }).filter(function (t) { return norm(t); });
     }
     // An idea as a post's name: no shouting, a capital to start
     function postName(t) {
@@ -3208,7 +3483,7 @@
       var c = capBy.some(Boolean), p = picked.some(Boolean);
       if (c && p) return "<b>Done:</b> a month of posts. Change anything you like.";
       if (c) return "<b>Underlined:</b> Pip's captions. Change any and it's yours.";
-      if (p) return "<b>Your turn:</b> ask Pip to write the captions.";
+      if (p) return YOURS;
       return "<b>New tab:</b> the plan Pip made. Ask Pip to write the captions.";
     }
 
@@ -3218,7 +3493,7 @@
       show("note");
       pp.hot("plan");
       if (!ideasNow().length) { pp.say("Jot down a few ideas first, then ask me."); return; }
-      var items = $$("li", ideasBox).filter(function (li) { return norm(li.textContent); });
+      var items = lines().filter(function (li) { return norm(li.textContent); });
       var i = 0;
       pp.say("Reading Social ideas…", true);
       pp.showUndo(false);
@@ -3346,6 +3621,19 @@
       else pp.say("In this sample I can plan your posts, write the captions and pick the photos. On your Mac, ask me anything.");
     }
 
+    /* Once a change lands, the pointer shows the step still to take: the
+       captions, then the photos. Not if the visitor has moved on meanwhile. */
+    function guide() {
+      var n = nudge;
+      wait(1200, function () {
+        if (n !== nudge || !plan) return;
+        var c = capBy.some(Boolean), p = picked.some(Boolean);
+        if (c && p) return;
+        pp.hint(c ? END : YOURS);
+        pp.invite(c ? "photos" : "captions", pp.auto ? null : caps[1]);
+      });
+    }
+
     /* Undo takes back Pip's newest change. A caption you've changed stays. */
     function undo() {
       settle();
@@ -3388,6 +3676,7 @@
       var host = e.target.closest ? e.target.closest("[contenteditable]") : null;
       if (!host || !e.clipboardData) return;
       e.preventDefault();
+      if (host === ideasBox) bar.record();
       var text = e.clipboardData.getData("text/plain");
       document.execCommand("insertText", false, caps.indexOf(host) > -1 ? text.replace(/\s+/g, " ") : text);
     });
@@ -3417,14 +3706,15 @@
       ideasBox.textContent = "";
       list = el("ul");
       ideasBox.appendChild(list);
+      bar.clear();
       input.value = "";
       compose.classList.remove("is-typing");
       pp.hint();
     }
 
     /* The play-through, at reading pace: you jot the ideas down, ask Pip in
-       the panel's box, Pip makes the plan, and the captions get written.
-       Then it's your turn. */
+       the panel's box, and Pip makes the plan. Then it's your turn: the
+       captions, then the photos. */
     function play() {
       pp.start(function () {
         reset();
@@ -3461,27 +3751,10 @@
             input.value = "";
             compose.classList.remove("is-typing");
             pp.you(QUESTION);
-            ask(QUESTION, carryOn);
+            ask(QUESTION, guide);
             // then watch the note as Pip reads it
             pp.later(function () { pp.moveTo(list, list.getBoundingClientRect().width * 0.55, 44); }, 700);
           }, 1400);
-        }
-        function carryOn() {
-          if (!pp.auto) return;
-          pp.later(function () { pp.moveTo($('[data-move="captions"]', root), 70, 19); }, 1600);
-          pp.later(function () {
-            pp.tap();
-            pp.you("Write the captions");
-            run("captions", finish);
-          }, 2800);
-          pp.later(function () { pp.moveTo(caps[1], caps[1].getBoundingClientRect().width * 0.5, 16); }, 3500);
-        }
-        function finish() {
-          if (!pp.auto) return;
-          pp.later(function () {
-            pp.hint(END);
-            pp.invite("photos");
-          }, 1200);
         }
         pp.later(idea, 600);
       });
@@ -3490,9 +3763,9 @@
     pp = pipPage(root, {
       play: play,
       onReplay: play,
-      onMove: function (move) { run(move); },
+      onMove: function (move) { run(move, guide); },
       onUndo: undo,
-      onAsk: function (words) { ask(words); },
+      onAsk: function (words) { ask(words, guide); },
       onStop: function () {
         var c = $(".pp-caret", root);
         if (c) c.remove();
@@ -3514,7 +3787,8 @@
       pp.hint("<b>Selection:</b> on your Mac, pick part of a file and Pip works on just that.");
     });
     // Any key in the stage takes over from the play-through too
-    root.addEventListener("keydown", function () { pp.stop(); }, true);
+    root.addEventListener("keydown", function () { nudge++; pp.stop(); }, true);
+    root.addEventListener("pointerdown", function () { nudge++; }, true);
 
     root.classList.add("is-ready");
     tabs.plan.hidden = true;
@@ -3684,7 +3958,7 @@
     // Done, with or without the answers
     function finish(answered) {
       thanks.textContent = answered ? "Thanks, " + first(who.name) + ". That really helps." : "Thanks, " + first(who.name) + ". You're on the list.";
-      next.textContent = "I'll email you at " + who.email + " when your place is ready. Keep an eye out for an email from Hayden at Pip.";
+      next.textContent = "I'll send Pip to you at " + who.email + ". Keep an eye out for an email from Hayden at Pip.";
       form.hidden = true;
       more.hidden = true;
       done.hidden = false;
