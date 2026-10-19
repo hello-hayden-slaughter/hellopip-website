@@ -1408,9 +1408,20 @@ small { font-size: inherit; }
 .pp-edit.is-yours { background: transparent; box-shadow: inset 0 -2px 0 transparent; }
 .pp-caret { display: inline-block; width: 2px; height: 1.1em; margin: 0 1px; vertical-align: -0.18em; background: var(--accent-strong); }
 ::highlight(pp-picked) { background-color: color-mix(in srgb, var(--accent) 28%, transparent); }
-.pp-toolbar { position: absolute; left: 50%; bottom: 18px; display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: 14px; background: var(--surface-pip); box-shadow: var(--shadow-md), var(--win-ring); transform: translateX(-50%); }
-.pp-toolbar span { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; font-size: 14px; font-weight: var(--weight-semibold); color: var(--text-secondary); }
-.pp-toolbar .pp-sep { width: 1px; height: 18px; margin: 0 4px; background: var(--border); }
+/* What the bar makes, sized to this page's 17px writing */
+.pp-body h1 { margin: 0 0 10px; font-size: 28px; line-height: 1.15; font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); }
+.pp-body h2 { margin: 0 0 8px; font-size: 22px; line-height: 1.3; font-weight: var(--weight-semibold); }
+.pp-body b, .pp-body strong { font-weight: var(--weight-semibold); }
+.pp-body ul, .pp-body ol { margin: 0 0 14px; padding-left: 1.5em; }
+/* The note's format bar, as the app draws it (.pip-toolbar): Lucide at 20px
+   in 30px buttons, a hairline between groups, pressed in the accent wash,
+   greyed when it can't act. Undo and Redo step through the note's history. */
+.pp-toolbar { position: absolute; left: 50%; bottom: 18px; display: flex; align-items: center; gap: 4px; height: 40px; padding: 4px 8px; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--surface-pip); box-shadow: var(--shadow-lg); transform: translateX(-50%); }
+.pp-toolbar button { flex: none; width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); transition: background-color var(--transition-fast), color var(--transition-fast); }
+.pp-toolbar button:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+.pp-toolbar button[aria-pressed="true"] { background: var(--accent-dim); color: var(--text-accent); }
+.pp-toolbar button:disabled { opacity: 0.35; }
+.pp-toolbar .pp-sep { flex: none; width: 1px; height: 22px; margin: 0 4px; background: var(--border); }
 
 /* Pip's panel, docked: it takes the file's height and scrolls inside */
 .pp-pop { position: relative; min-width: 0; display: flex; flex-direction: column; border-radius: 18px; background: var(--surface-pip); box-shadow: var(--shadow-md), var(--win-ring); contain: size; }
@@ -1501,9 +1512,16 @@ small { font-size: inherit; }
   .pp-doc { padding: 18px 18px 84px; }
   .pp-title { font-size: 25px; }
   .pp-body { font-size: 16px; }
-  .pp-toolbar { display: none; }
+  .pp-body h1 { font-size: 24px; }
+  .pp-body h2 { font-size: 20px; }
   .pp-pop { height: 420px; }
   .pp-hint { position: static; justify-self: center; max-width: 100%; transform: none; }
+}
+/* A phone: the same bar, a little tighter, so every tool still fits */
+@container ppbox (max-width: 440px) {
+  .pp-toolbar { gap: 2px; padding: 4px; }
+  .pp-toolbar button { width: 28px; }
+  .pp-toolbar .pp-sep { margin: 0 2px; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .pp-try.is-on::before { animation: pp-halo 1.5s var(--ease-out) 3; }
@@ -1515,7 +1533,7 @@ small { font-size: inherit; }
 @keyframes pp-halo { 0% { opacity: 0.4; transform: scale(0.35); } 100% { opacity: 0; transform: scale(1.35); } }
 @keyframes pp-rise { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
 
-/* ── Help with everything you make: Pip in your files ───────────────────
+/* ── Inside everything you make: Pip in your files ───────────────────
 
    Pip on your page (above), with six files open in tabs along the top of
    the file and Pip's panel docked beside it, the card naming what Pip can
@@ -2924,7 +2942,7 @@ small { font-size: inherit; }
   .dots i:nth-child(2) { animation-delay: 0.15s; }
   .dots i:nth-child(3) { animation-delay: 0.3s; }
 
-  /* ── Help with everything you make ───────────────────────────────────── */
+  /* ── Inside everything you make ───────────────────────────────────── */
   .slide.is-dealt .slide-face { animation: slide-deal 480ms var(--ease-out) both; }
   .tbl--costs td.is-recalc { animation: jobs-recalc 1200ms var(--ease-out); }
   .costs.has-cost th.c-cost, .costs.has-marg th.c-marg { animation: pip-arrive var(--dur-quick) var(--ease-out) both; }
@@ -3436,7 +3454,12 @@ html.has-pw { overflow: hidden; }
   background: var(--text-muted);
 }
 /* the idea Pip is reading */
-.flow-ideas li.is-lit { background-color: var(--accent-soft); }
+.flow-ideas .is-lit { background-color: var(--accent-soft); }
+/* A numbered list or a heading, made with the format bar */
+.flow-ideas ol { margin: 0; padding: 0 0 0 1.6em; }
+.flow-ideas ol > li { margin-inline: 0 -8px; padding-left: 6px; }
+.flow-ideas ol > li::before { content: none; }
+.flow-ideas p, .flow-ideas h1, .flow-ideas h2 { margin: 0 0 6px; }
 
 /* The plan: rows are one height, so as many as fit are shown */
 .flow-grid { flex: 1 1 auto; min-height: 0; container: flowtable / inline-size; }
