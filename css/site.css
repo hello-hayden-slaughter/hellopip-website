@@ -2834,6 +2834,12 @@ small { font-size: inherit; }
 .join-done-face { margin-bottom: 4px; }
 .join-mac { margin-top: clamp(32px, 4vw, 48px); font-size: 15px; color: var(--text-secondary); }
 
+/* get.html: until the script has picked the file, only the face, the title
+   and the steps show, so nothing flashes. Without the script (or if it
+   breaks, .no-reveal) the two plain links are the page. */
+.get-small { max-width: 46ch; font-size: 15px; line-height: 1.55; color: var(--text-secondary); }
+.js:not(.no-reveal) [data-get]:not(.is-ready) :is([data-get-lead], [data-get-btns], [data-get-small]) { visibility: hidden; }
+
 .steps { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--col-gap); }
 .step { display: flex; flex-direction: column; gap: 22px; }
 .step-n { font-size: 44px; font-weight: var(--weight-semibold); line-height: 1; letter-spacing: -0.03em; color: var(--text-secondary); }

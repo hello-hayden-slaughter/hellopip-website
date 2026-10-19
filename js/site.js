@@ -15,6 +15,7 @@
      accordion  questions that open with height and fade
      jumpList   the questions page's group list
      signup     the first-50 sign-up form (download.html)
+     getPip     the download itself: the right .dmg for this Mac (get.html)
 
    Reduced motion is a real mode: every module renders its end state and
    nothing loops, types or slides.
@@ -3883,11 +3884,13 @@
   }
 
   /* ── signup ────────────────────────────────────────────────────────────────
-     "Download for Mac" leads here while Pip opens to its first 50 people: a
-     name, an email and, if they like, what they do. It goes to Pip's own
-     database in the EU through join_waitlist (the table itself is closed;
-     the key is the public one the app ships with). Nothing is pretended: if it can't be saved, the form
-     says so and offers Hayden's email instead. A hidden field catches bots. */
+     "Download for Mac" leads here: a name, an email and, if they like, three
+     answers. It goes to Pip's own database in the EU through join_waitlist
+     (the table itself is closed; the key is the public one the app ships
+     with), and the database emails them the download 3 minutes later, or as
+     soon as they send or skip the questions (waitlist_more). Nothing is
+     pretended: if it can't be saved, the form says so and offers Hayden's
+     email instead. A hidden field catches bots. */
 
   var CONTACT = "hello@haydenslaughter.co.uk";
 
@@ -3929,7 +3932,9 @@
       return fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: key },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        // A Skip that is still on its way when they close the tab still lands
+        keepalive: true
       });
     }
 
@@ -3950,15 +3955,15 @@
 
     // Step 2: the place is saved; three optional questions
     function askMore() {
-      saved.textContent = "You're on the list, " + first(who.name) + ".";
+      saved.textContent = "Your place is saved, " + first(who.name) + ".";
       form.hidden = true;
       more.hidden = false;
       more.focus({ preventScroll: true });
     }
     // Done, with or without the answers
     function finish(answered) {
-      thanks.textContent = answered ? "Thanks, " + first(who.name) + ". That really helps." : "Thanks, " + first(who.name) + ". You're on the list.";
-      next.textContent = "I'll send Pip to you at " + who.email + ". Keep an eye out for an email from Hayden at Pip.";
+      thanks.textContent = answered ? "Thanks, " + first(who.name) + ". That really helps." : "Thanks, " + first(who.name) + ".";
+      next.textContent = "I've sent Pip to you at " + who.email + ". If it isn't there in a few minutes, check your junk folder.";
       form.hidden = true;
       more.hidden = true;
       done.hidden = false;
@@ -4005,6 +4010,14 @@
       });
     }
 
+    // Skip, or Send with nothing picked, still uses up the code: that tells
+    // the database the questions are done, so the email goes now rather than
+    // in 3 minutes. If this call is lost, the 3 minutes still send it.
+    function skipped() {
+      if (code) post(moreEndpoint, { p_token: code }).catch(function () {});
+      finish(false);
+    }
+
     function picked(name) {
       var on = $('input[name="' + name + '"]:checked', more);
       return on ? on.value : null;
@@ -4017,7 +4030,7 @@
       var about = m("about").value.trim();
       var level = picked("ai_level");
       var pays = picked("ai_pays");
-      if (!about && !level && !pays) { finish(false); return; }
+      if (!about && !level && !pays) { skipped(); return; }
       if (!code) { finish(false); return; }
       busyOn(moreBtn, "Sending…");
       post(moreEndpoint, { p_token: code, p_about: about || null, p_ai_level: level ? +level : null, p_ai_pays: pays })
@@ -4029,7 +4042,7 @@
         })
         .then(function () { busyOff(moreBtn); });
     });
-    skip.addEventListener("click", function () { if (!busy) finish(false); });
+    skip.addEventListener("click", function () { if (!busy) skipped(); });
 
     // Back to the start if the page is shown again from the cache
     window.addEventListener("pageshow", function (e) {
@@ -4040,11 +4053,129 @@
   }
 
 
+  /* ── getPip ────────────────────────────────────────────────────────────────
+     get.html, where the sign-up email's button lands. On a Mac it starts the
+     right .dmg by itself: the latest release's file for this Mac's chip, from
+     GitHub's API, or the release written into the page when the API is slow
+     or out of its hourly allowance. Never the releases page and its list of
+     files. On a phone, an iPad or a PC it starts nothing and says Pip is for
+     Mac. */
+
+  var RELEASE_API = "https://api.github.com/repos/hello-hayden-slaughter/Pip-release/releases/latest";
+  var RELEASE_FILES = "https://github.com/hello-hayden-slaughter/Pip-release/releases/download/";
+
+  function onMac() {
+    var ua = navigator.userAgent || "";
+    // An iPhone says "like Mac OS X", and an iPad asks for the Mac site; both
+    // have a touch screen, which no Mac has
+    if (/iPhone|iPad|iPod|Android/.test(ua)) return false;
+    return /Macintosh|Mac OS X/.test(ua) && !(navigator.maxTouchPoints > 1);
+  }
+
+  // The graphics chip gives the Mac away: Intel, AMD or NVIDIA graphics mean
+  // an Intel Mac, "Apple M…" means Apple silicon. Safari names neither ("Apple
+  // GPU"), but only Apple silicon offers ASTC textures.
+  function gpuChip() {
+    try {
+      var c = document.createElement("canvas");
+      var gl = c.getContext("webgl2") || c.getContext("webgl");
+      if (!gl) return null;
+      var info = gl.getExtension("WEBGL_debug_renderer_info");
+      var name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || "") : "";
+      if (/Intel|AMD|Radeon|NVIDIA|GeForce/i.test(name)) return "x64";
+      if (/Apple M\d/i.test(name)) return "arm64";
+      return (gl.getSupportedExtensions() || []).indexOf("WEBGL_compressed_texture_astc") >= 0 ? "arm64" : "x64";
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // "arm64", "x64", or null when the browser won't say. Chrome and Edge say
+  // outright; the others are read from the graphics chip.
+  function macChip() {
+    var ua = navigator.userAgentData;
+    var asked = ua && ua.getHighEntropyValues
+      ? ua.getHighEntropyValues(["architecture"]).then(function (v) {
+          return v.architecture === "arm" ? "arm64" : v.architecture === "x86" ? "x64" : null;
+        }, function () { return null; })
+      : Promise.resolve(null);
+    return asked.then(function (chip) { return chip || gpuChip(); });
+  }
+
+  // The latest release's two .dmg files, or null after 3 seconds without them
+  function latestFiles() {
+    if (!window.fetch) return Promise.resolve(null);
+    return new Promise(function (resolve) {
+      var timer = setTimeout(function () { resolve(null); }, 3000);
+      fetch(RELEASE_API, { headers: { Accept: "application/vnd.github+json" } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (release) {
+          var files = {};
+          ((release && release.assets) || []).forEach(function (a) {
+            var m = /-(arm64|x64)\.dmg$/.exec(a.name || "");
+            var url = String(a.browser_download_url || "");
+            if (m && url.indexOf(RELEASE_FILES) === 0) files[m[1]] = url;
+          });
+          resolve(files.arm64 && files.x64 ? files : null);
+        }, function () { resolve(null); })
+        .then(function () { clearTimeout(timer); });
+    });
+  }
+
+  function getPip() {
+    var root = $("[data-get]");
+    if (!root) return;
+    var title = $("[data-get-title]", root);
+    var lead = $("[data-get-lead]", root);
+    var btns = $("[data-get-btns]", root);
+    var main = $("[data-get-main]", root);
+    var mainLabel = $("[data-get-main-label]", root);
+    var alt = $("[data-get-alt]", root);
+    var small = $("[data-get-small]", root);
+    var steps = $("[data-get-steps]", root);
+    var baked = { arm64: root.getAttribute("data-arm"), x64: root.getAttribute("data-intel") };
+    var NAMES = { arm64: "Apple silicon", x64: "Intel" };
+
+    function ready() { root.classList.add("is-ready"); }
+
+    if (!onMac()) {
+      title.textContent = "Pip is for Mac";
+      lead.textContent = "Open this link on your Mac, and the download starts by itself.";
+      small.textContent = "Pip runs on Macs with macOS 13 or later.";
+      btns.hidden = true;
+      steps.hidden = true;
+      ready();
+      return;
+    }
+
+    Promise.all([macChip(), latestFiles()]).then(function (got) {
+      var known = got[0];
+      var chip = known || "arm64"; // most Macs sold since 2020
+      var other = chip === "arm64" ? "x64" : "arm64";
+      var files = got[1] || baked;
+
+      title.textContent = "Here's Pip";
+      lead.textContent = "Your download is starting.";
+      main.href = files[chip];
+      mainLabel.textContent = "Download again";
+      alt.hidden = true;
+      small.textContent = "This is the one for " + NAMES[chip] + " Macs" + (known ? "" : ", which most Macs since 2020 have") + ".";
+      small.appendChild(el("br"));
+      small.appendChild(document.createTextNode("On an " + NAMES[other] + " Mac? "));
+      var a = el("a", "", "Get the " + NAMES[other] + " one");
+      a.href = files[other];
+      small.appendChild(a);
+      small.appendChild(document.createTextNode("."));
+      ready();
+      window.location.href = files[chip];
+    });
+  }
+
   /* ── start ─────────────────────────────────────────────────────────────────
      Each module runs on its own, so one failing never stops the rest.
      PIP_READY tells the inline guard in <head> that reveals are handled. */
 
-  [pageTop, dates, stops, header, mascots, reveal, inView, peek, scenes, demoWindow, playground, jobs, flow, accordion, jumpList, signup].forEach(function (init) {
+  [pageTop, dates, stops, header, mascots, reveal, inView, peek, scenes, demoWindow, playground, jobs, flow, accordion, jumpList, signup, getPip].forEach(function (init) {
     try { init(); } catch (err) {
       if (window.console && console.error) console.error("pip site:", err);
     }
